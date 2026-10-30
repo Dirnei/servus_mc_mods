@@ -1,6 +1,5 @@
 package io.github.dirnei.mc.servus.shuttles.menu;
 
-import io.github.dirnei.mc.servus.foundation.machine.menu.PlayerInventorySlots;
 import io.github.dirnei.mc.servus.foundation.team.Teams;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldActions;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldItem;
@@ -28,21 +27,19 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
- * The handheld's GUI: the team's zone list with the zone form, and the bound
- * warehouse's stock for FIND. Holds only the player inventory, so items can be
- * picked up for the form's ghost slots, which the screen keeps itself.
+ * The handheld's GUI: the team's zone list with the zone form, the bound
+ * warehouse's stock for FIND and the last INFO readout. It holds no slots;
+ * the zone form picks its filter in an item picker.
  */
 public class HandheldMenu extends AbstractContainerMenu {
 
-    public static final int INVENTORY_X = 48;
-    public static final int INVENTORY_Y = 174;
     /** How many stock rows the FIND list gets at most. */
     private static final int STOCK_LIMIT = 500;
 
     private final InteractionHand hand;
     private final Player player;
     private final UUID team;
-    private Map<Integer, Integer> bayCounts = Map.of();
+    private Map<Integer, Integer> shelfCounts = Map.of();
     private boolean bound;
     private List<ItemStack> stock = List.of();
     private List<Long> stockCounts = List.of();
@@ -52,7 +49,6 @@ public class HandheldMenu extends AbstractContainerMenu {
         this.hand = hand;
         this.player = playerInventory.player;
         this.team = team;
-        PlayerInventorySlots.add(this::addSlot, playerInventory, INVENTORY_X, INVENTORY_Y);
     }
 
     public static HandheldMenu fromNetwork(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buf) {
@@ -79,8 +75,9 @@ public class HandheldMenu extends AbstractContainerMenu {
         return handheld().get(ServusShuttlesComponents.HANDHELD_ZONE.get());
     }
 
-    public int bayCount(int zoneId) {
-        return bayCounts.getOrDefault(zoneId, 0);
+    /** How many loaded shelves are in the zone. */
+    public int shelfCount(int zoneId) {
+        return shelfCounts.getOrDefault(zoneId, 0);
     }
 
     public boolean bound() {
@@ -97,13 +94,13 @@ public class HandheldMenu extends AbstractContainerMenu {
 
     /** Client: takes the state the server sent. */
     public void acceptState(HandheldMenuStatePayload payload) {
-        bayCounts = Map.copyOf(payload.bayCounts());
+        shelfCounts = Map.copyOf(payload.shelfCounts());
         bound = payload.bound();
         stock = List.copyOf(payload.items());
         stockCounts = List.copyOf(payload.counts());
     }
 
-    /** Server: sends bay counts and the bound warehouse's stock. */
+    /** Server: sends shelf counts, the bound warehouse's stock and the last INFO readout. */
     public void sendState(ServerPlayer player) {
         Optional<WarehouseNetwork> network = HandheldActions.boundNetwork(player.level().getServer(), handheld());
         List<ItemStack> items = new ArrayList<>();
@@ -116,8 +113,9 @@ public class HandheldMenu extends AbstractContainerMenu {
                 counts.add(entry.getValue());
             }
         });
-        PacketDistributor.sendToPlayer(player, new HandheldMenuStatePayload(HandheldActions.loadedBayCounts(player.level().getServer()),
+        PacketDistributor.sendToPlayer(player, new HandheldMenuStatePayload(HandheldActions.loadedShelfCounts(player.level().getServer()),
                 network.isPresent(), items, counts));
+        HandheldActions.resendInfo(player, handheld());
     }
 
     /** Server: makes a zone of the player's team, or "No zone" for 0, the active one. */
@@ -160,7 +158,7 @@ public class HandheldMenu extends AbstractContainerMenu {
         return zone != null && zone.team().equals(Teams.teamOf(player));
     }
 
-    /** One of each ghost item, at most nine, and tags parsed again. */
+    /** One of each filter item and at most nine of them, and at most nine tags, parsed again. */
     private static ZoneFilter clean(ZoneFilter filter) {
         List<ItemStack> items = new ArrayList<>();
         for (ItemStack stack : filter.items()) {
@@ -168,7 +166,8 @@ public class HandheldMenu extends AbstractContainerMenu {
                 items.add(stack.copyWithCount(1));
             }
         }
-        return new ZoneFilter(items, ZoneFilter.parseTags(String.join(",", filter.tags())));
+        List<String> tags = ZoneFilter.parseTags(String.join(",", filter.tags()));
+        return new ZoneFilter(items, tags.subList(0, Math.min(ZoneFilter.SLOTS, tags.size())));
     }
 
     @Override

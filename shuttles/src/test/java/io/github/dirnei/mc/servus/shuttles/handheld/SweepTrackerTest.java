@@ -32,6 +32,14 @@ class SweepTrackerTest {
     }
 
     @Test
+    void twoBaysOfOneShelfShareTheKeyAndAreSkipped() {
+        assertEquals(0, tracker.scan("alex", 10, 0));
+        assertEquals(SweepTracker.SKIP, tracker.scan("alex", 10, 4));
+        assertEquals(1, tracker.scan("alex", 20, 8));
+        assertEquals(2, tracker.scan("alex", 30, 12));
+    }
+
+    @Test
     void playersSweepApart() {
         tracker.scan("alex", 1, 0);
         assertEquals(0, tracker.scan("sam", 1, 1));

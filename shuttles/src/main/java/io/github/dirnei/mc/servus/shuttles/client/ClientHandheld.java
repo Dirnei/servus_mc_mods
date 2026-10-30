@@ -2,14 +2,14 @@ package io.github.dirnei.mc.servus.shuttles.client;
 
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldFindResultPayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldInfoPayload;
-import io.github.dirnei.mc.servus.shuttles.handheld.HandheldInfoRequest;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldItem;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldScanPayload;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesSounds;
-import java.util.HashMap;
+import io.github.dirnei.mc.servus.shuttles.zone.ShelfZones;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
@@ -18,36 +18,32 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 /**
- * What the client knows for the handheld's panel and effects: bays flashing
- * after a scan, bays glowing after a FIND, the last FIND and INFO answers,
- * and the throttled INFO requests.
+ * What the client knows for the handheld's panel and effects: shelves
+ * flashing after a scan, shelves glowing after a FIND, and the last FIND and
+ * INFO answers. A shelf is drawn as one box, the union of its bays.
  */
 public final class ClientHandheld {
 
-    /** How long a scanned bay flashes, in ticks. */
+    /** How long a scanned shelf flashes, in ticks. */
     public static final int FLASH_TICKS = 12;
-    /** The fewest ticks between two INFO requests. */
-    private static final int INFO_REQUEST_TICKS = 10;
-    /** How much each further bay of a sweep raises the beep, as a pitch factor step. */
+    /** How much each further shelf of a sweep raises the beep, as a pitch factor step. */
     private static final float SWEEP_PITCH_STEP = 0.06F;
     private static final float MAX_PITCH = 2.0F;
 
-    /** A scanned bay: green or red, and the game tick it was scanned at. */
-    public record Flash(boolean ok, long start) {
+    /** A scanned shelf's box: green or red, and the game tick it was scanned at. */
+    public record Flash(AABB box, boolean ok, long start) {
     }
 
-    private static final Map<BlockPos, Flash> FLASHES = new HashMap<>();
+    private static final List<Flash> FLASHES = new ArrayList<>();
     private static HandheldFindResultPayload found;
-    private static List<BlockPos> glowing = List.of();
+    private static List<AABB> glowing = List.of();
     private static long glowUntil;
     private static HandheldInfoPayload info;
-    private static BlockPos requested;
-    private static long requestedAt;
 
     private ClientHandheld() {
     }
@@ -74,26 +70,28 @@ public final class ClientHandheld {
 
     public static void scanned(HandheldScanPayload payload) {
         ClientLevel level = Minecraft.getInstance().level;
-        if (level == null) {
+        if (level == null || payload.bays().isEmpty()) {
             return;
         }
-        long now = level.getGameTime();
-        for (BlockPos pos : payload.bays()) {
-            FLASHES.put(pos, new Flash(payload.ok(), now));
-        }
+        FLASHES.add(new Flash(union(payload.bays()), payload.ok(), level.getGameTime()));
         float pitch = Math.min(MAX_PITCH, 1.0F + payload.sweepIndex() * SWEEP_PITCH_STEP);
         play(payload.ok() ? ServusShuttlesSounds.HANDHELD_BEEP.get() : ServusShuttlesSounds.HANDHELD_BUZZ.get(), payload.ok() ? pitch : 1.0F);
     }
 
+    /** Keeps the answer and turns each shelf it names into its box once, from the join flags the client knows. */
     public static void found(HandheldFindResultPayload payload) {
         ClientLevel level = Minecraft.getInstance().level;
         if (level == null) {
             return;
         }
         found = payload;
-        glowing = List.copyOf(payload.bays());
+        List<AABB> boxes = new ArrayList<>();
+        for (BlockPos shelf : payload.shelves()) {
+            boxes.add(union(ShelfZones.shelf(level, shelf)));
+        }
+        glowing = List.copyOf(boxes);
         glowUntil = level.getGameTime() + payload.glowTicks();
-        play(payload.bays().isEmpty() ? ServusShuttlesSounds.HANDHELD_BUZZ.get() : ServusShuttlesSounds.HANDHELD_BEEP.get(), 1.0F);
+        play(payload.shelves().isEmpty() ? ServusShuttlesSounds.HANDHELD_BUZZ.get() : ServusShuttlesSounds.HANDHELD_BEEP.get(), 1.0F);
     }
 
     public static void info(HandheldInfoPayload payload) {
@@ -109,14 +107,23 @@ public final class ClientHandheld {
         Minecraft.getInstance().getSoundManager().play(SimpleSoundInstance.forUI(sound, pitch));
     }
 
-    /** The flashing bays with how far each flash has faded, 0 fresh to 1 gone; finished flashes are dropped. */
-    public static Map<BlockPos, Flash> flashes(long now) {
-        FLASHES.values().removeIf(flash -> now - flash.start() > FLASH_TICKS);
+    /** The box around all these blocks; a shelf is a straight row, so it covers just its bays. */
+    private static AABB union(Collection<BlockPos> bays) {
+        AABB box = null;
+        for (BlockPos pos : bays) {
+            box = box == null ? new AABB(pos) : box.minmax(new AABB(pos));
+        }
+        return box;
+    }
+
+    /** The flashing shelves; finished flashes are dropped. */
+    public static List<Flash> flashes(long now) {
+        FLASHES.removeIf(flash -> now - flash.start() > FLASH_TICKS);
         return FLASHES;
     }
 
-    /** The bays glowing after a FIND, empty once the glow time has passed. */
-    public static List<BlockPos> glowing(long now) {
+    /** The shelves glowing after a FIND, empty once the glow time has passed. */
+    public static List<AABB> glowing(long now) {
         if (now > glowUntil) {
             glowing = List.of();
         }
@@ -128,21 +135,8 @@ public final class ClientHandheld {
         return found;
     }
 
-    /** The last INFO answer for that bay, or null when none came yet. */
-    public static HandheldInfoPayload infoFor(BlockPos pos) {
-        return info != null && info.pos().equals(pos) ? info : null;
-    }
-
-    /** Asks the server about a bay when it is another bay than last time, or the answer is old, at most every 10 ticks. */
-    public static void requestInfo(BlockPos pos, long now) {
-        if (now - requestedAt < INFO_REQUEST_TICKS) {
-            return;
-        }
-        if (pos.equals(requested) && now - requestedAt < INFO_REQUEST_TICKS * 2L) {
-            return;
-        }
-        requested = pos;
-        requestedAt = now;
-        ClientPacketDistributor.sendToServer(new HandheldInfoRequest(pos));
+    /** The readout of the last INFO scan, or null before the first one. */
+    public static HandheldInfoPayload lastInfo() {
+        return info;
     }
 }

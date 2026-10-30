@@ -18,7 +18,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
@@ -31,8 +30,9 @@ import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 /**
  * The handheld's screen as a HUD panel in the bottom right corner while the
  * handheld is in either hand: a green LCD in a dark body with a yellow
- * bumper. The top line shows the mode and the aimed bay's location code; the
- * lines below show what the mode describes.
+ * bumper. The top line shows the mode and the location code of the shelf
+ * aimed at; the lines below show what the mode describes. INFO shows the
+ * last scanned shelf, never the one only aimed at.
  */
 @EventBusSubscriber(modid = ServusShuttlesIds.MOD_ID, value = Dist.CLIENT)
 public final class HandheldHud {
@@ -88,7 +88,7 @@ public final class HandheldHud {
         List<Line> lines = switch (mode) {
             case ZONE -> zoneLines(handheld, aimed);
             case FIND -> findLines(handheld);
-            case INFO -> infoLines(handheld, aimed, minecraft.level.getGameTime());
+            case INFO -> infoLines();
         };
         draw(graphics, minecraft.font, mode, aimed, lines);
     }
@@ -142,11 +142,10 @@ public final class HandheldHud {
             lines.add(new Line(zone.name(), false, ChannelColours.argb(zone.colour())));
         }
         if (aimed != null) {
-            ZoneDefinition bayZone = aimed.zoneDefinition();
-            lines.add(Line.dim(tr("bay")));
-            lines.add(bayZone == null ? Line.of(tr("no_zone")) : new Line(bayZone.name(), false, ChannelColours.argb(bayZone.colour())));
+            ZoneDefinition shelfZone = aimed.zoneDefinition();
+            lines.add(Line.dim(tr("shelf")));
+            lines.add(shelfZone == null ? Line.of(tr("no_zone")) : new Line(shelfZone.name(), false, ChannelColours.argb(shelfZone.colour())));
         }
-        lines.add(Line.dim(tr("zone_hint")));
         return lines;
     }
 
@@ -167,7 +166,7 @@ public final class HandheldHud {
         lines.add(Line.of(found.item().getHoverName().getString()));
         lines.add(Line.of(tr("total", found.total())));
         if (found.codes().isEmpty()) {
-            lines.add(Line.dim(tr("no_bays")));
+            lines.add(Line.dim(tr("no_shelves")));
         }
         for (String code : found.codes()) {
             lines.add(Line.of(code));
@@ -175,27 +174,20 @@ public final class HandheldHud {
         return lines;
     }
 
-    private static List<Line> infoLines(ItemStack handheld, StorageNodeBlockEntity aimed, long now) {
+    private static List<Line> infoLines() {
         List<Line> lines = new ArrayList<>();
-        BlockPos pinned = handheld.get(ServusShuttlesComponents.HANDHELD_PIN.get());
-        StorageNodeBlockEntity bay = pinned != null ? pinnedBay(pinned) : aimed;
-        if (bay == null) {
-            lines.add(Line.of(tr("aim_hint")));
+        HandheldInfoPayload info = ClientHandheld.lastInfo();
+        if (info == null) {
+            lines.add(Line.of(tr("scan_hint")));
             return lines;
         }
-        ClientHandheld.requestInfo(bay.getBlockPos(), now);
-        String code = bay.locationCode().isEmpty() ? NO_CODE : bay.locationCode();
-        lines.add(Line.of(pinned != null ? tr("pinned", code) : code));
-        ZoneDefinition zone = bay.zoneDefinition();
+        lines.add(Line.of(tr("scanned", info.code().isEmpty() ? NO_CODE : info.code())));
+        ZoneDefinition zone = ClientZones.definition(info.zoneId());
         if (zone == null) {
             lines.add(Line.of(tr("no_zone")));
         } else {
             lines.add(new Line(zone.name(), false, ChannelColours.argb(zone.colour())));
             lines.add(Line.dim(HandheldScreen.filterSummary(zone.filter())));
-        }
-        HandheldInfoPayload info = ClientHandheld.infoFor(bay.getBlockPos());
-        if (info == null) {
-            return lines;
         }
         lines.add(Line.of(info.fluid() ? tr("fluid", info.used(), info.total()) : tr("slots", info.used(), info.total())));
         for (int i = 0; i < info.top().size(); i++) {
@@ -203,11 +195,5 @@ public final class HandheldHud {
             lines.add(Line.of(info.top().get(i).getHoverName().getString() + " " + count));
         }
         return lines;
-    }
-
-    private static StorageNodeBlockEntity pinnedBay(BlockPos pos) {
-        Minecraft minecraft = Minecraft.getInstance();
-        return minecraft.level != null && minecraft.level.isLoaded(pos)
-                && minecraft.level.getBlockEntity(pos) instanceof StorageNodeBlockEntity bay && bay.zonable() ? bay : null;
     }
 }

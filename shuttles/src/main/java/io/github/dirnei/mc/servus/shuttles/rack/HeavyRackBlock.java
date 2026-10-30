@@ -13,6 +13,7 @@ import io.github.dirnei.mc.servus.shuttles.rail.RailBlock;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlockEntities;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldItem;
+import io.github.dirnei.mc.servus.shuttles.zone.ShelfZones;
 import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.BlockPos;
@@ -120,9 +121,10 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable, Potat
     }
 
     /**
-     * The bays of the shelf the rack at {@code pos} belongs to, from left to
-     * right as seen from the front. Two bays share a shelf only when both
-     * carry the join towards each other. Empty when no rack stands there.
+     * The bays of the shelf the rack at {@code pos} belongs to, from the rack's
+     * own left ({@link #LEFT}) to its right, which a player in front of it sees
+     * from right to left. Two bays share a shelf only when both carry the join
+     * towards each other. Empty when no rack stands there.
      */
     public static List<BlockPos> shelf(BlockGetter level, BlockPos pos) {
         BlockState start = level.getBlockState(pos);
@@ -200,6 +202,13 @@ public class HeavyRackBlock extends BaseEntityBlock implements Wrenchable, Potat
         }
         // A bay joining a docked shelf closes it to pipes; a fresh shelf may be open.
         refreshDock(level, shelf(level, pos));
+        level.scheduleTick(pos, this, 1);
+    }
+
+    /** One tick after placing, once the item's zone is on the block entity, the shelf the bay joined settles on one zone. */
+    @Override
+    protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        ShelfZones.onJoin(level, pos);
     }
 
     private static void mirror(Level level, BlockPos neighbourPos, BooleanProperty flag, boolean joined, BlockState placed) {

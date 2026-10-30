@@ -1,23 +1,25 @@
 package io.github.dirnei.mc.servus.shuttles.handheld;
 
+import io.github.dirnei.mc.servus.foundation.network.NetworkManager;
 import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerBlockEntity;
-import io.github.dirnei.mc.servus.shuttles.fluidrack.FluidRackBlock;
 import io.github.dirnei.mc.servus.shuttles.fluidrack.FluidRackBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.fluidrack.FluidRackShelfHandler;
+import io.github.dirnei.mc.servus.shuttles.menu.HandheldMenu;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseNetwork;
-import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.rack.ShelfFill;
+import io.github.dirnei.mc.servus.shuttles.rack.ShelfStock;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesComponents;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
+import io.github.dirnei.mc.servus.shuttles.zone.ShelfZones;
 import io.github.dirnei.mc.servus.shuttles.zone.WarehouseZoneData;
 import io.github.dirnei.mc.servus.shuttles.zone.ZoneDefinition;
 import io.github.dirnei.mc.servus.shuttles.zone.ZoneList;
-import io.github.dirnei.mc.servus.foundation.network.NetworkManager;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -35,15 +37,17 @@ import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 
-/** What the handheld does on the server: bind, scan in ZONE, FIND and INFO, and the answers for the panel. */
+/**
+ * What the handheld does on the server: bind, scan a shelf in ZONE, FIND and
+ * INFO, and the answers for the panel. Every scan covers the whole shelf of
+ * the clicked bay; a held sweep counts shelves, keyed by their leftmost bay.
+ */
 public final class HandheldActions {
 
     private static final String MESSAGE = "message.servus_shuttles.handheld.";
     /** Ticks without a scan after which a held sweep ends. */
     private static final int SWEEP_QUIET_TICKS = 10;
     private static final int INFO_TOP_ITEMS = 3;
-    /** How far from the player an INFO request may ask, in blocks. */
-    private static final int INFO_RANGE = 64;
     private static final SweepTracker<UUID, BlockPos> SWEEPS = new SweepTracker<>(SWEEP_QUIET_TICKS);
 
     private HandheldActions() {
@@ -55,7 +59,12 @@ public final class HandheldActions {
 
     /** Steps the mode, and drops a binding whose controller is gone so FIND says so. */
     public static void stepMode(Player player, ItemStack handheld, int step) {
-        handheld.set(ServusShuttlesComponents.HANDHELD_MODE.get(), mode(handheld).step(step));
+        setMode(player, handheld, mode(handheld).step(step));
+    }
+
+    /** Switches to that mode, and drops a binding whose controller is gone so FIND says so. */
+    public static void setMode(Player player, ItemStack handheld, HandheldMode mode) {
+        handheld.set(ServusShuttlesComponents.HANDHELD_MODE.get(), mode);
         boundNetwork(player.level().getServer(), handheld);
     }
 
@@ -88,13 +97,35 @@ public final class HandheldActions {
         return controller.network();
     }
 
-    /** A right click on a bay: what it does depends on the mode. */
-    public static void scan(Player player, ItemStack handheld, StorageNodeBlockEntity bay) {
-        switch (mode(handheld)) {
-            case ZONE -> assign(player, handheld, bay, player.isShiftKeyDown());
-            case FIND -> findFromBay(player, handheld, bay);
-            case INFO -> pin(handheld, bay.getBlockPos());
+    /**
+     * A mode payload from the player: switches the handheld of the open
+     * handheld GUI, else the one in the main hand.
+     */
+    public static void applyMode(Player player, HandheldModePayload payload) {
+        ItemStack handheld = player.containerMenu instanceof HandheldMenu menu ? menu.handheld() : player.getMainHandItem();
+        if (handheld.getItem() instanceof HandheldItem) {
+            setMode(player, handheld, payload.next(mode(handheld)));
         }
+    }
+
+    /**
+     * A right click on a bay scans its shelf; what that does depends on the
+     * mode. A held repeat on the shelf scanned last does nothing.
+     *
+     * @return the shelf's place in a held sweep, 0 for the first, or {@link SweepTracker#SKIP} for a repeat
+     */
+    public static int scan(Player player, ItemStack handheld, StorageNodeBlockEntity bay) {
+        Level level = bay.getLevel();
+        int index = SWEEPS.scan(player.getUUID(), ShelfZones.key(level, bay.getBlockPos()), level.getGameTime());
+        if (index == SweepTracker.SKIP) {
+            return index;
+        }
+        switch (mode(handheld)) {
+            case ZONE -> assign(player, handheld, bay, index);
+            case FIND -> findFromBay(player, handheld, bay);
+            case INFO -> infoScan(player, handheld, bay);
+        }
+        return index;
     }
 
     /** The active zone id, or empty when none was chosen or the chosen zone was deleted. */
@@ -106,8 +137,12 @@ public final class HandheldActions {
         return Optional.of(id);
     }
 
-    /** ZONE: puts the bay, its shelf when sneaking, or a Fluid Rack's whole shelf into the active zone. */
-    static void assign(Player player, ItemStack handheld, StorageNodeBlockEntity bay, boolean shelf) {
+    /**
+     * ZONE: puts the shelf of the bay into the active zone. {@code index} is
+     * the shelf's place in a held sweep; a shelf already in the zone buzzes
+     * only when it is the first of the sweep.
+     */
+    static void assign(Player player, ItemStack handheld, StorageNodeBlockEntity bay, int index) {
         MinecraftServer server = player.level().getServer();
         Optional<Integer> active = activeZone(server, handheld);
         if (active.isEmpty()) {
@@ -116,49 +151,24 @@ public final class HandheldActions {
         }
         int zone = active.get();
         Level level = bay.getLevel();
-        BlockPos pos = bay.getBlockPos();
-        int index = SWEEPS.scan(player.getUUID(), pos, level.getGameTime());
-        if (index == SweepTracker.SKIP) {
-            return;
-        }
-        List<StorageNodeBlockEntity> bays = targets(level, bay, shelf);
+        List<BlockPos> shelf = shelfOf(bay);
         String before = zoneName(bay.zoneDefinition());
-        if (bays.stream().allMatch(target -> target.zoneDefinition() == null ? zone == ZoneList.NONE : target.zoneId() == zone)) {
+        if (ShelfZones.bays(level, bay.getBlockPos()).stream()
+                .allMatch(target -> target.zoneDefinition() == null ? zone == ZoneList.NONE : target.zoneId() == zone)) {
             if (index == 0) {
-                send(player, new HandheldScanPayload(List.of(pos), false, 0));
+                send(player, new HandheldScanPayload(shelf, false, 0));
             }
             return;
         }
-        if (bay instanceof FluidRackBlockEntity) {
-            FluidRackBlock.stampShelf(level, pos, zone);
-        } else {
-            bays.forEach(target -> target.setZone(zone));
-        }
+        ShelfZones.set(level, bay.getBlockPos(), zone);
         String after = zoneName(WarehouseZoneData.get(server).definition(zone));
-        Component message = bays.size() > 1
-                ? Component.translatable(MESSAGE + "assigned_shelf", bays.size(), before, after)
-                : Component.translatable(MESSAGE + "assigned", code(bay), before, after);
-        player.sendOverlayMessage(message);
-        send(player, new HandheldScanPayload(bays.stream().map(StorageNodeBlockEntity::getBlockPos).toList(), true, index));
+        player.sendOverlayMessage(Component.translatable(MESSAGE + "assigned", code(bay), before, after));
+        send(player, new HandheldScanPayload(shelf, true, index));
     }
 
-    /** The bays a ZONE scan sets: a Fluid Rack's shelf always, a rack's shelf when sneaking, else the bay. */
-    private static List<StorageNodeBlockEntity> targets(Level level, StorageNodeBlockEntity bay, boolean shelf) {
-        List<BlockPos> positions;
-        if (bay instanceof FluidRackBlockEntity) {
-            positions = FluidRackBlock.shelf(level, bay.getBlockPos());
-        } else if (shelf && bay instanceof HeavyRackBlockEntity) {
-            positions = HeavyRackBlock.shelf(level, bay.getBlockPos());
-        } else {
-            return List.of(bay);
-        }
-        List<StorageNodeBlockEntity> bays = new ArrayList<>();
-        for (BlockPos pos : positions) {
-            if (level.getBlockEntity(pos) instanceof StorageNodeBlockEntity node && node.zonable()) {
-                bays.add(node);
-            }
-        }
-        return bays.isEmpty() ? List.of(bay) : bays;
+    /** Every bay of the shelf of {@code bay}, from left to right. */
+    private static List<BlockPos> shelfOf(StorageNodeBlockEntity bay) {
+        return ShelfZones.shelf(bay.getLevel(), bay.getBlockPos());
     }
 
     private static String zoneName(ZoneDefinition zone) {
@@ -169,22 +179,23 @@ public final class HandheldActions {
         return bay.locationCode().isEmpty() ? "--" : bay.locationCode();
     }
 
-    /** FIND by scanning a bay: searches for the item the bay holds most. */
+    /** FIND by scanning a bay: searches for the item its shelf holds most. */
     static void findFromBay(Player player, ItemStack handheld, StorageNodeBlockEntity bay) {
-        ItemKey top = bay instanceof HeavyRackBlockEntity rack ? topItem(rack) : null;
+        ItemKey top = bay instanceof HeavyRackBlockEntity ? topItem(bay) : null;
         if (top == null) {
-            send(player, new HandheldScanPayload(List.of(bay.getBlockPos()), false, 0));
+            send(player, new HandheldScanPayload(shelfOf(bay), false, 0));
             return;
         }
         find(player, handheld, top);
     }
 
-    private static ItemKey topItem(HeavyRackBlockEntity rack) {
-        List<ShelfFill.Entry<ItemKey>> top = ShelfFill.of(rack.items().states(), 1).top();
-        return top.isEmpty() ? null : top.get(0).key();
+    private static ItemKey topItem(StorageNodeBlockEntity bay) {
+        List<ShelfFill.Entry<ItemKey>> top = ShelfStock.of(bay.getLevel(), bay.getBlockPos(), 1)
+                .map(stock -> stock.fill().top()).orElse(List.of());
+        return top.isEmpty() ? null : top.getFirst().key();
     }
 
-    /** FIND: every loaded bay of the bound warehouse holding the item glows on the player's screen. */
+    /** FIND: every loaded shelf of the bound warehouse holding the item glows on the player's screen. */
     public static void find(Player player, ItemStack handheld, ItemKey key) {
         Optional<WarehouseNetwork> network = boundNetwork(player.level().getServer(), handheld);
         if (network.isEmpty()) {
@@ -194,81 +205,78 @@ public final class HandheldActions {
         handheld.set(ServusShuttlesComponents.HANDHELD_FIND.get(), key.stack(1));
         Found found = found(network.get(), key);
         int glowTicks = ShuttlesStatsManager.INSTANCE.handheldFindGlowSeconds() * 20;
-        send(player, new HandheldFindResultPayload(key.stack(1), found.total(), found.bays(), found.codes(), glowTicks));
+        send(player, new HandheldFindResultPayload(key.stack(1), found.total(), found.shelves(), found.codes(), glowTicks));
     }
 
-    /** The loaded bays of a warehouse holding an item, their codes and the warehouse's total. */
-    public record Found(long total, List<BlockPos> bays, List<String> codes) {
+    /** The loaded shelves of a warehouse holding an item, each by its leftmost bay, their codes and the warehouse's total. */
+    public record Found(long total, List<BlockPos> shelves, List<String> codes) {
     }
 
     public static Found found(WarehouseNetwork network, ItemKey key) {
-        List<BlockPos> bays = new ArrayList<>();
-        List<String> codes = new ArrayList<>();
+        Map<BlockPos, String> shelves = new LinkedHashMap<>();
         ServerLevel level = network.level();
         for (BlockPos pos : network.index().sourcesHolding(key)) {
             if (level != null && level.isLoaded(pos) && level.getBlockEntity(pos) instanceof StorageNodeBlockEntity bay) {
-                bays.add(pos);
-                codes.add(code(bay));
+                shelves.putIfAbsent(ShelfZones.key(level, pos), code(bay));
             }
         }
-        return new Found(network.index().count(key), bays, codes);
+        return new Found(network.index().count(key), List.copyOf(shelves.keySet()), List.copyOf(shelves.values()));
     }
 
-    /** INFO: pins the bay, or unpins it when it is the pinned one. */
-    static void pin(ItemStack handheld, BlockPos pos) {
-        if (pos.equals(handheld.get(ServusShuttlesComponents.HANDHELD_PIN.get()))) {
-            handheld.remove(ServusShuttlesComponents.HANDHELD_PIN.get());
-        } else {
-            handheld.set(ServusShuttlesComponents.HANDHELD_PIN.get(), pos);
+    /** INFO: flashes the shelf, keeps the bay as the last scanned one and sends what the shelf holds. */
+    static void infoScan(Player player, ItemStack handheld, StorageNodeBlockEntity bay) {
+        HandheldInfoPayload info = info(bay.getLevel(), bay.getBlockPos());
+        if (info == null) {
+            return;
+        }
+        handheld.set(ServusShuttlesComponents.HANDHELD_PIN.get(), bay.getBlockPos());
+        send(player, new HandheldScanPayload(shelfOf(bay), true, 0));
+        send(player, info);
+    }
+
+    /** Sends the INFO readout of the last scanned bay again, when it is still a loaded bay. */
+    public static void resendInfo(ServerPlayer player, ItemStack handheld) {
+        BlockPos pos = handheld.get(ServusShuttlesComponents.HANDHELD_PIN.get());
+        HandheldInfoPayload info = pos == null ? null : info(player.level(), pos);
+        if (info != null) {
+            send(player, info);
         }
     }
 
-    /** INFO: what the bay at {@code pos} holds, or null when there is no bay. Changes nothing. */
+    /** INFO: what the shelf of the bay at {@code pos} holds, or null when there is no bay. Changes nothing. */
     public static HandheldInfoPayload info(Level level, BlockPos pos) {
         if (!level.isLoaded(pos) || !(level.getBlockEntity(pos) instanceof StorageNodeBlockEntity bay) || !bay.zonable()) {
             return null;
         }
         int zone = bay.zoneDefinition() == null ? ZoneList.NONE : bay.zoneId();
+        String code = bay.locationCode();
         if (bay instanceof FluidRackBlockEntity fluidRack) {
             FluidRackShelfHandler.Content content = fluidRack.shelfHandler().content();
             FluidStack fluid = content.fluid();
             List<ItemStack> top = fluid.isEmpty() ? List.of() : List.of(fluid.getFluid().getBucket().getDefaultInstance());
             List<Long> counts = fluid.isEmpty() ? List.of() : List.of((long) fluid.getAmount());
-            return new HandheldInfoPayload(pos, zone, fluid.getAmount(), content.capacity(), top, counts, true);
+            return new HandheldInfoPayload(pos, code, zone, fluid.getAmount(), content.capacity(), top, counts, true);
         }
-        if (!(bay instanceof HeavyRackBlockEntity rack)) {
+        Optional<ShelfStock> stock = ShelfStock.of(level, pos, INFO_TOP_ITEMS);
+        if (stock.isEmpty()) {
             return null;
         }
-        ShelfFill<ItemKey> fill = ShelfFill.of(rack.items().states(), INFO_TOP_ITEMS);
+        ShelfFill<ItemKey> fill = stock.get().fill();
         List<ItemStack> top = new ArrayList<>();
         List<Long> counts = new ArrayList<>();
         for (ShelfFill.Entry<ItemKey> entry : fill.top()) {
             top.add(entry.key().stack(1));
             counts.add((long) entry.count());
         }
-        return new HandheldInfoPayload(pos, zone, fill.used(), fill.total(), top, counts, false);
+        return new HandheldInfoPayload(pos, code, zone, fill.used(), fill.total(), top, counts, false);
     }
 
-    /** Answers an INFO request when the player holds a handheld and the bay is in reach of sight. */
-    public static void answerInfo(Player player, BlockPos pos) {
-        if (!(player.getMainHandItem().getItem() instanceof HandheldItem) && !(player.getOffhandItem().getItem() instanceof HandheldItem)) {
-            return;
-        }
-        if (player.blockPosition().distSqr(pos) > INFO_RANGE * INFO_RANGE) {
-            return;
-        }
-        HandheldInfoPayload info = info(player.level(), pos);
-        if (info != null) {
-            send(player, info);
-        }
-    }
-
-    /** Loaded bays per zone id over every warehouse of every loaded dimension. */
-    public static Map<Integer, Integer> loadedBayCounts(MinecraftServer server) {
+    /** Loaded shelves per zone id over every warehouse of every loaded dimension. */
+    public static Map<Integer, Integer> loadedShelfCounts(MinecraftServer server) {
         Map<Integer, Integer> counts = new HashMap<>();
         for (ServerLevel level : server.getAllLevels()) {
             for (WarehouseNetwork network : NetworkManager.of(level).set(WarehouseNetwork.TYPE).networks()) {
-                network.zoneBlockCountsById().forEach((id, count) -> counts.merge(id, count, Integer::sum));
+                network.zoneShelfCountsById().forEach((id, count) -> counts.merge(id, count, Integer::sum));
             }
         }
         return counts;

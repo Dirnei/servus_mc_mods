@@ -5,10 +5,14 @@ import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
 import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseNetwork;
+import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlock;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
+import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
 import io.github.dirnei.mc.servus.shuttles.station.InboundStationBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.zone.PutAwayPlan;
+import io.github.dirnei.mc.servus.shuttles.zone.ShelfZones;
 import io.github.dirnei.mc.servus.shuttles.zone.WarehouseZoneData;
 import io.github.dirnei.mc.servus.shuttles.zone.ZoneFilter;
 import io.github.dirnei.mc.servus.shuttles.zone.ZoneList;
@@ -29,9 +33,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.TagValueOutput;
 
-/** Team zones, bays pointing at them, location codes and put-away by zone. */
+/** Team zones, shelves pointing at them, one zone and one location code per shelf, and put-away by zone. */
 public final class ZoneGameTests {
 
     private static final BlockPos ZL_RACK = new BlockPos(2, 1, 7);
@@ -40,6 +45,9 @@ public final class ZoneGameTests {
     private static final BlockPos IZ_PLAIN = new BlockPos(5, 1, 10);
     private static final BlockPos IZ_SPARE = new BlockPos(7, 1, 10);
     private static final BlockPos IZ_IRON = new BlockPos(8, 1, 10);
+    private static final int ROW_Z = 3;
+    private static final BlockPos SC_CONTROLLER = new BlockPos(6, 1, 9);
+    private static final BlockPos SC_MOVED = new BlockPos(3, 1, 9);
 
     private ZoneGameTests() {
     }
@@ -275,5 +283,250 @@ public final class ZoneGameTests {
                 });
             });
         });
+    }
+
+    private static BlockPos bayAt(int x) {
+        return new BlockPos(x, 1, ROW_Z);
+    }
+
+    private static int zoneAt(GameTestHelper helper, int x) {
+        return helper.getBlockEntity(bayAt(x), StorageNodeBlockEntity.class).zoneId();
+    }
+
+    /** Places a rack item on the floor at {@code x} of the row as a player looking south would, so it faces north. */
+    private static void placeRack(GameTestHelper helper, int x, ItemStack item) {
+        Placing.onTop(helper, item, new BlockPos(x, 0, ROW_Z), Direction.SOUTH, false);
+    }
+
+    private static ItemStack plainRack() {
+        return new ItemStack(ServusShuttlesItems.HEAVY_RACK.get());
+    }
+
+    /** A rack item carrying a zone, as the Configuration Carrot leaves it after dismantling a zoned bay. */
+    private static ItemStack zonedRack(GameTestHelper helper, int zone) {
+        BlockPos spare = new BlockPos(8, 1, 8);
+        HeavyRackBlockEntity rack = WarehouseFixtures.rack(helper, spare, Direction.NORTH);
+        rack.setZone(zone);
+        ItemStack item = plainRack();
+        BlockEntityItems.saveToItem(rack, item, helper.getLevel().registryAccess());
+        helper.setBlock(spare, Blocks.AIR.defaultBlockState());
+        return item;
+    }
+
+    /**
+     * A shelf of two plain racks at x 2 and 3, put into {@code zone} unless it
+     * is {@link ZoneList#NONE}; {@code then} runs once both bays settled.
+     */
+    private static void shelfOfTwo(GameTestHelper helper, int zone, Runnable then) {
+        RackPlacementGameTests.floor(helper);
+        placeRack(helper, 2, plainRack());
+        placeRack(helper, 3, plainRack());
+        helper.runAfterDelay(2, () -> {
+            if (zone != ZoneList.NONE) {
+                ShelfZones.set(helper.getLevel(), helper.absolutePos(bayAt(2)), zone);
+            }
+            then.run();
+        });
+    }
+
+    private static void assertShelfOfThreeIn(GameTestHelper helper, int zone, String what) {
+        helper.assertTrue(HeavyRackBlock.shelf(helper.getLevel(), helper.absolutePos(bayAt(3))).size() == 3, "the three racks form one shelf");
+        for (int x = 2; x <= 4; x++) {
+            helper.assertTrue(zoneAt(helper, x) == zone, what + ": bay " + x + " has zone " + zoneAt(helper, x));
+        }
+    }
+
+    /** An unzoned bay joining a zoned shelf takes the shelf's zone. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void unzonedBayJoinsZonedShelf(GameTestHelper helper) {
+        int ores = zone(helper, "Ores", List.of(), List.of());
+        shelfOfTwo(helper, ores, () -> {
+            placeRack(helper, 4, plainRack());
+            settled(helper, () -> assertShelfOfThreeIn(helper, ores, "the shelf of three is in Ores"));
+        });
+    }
+
+    /** Runs the checks once placed bays had their tick to settle the shelf's zone, then succeeds. */
+    private static void settled(GameTestHelper helper, Runnable checks) {
+        helper.runAfterDelay(2, () -> {
+            checks.run();
+            helper.succeed();
+        });
+    }
+
+    /** A bay carrying Food joining a shelf in Ores ends in Ores: the shelf's zone wins. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void shelfZoneWinsOverTheJoiningBay(GameTestHelper helper) {
+        int ores = zone(helper, "Ores", List.of(), List.of());
+        int food = zone(helper, "Food", List.of(), List.of());
+        shelfOfTwo(helper, ores, () -> {
+            placeRack(helper, 4, zonedRack(helper, food));
+            settled(helper, () -> assertShelfOfThreeIn(helper, ores, "the shelf of three is in Ores"));
+        });
+    }
+
+    /** A bay carrying Food joining an unzoned shelf puts the whole shelf into Food. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void zonedBayZonesUnzonedShelf(GameTestHelper helper) {
+        int food = zone(helper, "Food", List.of(), List.of());
+        shelfOfTwo(helper, ZoneList.NONE, () -> {
+            placeRack(helper, 4, zonedRack(helper, food));
+            settled(helper, () -> assertShelfOfThreeIn(helper, food, "the shelf of three is in Food"));
+        });
+    }
+
+    /** An unzoned bay joining an unzoned shelf leaves it unzoned. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void unzonedJoiningUnzonedStaysUnzoned(GameTestHelper helper) {
+        shelfOfTwo(helper, ZoneList.NONE, () -> {
+            placeRack(helper, 4, plainRack());
+            settled(helper, () -> assertShelfOfThreeIn(helper, ZoneList.NONE, "the shelf of three is unzoned"));
+        });
+    }
+
+    /** A zoned rack item placed on its own is a shelf of one in its zone. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void loneBayKeepsItsZone(GameTestHelper helper) {
+        int food = zone(helper, "Food", List.of(), List.of());
+        RackPlacementGameTests.floor(helper);
+        placeRack(helper, 6, zonedRack(helper, food));
+        settled(helper, () -> helper.assertTrue(zoneAt(helper, 6) == food, "the placed bay is in Food, got " + zoneAt(helper, 6)));
+    }
+
+    /** Breaking the middle bay of a shelf of three in Ores leaves both bays in Ores. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void splitShelfKeepsItsZone(GameTestHelper helper) {
+        int ores = zone(helper, "Ores", List.of(), List.of());
+        shelfOfTwo(helper, ores, () -> {
+            placeRack(helper, 4, plainRack());
+            helper.runAfterDelay(2, () -> {
+                helper.setBlock(bayAt(3), Blocks.AIR.defaultBlockState());
+                settled(helper, () -> helper.assertTrue(zoneAt(helper, 2) == ores && zoneAt(helper, 4) == ores, "both bays left are in Ores"));
+            });
+        });
+    }
+
+    /** A layer placed on top of a shelf in Ores is a new shelf without a zone. */
+    @ServusGameTest(timeoutTicks = 30)
+    public static void layerOnTopIsUnzoned(GameTestHelper helper) {
+        int ores = zone(helper, "Ores", List.of(), List.of());
+        shelfOfTwo(helper, ores, () -> placeRack(helper, 4, plainRack()));
+        helper.runAfterDelay(5, () -> {
+            Placing.onTop(helper, new ItemStack(ServusShuttlesItems.HEAVY_RACK.get(), 3), bayAt(3), Direction.SOUTH, false);
+            settled(helper, () -> {
+                for (int x = 2; x <= 4; x++) {
+                    BlockPos top = bayAt(x).above();
+                    helper.assertTrue(helper.getBlockEntity(top, StorageNodeBlockEntity.class).zoneId() == ZoneList.NONE,
+                            "the layer bay " + x + " is unzoned");
+                }
+                assertShelfOfThreeIn(helper, ores, "the shelf below stays in Ores");
+            });
+        });
+    }
+
+    /** An empty Fluid Rack joining a Fluid Rack shelf in Cooling ends in Cooling. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void fluidRackBayJoinsZonedShelf(GameTestHelper helper) {
+        BlockPos[] bays = {new BlockPos(2, 1, 5), new BlockPos(3, 1, 5), new BlockPos(4, 1, 5)};
+        FluidRackFixtures.row(helper, Direction.NORTH, bays[0], bays[1]);
+        int cooling = zone(helper, "Cooling", List.of(), List.of());
+        helper.runAfterDelay(2, () -> {
+            ShelfZones.set(helper.getLevel(), helper.absolutePos(bays[0]), cooling);
+            FluidRackFixtures.place(helper, bays[2], Direction.NORTH, FluidRackFixtures.item());
+            helper.runAfterDelay(2, () -> {
+                helper.assertTrue(FluidRackFixtures.shelf(helper, bays[0]).size() == 3, "the three Fluid Racks form one shelf");
+                for (BlockPos pos : bays) {
+                    helper.assertTrue(FluidRackFixtures.bay(helper, pos).zoneId() == cooling, "bay " + pos + " is in Cooling");
+                }
+                helper.succeed();
+            });
+        });
+    }
+
+    /**
+     * Rails in front of three bays 8 north of the controller spot, 4, 3 and 2
+     * west of it, and rails on to the controller spot and to the spot 3 blocks
+     * further west.
+     */
+    private static void codedRails(GameTestHelper helper) {
+        for (int x = 2; x <= 4; x++) {
+            WarehouseFixtures.railOnStone(helper, new BlockPos(x, 1, 2));
+        }
+        for (int z = 3; z <= 7; z++) {
+            WarehouseFixtures.railOnStone(helper, new BlockPos(4, 1, z));
+        }
+        for (int x = 3; x <= 6; x++) {
+            WarehouseFixtures.railOnStone(helper, new BlockPos(x, 1, 8));
+        }
+    }
+
+    /** A south facing shelf of three Heavy Duty Racks on the coded rails, from west to east, with the controller. */
+    private static BlockPos[] codedShelf(GameTestHelper helper) {
+        BlockPos[] bays = {new BlockPos(2, 1, 1), new BlockPos(3, 1, 1), new BlockPos(4, 1, 1)};
+        codedRails(helper);
+        BlockState base = ServusShuttlesBlocks.HEAVY_RACK.get().defaultBlockState().setValue(HeavyRackBlock.FACING, Direction.SOUTH);
+        // Facing south, a rack's own left is east.
+        for (int i = 0; i < bays.length; i++) {
+            helper.setBlock(bays[i], base.setValue(HeavyRackBlock.RIGHT, i > 0).setValue(HeavyRackBlock.LEFT, i < bays.length - 1));
+        }
+        WarehouseFixtures.controller(helper, SC_CONTROLLER);
+        return bays;
+    }
+
+    private static StorageNodeBlockEntity node(GameTestHelper helper, BlockPos pos) {
+        return helper.getBlockEntity(pos, StorageNodeBlockEntity.class);
+    }
+
+    private static boolean shelfReads(GameTestHelper helper, List<BlockPos> bays, String code, BlockPos codeBay) {
+        for (BlockPos pos : bays) {
+            StorageNodeBlockEntity bay = node(helper, pos);
+            if (!bay.locationCode().equals(code) || bay.codeBay() != pos.equals(codeBay)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static String codes(GameTestHelper helper, List<BlockPos> bays) {
+        return bays.stream().map(pos -> node(helper, pos).locationCode() + (node(helper, pos).codeBay() ? "*" : "")).toList().toString();
+    }
+
+    /** Every bay of a shelf reads the code of its bay closest to the controller, the only code bay; it moves with the controller. */
+    @ServusGameTest(timeoutTicks = 120)
+    public static void shelfCodeFollowsTheClosestBay(GameTestHelper helper) {
+        List<BlockPos> bays = List.of(codedShelf(helper));
+        Waits.when(helper, () -> shelfReads(helper, bays, "N8.W2+0", bays.get(2)), 30,
+                () -> "every bay reads N8.W2+0 from the east bay, got " + codes(helper, bays), () -> {
+            helper.setBlock(SC_CONTROLLER, Blocks.AIR.defaultBlockState());
+            WarehouseFixtures.controller(helper, SC_MOVED);
+            Waits.when(helper, () -> shelfReads(helper, bays, "N8.E0+0", bays.get(1)), 30,
+                    () -> "after the move the middle bay gives N8.E0+0, got " + codes(helper, bays), helper::succeed);
+        });
+    }
+
+    /** Breaking a shelf's code bay gives the bays left the code of the next closest one. */
+    @ServusGameTest(timeoutTicks = 120)
+    public static void shelfLosingItsCodeBayGetsANewCode(GameTestHelper helper) {
+        BlockPos[] shelf = codedShelf(helper);
+        List<BlockPos> bays = List.of(shelf);
+        Waits.when(helper, () -> shelfReads(helper, bays, "N8.W2+0", bays.get(2)), 30,
+                () -> "the shelf reads N8.W2+0, got " + codes(helper, bays), () -> {
+            helper.setBlock(shelf[2], Blocks.AIR.defaultBlockState());
+            List<BlockPos> left = List.of(shelf[0], shelf[1]);
+            Waits.when(helper, () -> shelfReads(helper, left, "N8.W3+0", shelf[1]), 30,
+                    () -> "the two bays left read N8.W3+0, got " + codes(helper, left), helper::succeed);
+        });
+    }
+
+    /** A Fluid Rack shelf has one code on all its bays, from its bay closest to the controller. */
+    @ServusGameTest(timeoutTicks = 120)
+    public static void fluidRackShelfHasOneCode(GameTestHelper helper) {
+        BlockPos[] shelf = {new BlockPos(2, 1, 1), new BlockPos(3, 1, 1), new BlockPos(4, 1, 1)};
+        codedRails(helper);
+        FluidRackFixtures.row(helper, Direction.SOUTH, shelf);
+        WarehouseFixtures.controller(helper, SC_CONTROLLER);
+        List<BlockPos> bays = List.of(shelf);
+        Waits.when(helper, () -> shelfReads(helper, bays, "N8.W2+0", shelf[2]), 60,
+                () -> "every Fluid Rack bay reads N8.W2+0 from the east bay, got " + codes(helper, bays), helper::succeed);
     }
 }

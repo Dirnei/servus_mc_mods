@@ -11,24 +11,27 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * Server to client: what one bay holds, for the INFO panel.
+ * Server to client: what the shelf of a scanned bay holds, for the INFO panel
+ * and screen. Kept until the next INFO scan.
  *
- * @param pos    the bay
- * @param zoneId its zone id, 0 without one
- * @param used   slots in use; mB for a Fluid Rack
- * @param total  all slots; the shelf's capacity in mB for a Fluid Rack
+ * @param pos    the scanned bay
+ * @param code   the shelf's location code, empty without a controller
+ * @param zoneId the shelf's zone id, 0 without one
+ * @param used   slots in use over all bays; mB for a Fluid Rack
+ * @param total  all slots of the shelf; its capacity in mB for a Fluid Rack
  * @param top    the most held items, one each
- * @param counts how many of each it holds; mB for a Fluid Rack
- * @param fluid  whether the bay is a Fluid Rack bay
+ * @param counts how many of each the shelf holds; mB for a Fluid Rack
+ * @param fluid  whether the shelf is a Fluid Rack shelf
  */
-public record HandheldInfoPayload(BlockPos pos, int zoneId, long used, long total, List<ItemStack> top, List<Long> counts, boolean fluid)
-        implements CustomPacketPayload {
+public record HandheldInfoPayload(BlockPos pos, String code, int zoneId, long used, long total, List<ItemStack> top, List<Long> counts,
+                                  boolean fluid) implements CustomPacketPayload {
 
     public static final Type<HandheldInfoPayload> TYPE =
             new Type<>(Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "handheld_info"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, HandheldInfoPayload> STREAM_CODEC = StreamCodec.composite(
             BlockPos.STREAM_CODEC, HandheldInfoPayload::pos,
+            ByteBufCodecs.STRING_UTF8, HandheldInfoPayload::code,
             ByteBufCodecs.VAR_INT, HandheldInfoPayload::zoneId,
             ByteBufCodecs.VAR_LONG, HandheldInfoPayload::used,
             ByteBufCodecs.VAR_LONG, HandheldInfoPayload::total,

@@ -3,20 +3,21 @@
 ## Unreleased
 
 ### Added
-- Fluid Rack: bays join into sections of up to three that share one tank behind a glass front. The Handheld zones a whole section at once, and a fluid container in the zone's filter makes it take only that fluid. Tankers dock into one port per section, and rails hang along every bay.
+- Fluid Rack: bays join into shelves of up to three that share one tank behind a glass front. The Handheld zones a whole shelf at once, and a fluid container in the zone's filter makes it take only that fluid. Tankers dock into one port per shelf, and rails hang along every bay.
 - Fluid Inbound and Fluid Outbound: an Inbound or Outbound Station on top of a Fluid Tank, in the station's wood, with one tank you can see from every side. A swing hose arm docks onto the Tanker's filler cap. The Outbound keeps a fluid picked from a searchable list.
 - Shuttles rumble quietly as they drive, with a dull wheel click and a loose rattle now and then. Only the few nearest moving shuttles sound at once.
 - Muffler: install it into a shuttle in the Shuttle Workshop, or put it into a Shuttle Garage's new Muffler slot to muffle every shuttle of that garage. A muffled shuttle sounds damped and much quieter, and a muffled Lumber shuttle fells in silence.
-- Rack layers: clicking the top of a rack with racks in hand places a rack on every bay of its section at once, using one rack per bay.
+- Rack layers: clicking the top of a rack with racks in hand places a rack on every bay of its shelf at once, using one rack per bay.
 - Sneaking while looking at a rack with a rack of its kind in hand extends its row sideways or its column upwards, with the placement ghost and arrow.
-- Handheld HH-1: a warehouse scanner with a yellow bumper and a green screen. Sneak and scroll switches between ZONE, FIND and INFO, and while you hold it a screen panel shows the mode and the location code of the bay you aim at.
-- Team zones: each team keeps one list of zones with a name, a colour and a filter, made and edited in the Handheld's GUI. Renaming, recolouring or refiltering a zone applies to every bay in it at once, and deleting a zone unzones its bays.
-- ZONE mode: right click a rack bay to put it into the active zone, hold the button to sweep along a row, sneak to take the whole section. Every scan beeps and flashes the bay.
-- FIND mode: scan a Warehouse Controller to bind the Handheld, then pick an item in its GUI or scan a bay, and every bay holding the item glows through walls for a few seconds.
-- INFO mode: the panel shows the zone, filter, slots in use and top items of the bay you aim at; right click pins a bay.
-- Location codes: every rack bay of a warehouse with a controller has a code from the controller, such as N12.E5+2, shown on a barcode sticker on the bay's top beam. Zoned bays show a stripe in the zone's colour next to the zone name.
+- Handheld HH-1: a warehouse scanner with a yellow bumper and a green screen. Sneak and scroll switches between ZONE, FIND and INFO, and while you hold it a screen panel shows the mode and the location code of the shelf you aim at. Its GUI is the device itself, a green CRT screen that opens on the current mode, with softkeys to switch modes.
+- Team zones: each team keeps one list of zones with a name, a colour and a filter, made and edited in the Handheld's GUI. The filter is picked in the item picker, where `#` searches item tags. Renaming, recolouring or refiltering a zone applies to every shelf in it at once, and deleting a zone unzones its shelves. A zone always covers a whole shelf: a bay joining a zoned shelf takes its zone, and a zoned bay joining an unzoned shelf zones the whole shelf.
+- ZONE mode: right click any bay to put its whole shelf into the active zone, and hold the button to sweep across shelves with a rising beep. Every scan beeps and flashes the shelf.
+- FIND mode: scan a Warehouse Controller to bind the Handheld, then pick an item in its GUI or scan a shelf, and every shelf holding the item is tinted and outlined through walls for a few seconds.
+- INFO mode: scan a shelf to see its code, zone, filter, slots in use and top items over all its bays on the panel and in the GUI, until the next scan.
+- Location codes: every shelf of Heavy Duty Racks or Fluid Racks in a warehouse with a controller has one code from the controller, such as N12.E5+2, taken from its bay closest to the controller and shown on a barcode sticker on that bay's top beam. Zoned shelves show a stripe in the zone's colour along the shelf and the zone name once.
 
 ### Changed
+- Rack sections are now called shelves; datapacks use `bays_per_shelf` in `rack.json` and `fluid_rack.json` (the old `bays_per_section` still works).
 - Inbound, Outbound and Packing Stations, Fluid Inbound and Fluid Outbound, Heavy Duty and Fluid Racks and the Warehouse Controller turn their front to a rail beside them when placed, the Field Head to a Farm Rail. A Field Head is not placed beside a Warehouse Rail alone. A rack placed against a rack takes its facing. Sneak while placing to face a block towards you, the garage included.
 - A rack or a Warehouse Rail in hand places against a rack instead of opening the rack's GUI.
 - A rail can hang one block past a rail held by a rack, a shaft or a floor.

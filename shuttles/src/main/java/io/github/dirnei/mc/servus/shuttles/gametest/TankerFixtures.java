@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.shuttles.gametest;
 
 import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerBlockEntity;
-import io.github.dirnei.mc.servus.shuttles.fluidrack.FluidRackBlock;
+import io.github.dirnei.mc.servus.shuttles.zone.ShelfZones;
 import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidInboundBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidOutboundBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationBlockEntity;
@@ -93,7 +93,7 @@ final class TankerFixtures {
 
     /** Zones the shelf of the bay at {@code bay} for that fluid's bucket. */
     static void zone(GameTestHelper helper, BlockPos bay, Item bucket) {
-        FluidRackBlock.stampShelf(helper.getLevel(), helper.absolutePos(bay),
+        ShelfZones.set(helper.getLevel(), helper.absolutePos(bay),
                 ZoneFixtures.zone(helper, "Zone", new ZoneFilter(List.of(new ItemStack(bucket)), List.of())));
     }
 

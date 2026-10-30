@@ -12,22 +12,22 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * Server to client, for the open handheld GUI: how many loaded bays each zone
- * has, and the stock of the bound warehouse, largest first.
+ * Server to client, for the open handheld GUI: how many loaded shelves each
+ * zone has, and the stock of the bound warehouse, largest first.
  *
- * @param bayCounts loaded bays per zone id
- * @param bound     whether the handheld is bound to a warehouse that still has its controller
- * @param items     one of each stored item
- * @param counts    how many of each the warehouse holds
+ * @param shelfCounts loaded shelves per zone id
+ * @param bound       whether the handheld is bound to a warehouse that still has its controller
+ * @param items       one of each stored item
+ * @param counts      how many of each the warehouse holds
  */
-public record HandheldMenuStatePayload(Map<Integer, Integer> bayCounts, boolean bound, List<ItemStack> items, List<Long> counts)
+public record HandheldMenuStatePayload(Map<Integer, Integer> shelfCounts, boolean bound, List<ItemStack> items, List<Long> counts)
         implements CustomPacketPayload {
 
     public static final Type<HandheldMenuStatePayload> TYPE =
             new Type<>(Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "handheld_menu_state"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, HandheldMenuStatePayload> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.map(HashMap::new, ByteBufCodecs.VAR_INT, ByteBufCodecs.VAR_INT), HandheldMenuStatePayload::bayCounts,
+            ByteBufCodecs.map(HashMap::new, ByteBufCodecs.VAR_INT, ByteBufCodecs.VAR_INT), HandheldMenuStatePayload::shelfCounts,
             ByteBufCodecs.BOOL, HandheldMenuStatePayload::bound,
             ItemStack.STREAM_CODEC.apply(ByteBufCodecs.list()), HandheldMenuStatePayload::items,
             ByteBufCodecs.VAR_LONG.apply(ByteBufCodecs.list()), HandheldMenuStatePayload::counts,

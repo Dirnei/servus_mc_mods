@@ -1,11 +1,11 @@
 package io.github.dirnei.mc.servus.shuttles.rack;
 
-import io.github.dirnei.mc.servus.shuttles.lock.SlotFill;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -24,28 +24,21 @@ public final class RackReport {
     }
 
     public static List<Component> of(Level level, BlockPos pos) {
-        List<HeavyRackBlockEntity> bays = new ArrayList<>();
-        for (BlockPos bay : HeavyRackBlock.shelf(level, pos)) {
-            if (level.getBlockEntity(bay) instanceof HeavyRackBlockEntity rack) {
-                bays.add(rack);
-            }
-        }
-        if (bays.isEmpty()) {
+        Optional<ShelfStock> found = ShelfStock.of(level, pos, ShuttlesStatsManager.INSTANCE.rackPotatoTopItems());
+        if (found.isEmpty()) {
             return List.of();
         }
-        List<SlotFill.Slot<ItemKey>> slots = new ArrayList<>();
+        ShelfStock stock = found.get();
         Set<String> zones = new LinkedHashSet<>();
-        for (HeavyRackBlockEntity bay : bays) {
-            slots.addAll(bay.items().states());
+        for (HeavyRackBlockEntity bay : stock.bays()) {
             if (!bay.zone().isEmpty()) {
                 zones.add(bay.zone());
             }
         }
-        ShelfFill<ItemKey> fill = ShelfFill.of(slots, ShuttlesStatsManager.INSTANCE.rackPotatoTopItems());
-
+        ShelfFill<ItemKey> fill = stock.fill();
         List<Component> report = new ArrayList<>();
         report.add(zones.isEmpty() ? Component.translatable(KEY + "no_zone") : Component.translatable(KEY + "zone", String.join(", ", zones)));
-        report.add(Component.translatable(fill.full() ? KEY + "slots_full" : KEY + "slots", bays.size(), fill.used(), fill.total()));
+        report.add(Component.translatable(fill.full() ? KEY + "slots_full" : KEY + "slots", stock.bays().size(), fill.used(), fill.total()));
         if (fill.isEmpty()) {
             report.add(Component.translatable(KEY + "empty"));
         }

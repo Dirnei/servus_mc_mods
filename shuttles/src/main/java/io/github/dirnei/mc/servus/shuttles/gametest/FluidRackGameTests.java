@@ -317,7 +317,7 @@ public final class FluidRackGameTests {
             for (BlockPos bay : bays) {
                 helper.assertTrue(FluidRackFixtures.bay(helper, bay).zone().equals("Cooling"), "every bay is in Cooling, " + bay + " is not");
             }
-            GameTestSteps.useOn(helper, player, ZoneFixtures.handheld(ZoneList.NONE), bays[2], FRONT);
+            GameTestSteps.useOn(helper, helper.makeMockPlayer(GameType.SURVIVAL), ZoneFixtures.handheld(ZoneList.NONE), bays[2], FRONT);
             for (BlockPos bay : bays) {
                 helper.assertTrue(FluidRackFixtures.bay(helper, bay).zone().isEmpty(), "every bay is unzoned again, " + bay + " is not");
             }

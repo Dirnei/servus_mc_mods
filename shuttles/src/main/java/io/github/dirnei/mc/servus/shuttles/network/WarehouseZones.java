@@ -127,15 +127,6 @@ final class WarehouseZones {
         return counts;
     }
 
-    /** Stock blocks per live zone id. */
-    Map<Integer, Integer> blockCountsById() {
-        Map<Integer, Integer> counts = new LinkedHashMap<>();
-        for (ZoneDefinition zone : resolved().values()) {
-            counts.merge(zone.id(), 1, Integer::sum);
-        }
-        return counts;
-    }
-
     /** Every live zone of the warehouse, sorted by name. */
     List<WarehouseNetwork.ZoneSummary> summaries() {
         Map<Integer, List<BlockPos>> blocks = new LinkedHashMap<>();

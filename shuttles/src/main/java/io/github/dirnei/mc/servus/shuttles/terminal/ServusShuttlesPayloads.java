@@ -42,8 +42,6 @@ import io.github.dirnei.mc.servus.shuttles.handheld.HandheldActions;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldFindPayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldFindResultPayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldInfoPayload;
-import io.github.dirnei.mc.servus.shuttles.handheld.HandheldInfoRequest;
-import io.github.dirnei.mc.servus.shuttles.handheld.HandheldItem;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldMenuStatePayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldModePayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldScanPayload;
@@ -187,16 +185,8 @@ public final class ServusShuttlesPayloads {
                 menu.acceptState(payload);
             }
         });
-        registrar.playToServer(HandheldModePayload.TYPE, HandheldModePayload.STREAM_CODEC, (payload, context) -> {
-            if (context.player() instanceof ServerPlayer player && player.getMainHandItem().getItem() instanceof HandheldItem) {
-                HandheldActions.stepMode(player, player.getMainHandItem(), payload.step());
-            }
-        });
-        registrar.playToServer(HandheldInfoRequest.TYPE, HandheldInfoRequest.STREAM_CODEC, (payload, context) -> {
-            if (context.player() instanceof ServerPlayer player) {
-                HandheldActions.answerInfo(player, payload.pos());
-            }
-        });
+        registrar.playToServer(HandheldModePayload.TYPE, HandheldModePayload.STREAM_CODEC,
+                (payload, context) -> HandheldActions.applyMode(context.player(), payload));
         toMenu(registrar, HandheldZonePayload.TYPE, HandheldZonePayload.STREAM_CODEC, HandheldMenu.class,
                 (player, menu, payload) -> menu.save(player, payload.id(), payload.name(), payload.colour(), payload.filter()));
         toMenu(registrar, HandheldZoneActionPayload.TYPE, HandheldZoneActionPayload.STREAM_CODEC, HandheldMenu.class,

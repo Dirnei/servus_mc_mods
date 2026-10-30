@@ -13,7 +13,7 @@ import io.github.dirnei.mc.servus.shuttles.rack.RackRow;
 import io.github.dirnei.mc.servus.shuttles.rack.RackShelf;
 import io.github.dirnei.mc.servus.shuttles.rail.RailBlock;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
-import io.github.dirnei.mc.servus.shuttles.zone.ZoneList;
+import io.github.dirnei.mc.servus.shuttles.zone.ShelfZones;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldItem;
 import java.util.ArrayList;
 import java.util.List;
@@ -250,7 +250,7 @@ public class FluidRackBlock extends BaseEntityBlock implements Wrenchable, Potat
         if (bays.isEmpty()) {
             return;
         }
-        shareZone(bays, level.getBlockEntity(pos) instanceof FluidRackBlockEntity placed ? placed : null);
+        ShelfZones.onJoin(level, pos);
         FluidRackBlockEntity.rebalance(bays);
         int port = FluidRackShelf.portIndex(positions.size());
         for (int i = 0; i < positions.size(); i++) {
@@ -265,33 +265,6 @@ public class FluidRackBlock extends BaseEntityBlock implements Wrenchable, Potat
             bay.shelfChanged();
         }
         refreshDock(level, positions);
-    }
-
-    /** Gives every bay the zone of the first other zoned bay, else the zone of {@code placed}. */
-    private static void shareZone(List<FluidRackBlockEntity> bays, @Nullable FluidRackBlockEntity placed) {
-        int zone = ZoneList.NONE;
-        for (FluidRackBlockEntity bay : bays) {
-            if (bay != placed && bay.zoneDefinition() != null) {
-                zone = bay.zoneId();
-                break;
-            }
-        }
-        if (zone == ZoneList.NONE && placed != null && placed.zoneDefinition() != null) {
-            zone = placed.zoneId();
-        }
-        for (FluidRackBlockEntity bay : bays) {
-            bay.setZone(zone);
-        }
-    }
-
-    /** Puts every bay of the shelf at that position into the zone with that id, or clears it with {@link ZoneList#NONE}. */
-    public static void stampShelf(Level level, BlockPos pos, int zone) {
-        for (FluidRackBlockEntity bay : bays(level, pos)) {
-            bay.setZone(zone);
-        }
-        for (FluidRackBlockEntity bay : bays(level, pos)) {
-            bay.shelfChanged();
-        }
     }
 
     /**

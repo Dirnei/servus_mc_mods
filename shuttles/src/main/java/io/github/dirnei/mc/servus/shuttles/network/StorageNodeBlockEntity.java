@@ -32,11 +32,14 @@ public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageN
 
     private static final String ZONE_ID = "ZoneId";
     private static final String CODE = "Code";
+    private static final String CODE_BAY = "CodeBay";
 
     /** The id of the team zone this block is in, {@link ZoneList#NONE} when unzoned. */
     private int zoneId;
     /** The location code relative to the warehouse's controller, empty without one. */
     private String locationCode = "";
+    /** Whether this bay is the one its shelf's code is measured from, where the sticker hangs. */
+    private boolean codeBay;
     /** What the warehouse keeps of this node while the node is in no network: shuttles, queue or held loads. */
     private CompoundTag warehouseState = new CompoundTag();
     private boolean leavingForGood;
@@ -67,17 +70,23 @@ public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageN
         return zone == null ? ZoneFilter.EMPTY : zone.filter();
     }
 
-    /** The bay's location code relative to its warehouse's controller, empty without a controller. */
+    /** The location code of this bay's shelf relative to its warehouse's controller, empty without a controller. */
     public String locationCode() {
         return locationCode;
     }
 
-    /** Sets the location code and syncs it to clients when it changed. Server side, called by the warehouse. */
-    public void setLocationCode(String code) {
-        if (code.equals(locationCode)) {
+    /** Whether the shelf's code is measured from this bay, so its sticker hangs here. */
+    public boolean codeBay() {
+        return codeBay;
+    }
+
+    /** Sets the shelf's location code and whether this is its code bay, and syncs clients when either changed. Server side, called by the warehouse. */
+    public void setLocationCode(String code, boolean codeBay) {
+        if (code.equals(locationCode) && codeBay == this.codeBay) {
             return;
         }
         locationCode = code;
+        this.codeBay = codeBay;
         if (level != null && !level.isClientSide()) {
             BlockState state = getBlockState();
             level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
@@ -115,6 +124,7 @@ public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageN
     protected void writeZone(CompoundTag tag) {
         writeZoneId(tag);
         tag.putString(CODE, locationCode);
+        tag.putBoolean(CODE_BAY, codeBay);
     }
 
     private void writeZoneId(CompoundTag tag) {
@@ -142,6 +152,7 @@ public abstract class StorageNodeBlockEntity extends NetworkBlockEntity<StorageN
         CompoundTag tag = ValueIo.whole(input);
         zoneId = tag.getIntOr(ZONE_ID, ZoneList.NONE);
         locationCode = tag.getStringOr(CODE, "");
+        codeBay = tag.getBooleanOr(CODE_BAY, false);
         warehouseState = tag.getCompoundOrEmpty("Warehouse");
         NamedMachines.load(this, input);
     }

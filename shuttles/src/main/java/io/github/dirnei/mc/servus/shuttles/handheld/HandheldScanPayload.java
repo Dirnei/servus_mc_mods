@@ -10,12 +10,12 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 
 /**
- * Server to client: the handheld scanned these bays. The client flashes them
+ * Server to client: the handheld scanned the shelf of these bays. The client flashes them
  * green or red and beeps or buzzes.
  *
- * @param bays       the bays that flash
+ * @param bays       every bay of the scanned shelf
  * @param ok         green with a beep, or red with a buzz
- * @param sweepIndex the bay's place in a held sweep, 0 for the first; the beep rises with it
+ * @param sweepIndex the shelf's place in a held sweep, 0 for the first; the beep rises with it
  */
 public record HandheldScanPayload(List<BlockPos> bays, boolean ok, int sweepIndex) implements CustomPacketPayload {
 

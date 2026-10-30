@@ -14,7 +14,6 @@ import io.github.dirnei.mc.servus.foundation.client.LiveBlockEntityRenderer;
 import io.github.dirnei.mc.servus.foundation.client.ModelPoses;
 import io.github.dirnei.mc.servus.shuttles.fluidrack.FluidRackBlock;
 import io.github.dirnei.mc.servus.shuttles.fluidrack.FluidRackBlockEntity;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
@@ -28,13 +27,12 @@ import net.neoforged.neoforge.fluids.FluidStack;
  * Draws what a Fluid Rack bay shows beyond its block model: the shelf's
  * fluid behind the glass front, from the floor up to the synced fill, the
  * same height in every bay and running through where bays join, and the
- * zone name on the top beam of the port bay.
+ * zone name on the top beam of the port bay, and the code sticker on the
+ * shelf's code bay, both hung from the top beam as on the Heavy Duty Rack.
  */
 public final class FluidRackRenderer extends LiveBlockEntityRenderer<FluidRackBlockEntity> {
 
     private static final float PX = 1 / 16F;
-    private static final double ZONE_Y = 0.93;
-    private static final float ZONE_SCALE = 0.008F;
 
     public FluidRackRenderer(BlockEntityRendererProvider.Context context) {
     }
@@ -55,14 +53,21 @@ public final class FluidRackRenderer extends LiveBlockEntityRenderer<FluidRackBl
             fluid(level, rack.getBlockPos(), state, fluid, fill, poseStack, collector);
             poseStack.popPose();
         }
-        if (state.getValue(FluidRackBlock.PORT) && !rack.zone().isEmpty()) {
+        boolean sticker = rack.codeBay() && !rack.locationCode().isEmpty();
+        boolean name = state.getValue(FluidRackBlock.PORT) && !rack.zone().isEmpty();
+        if (sticker || name) {
             poseStack.pushPose();
             poseStack.translate(0.5, 0.0, 0.5);
             poseStack.mulPose(Axis.YP.rotationDegrees(180.0F - facing.toYRot()));
             poseStack.mulPose(Axis.YP.rotationDegrees(180.0F));
             // Now x runs to the aisle viewer's right, y up and plus z towards the aisle.
-            ZoneText.draw(rack.zone(), poseStack, collector, Minecraft.getInstance().font, 0.0, ZONE_Y, 0.5 + 0.004, ZONE_SCALE,
-                    LevelRenderer.getLightCoords(level, rack.getBlockPos().relative(facing)));
+            int beamLight = LevelRenderer.getLightCoords(level, rack.getBlockPos().relative(facing));
+            if (sticker) {
+                RackBeamLabel.sticker(poseStack, collector, rack.locationCode(), beamLight);
+            }
+            if (name) {
+                RackBeamLabel.name(poseStack, collector, rack.zone(), RackBeamLabel.nameRun(1, sticker ? 0 : -1), beamLight);
+            }
             poseStack.popPose();
         }
     }

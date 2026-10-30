@@ -2,7 +2,7 @@ package io.github.dirnei.mc.servus.shuttles.gametest;
 
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.logistics.network.FluidChannelNetwork.FluidKey;
-import io.github.dirnei.mc.servus.shuttles.fluidrack.FluidRackBlock;
+import io.github.dirnei.mc.servus.shuttles.zone.ShelfZones;
 import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidInboundBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidOutboundBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.rail.RailBlock;
@@ -56,7 +56,7 @@ public final class FluidRackTankerGameTests {
     }
 
     private static void zone(GameTestHelper helper, BlockPos bay, int zone) {
-        FluidRackBlock.stampShelf(helper.getLevel(), helper.absolutePos(bay), zone);
+        ShelfZones.set(helper.getLevel(), helper.absolutePos(bay), zone);
     }
 
     /** A rail only in front of a bay without the port leaves the shelf out; a rail at the port makes it stock. */

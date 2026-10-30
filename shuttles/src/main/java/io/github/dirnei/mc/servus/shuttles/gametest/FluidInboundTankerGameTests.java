@@ -3,7 +3,7 @@ package io.github.dirnei.mc.servus.shuttles.gametest;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.logistics.network.FluidChannelNetwork.FluidKey;
 import io.github.dirnei.mc.servus.foundation.transfer.Transfer;
-import io.github.dirnei.mc.servus.shuttles.fluidrack.FluidRackBlock;
+import io.github.dirnei.mc.servus.shuttles.zone.ShelfZones;
 import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidInboundBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.menu.FluidInboundMenu;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlocks.Activity;
@@ -110,7 +110,7 @@ public final class FluidInboundTankerGameTests {
         FluidInboundBlockEntity station = station(helper);
         BlockPos[] bays = racks(helper);
         helper.runAfterDelay(2, () -> {
-            FluidRackBlock.stampShelf(helper.getLevel(), helper.absolutePos(bays[0]),
+            ShelfZones.set(helper.getLevel(), helper.absolutePos(bays[0]),
                     ZoneFixtures.zone(helper, "Cooling", new ZoneFilter(List.of(new ItemStack(Items.WATER_BUCKET)), List.of())));
             FluidStationFixtures.fill(station, Fluids.LAVA, 2000);
             Waits.when(helper, () -> WarehouseFixtures.blocked(helper, STATION), 150, () -> "the station's lamp turns red", () -> {

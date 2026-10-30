@@ -3,9 +3,7 @@ package io.github.dirnei.mc.servus.shuttles.client;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -13,8 +11,8 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
-import net.minecraft.core.BlockPos;
 import net.minecraft.util.LightCoordsUtil;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
@@ -27,31 +25,37 @@ import org.joml.Vector3fc;
 
 /**
  * The handheld's effects in the world: a red scan line from the hand to the
- * aimed bay while use is held, a fading green or red box on scanned bays, and
- * a yellow outline seen through blocks around the bays a FIND lit up.
+ * aimed bay while use is held, a fading green or red box over a scanned
+ * shelf, and a yellow tint with an outline, seen through blocks, over the
+ * shelves a FIND lit up. Each effect covers a whole shelf as one box.
  *
- * <p>No two faces share a plane where they overlap: a flash box stands
- * {@link #FLASH_OFFSET} off the bay's faces and every further flashed bay one
- * {@link #STEP} further, so neighbouring bays of a shelf never draw on one
- * plane. The glow is drawn without depth test, so it cannot fight with blocks.
+ * <p>No two faces share a plane where they overlap: a flash stands
+ * {@link #FLASH_OFFSET} off the shelf's faces, the tint {@link #TINT_OUT} and
+ * the outline bands {@link #GLOW_OUT}, and every further shelf of the same
+ * effect one {@link #STEP} further. Bands along Y and Z stop one band width
+ * short of each corner, where the X bands end, so bands only touch there.
+ * Tint and outline have no depth test, so they cannot fight with blocks.
  */
 @EventBusSubscriber(modid = ServusShuttlesIds.MOD_ID, value = Dist.CLIENT)
 public final class HandheldRenderer {
 
-    private static final float PX = 1 / 16F;
-    private static final float FLASH_OFFSET = 0.05F * PX;
-    private static final float STEP = 0.005F * PX;
+    private static final double PX = 1 / 16D;
+    private static final double FLASH_OFFSET = 0.05 * PX;
+    private static final double STEP = 0.005 * PX;
     private static final int FLASH_ALPHA = 110;
     private static final int GREEN = 0x50FF78;
     private static final int RED = 0xFF3C3C;
     private static final int GLOW = 0xFFE14D;
+    private static final int TINT_ALPHA = 46;
     /** Half the width of a glow edge band, in blocks. */
     private static final float GLOW_BAND = 0.025F;
-    private static final float GLOW_OUT = 0.02F;
+    private static final double GLOW_OUT = 0.02;
+    private static final double TINT_OUT = GLOW_OUT - 0.05 * PX;
     /** Half the width of the scan line, in blocks. */
     private static final float LASER_HALF = 0.006F;
     private static final int LASER = 0xFF2D2D;
     private static final int LASER_ALPHA = 190;
+    private static final int[][] FACES = {{0, 1, 2, 3}, {5, 4, 7, 6}, {4, 0, 3, 7}, {1, 5, 6, 2}, {3, 2, 6, 7}, {4, 5, 1, 0}};
 
     private HandheldRenderer() {
     }
@@ -65,8 +69,8 @@ public final class HandheldRenderer {
             return;
         }
         long now = level.getGameTime();
-        Map<BlockPos, ClientHandheld.Flash> flashes = ClientHandheld.flashes(now);
-        List<BlockPos> glowing = ClientHandheld.glowing(now);
+        List<ClientHandheld.Flash> flashes = ClientHandheld.flashes(now);
+        List<AABB> glowing = ClientHandheld.glowing(now);
         BlockHitResult laserHit = laserTarget(minecraft, player);
         if (flashes.isEmpty() && glowing.isEmpty() && laserHit == null) {
             return;
@@ -77,12 +81,11 @@ public final class HandheldRenderer {
         float partial = minecraft.getDeltaTracker().getGameTimeDeltaPartialTick(false);
         if (!flashes.isEmpty() || laserHit != null) {
             VertexConsumer quads = buffers.getBuffer(RenderTypes.debugQuads());
-            int index = 0;
-            for (Map.Entry<BlockPos, ClientHandheld.Flash> entry : new ArrayList<>(flashes.entrySet())) {
-                float age = (now - entry.getValue().start() + partial) / ClientHandheld.FLASH_TICKS;
+            for (int i = 0; i < flashes.size(); i++) {
+                ClientHandheld.Flash flash = flashes.get(i);
+                float age = (now - flash.start() + partial) / ClientHandheld.FLASH_TICKS;
                 int alpha = (int) (FLASH_ALPHA * Math.max(0, 1 - age));
-                float out = FLASH_OFFSET + index++ * STEP;
-                box(quads, poseStack, entry.getKey(), camera, -out, 1 + out, entry.getValue().ok() ? GREEN : RED, alpha);
+                box(quads, poseStack, flash.box().inflate(FLASH_OFFSET + i * STEP), camera, flash.ok() ? GREEN : RED, alpha);
             }
             if (laserHit != null) {
                 laser(quads, poseStack, minecraft.gameRenderer.getMainCamera(), camera, laserHit.getLocation());
@@ -93,8 +96,10 @@ public final class HandheldRenderer {
             RenderType seeThrough = RenderTypes.textBackgroundSeeThrough();
             VertexConsumer glow = buffers.getBuffer(seeThrough);
             int alpha = (int) (150 + 80 * Math.sin((now + partial) * 0.3));
-            for (BlockPos pos : glowing) {
-                outline(glow, poseStack, pos, camera, alpha);
+            for (int i = 0; i < glowing.size(); i++) {
+                AABB shelf = glowing.get(i);
+                box(glow, poseStack, shelf.inflate(TINT_OUT + i * STEP), camera, GLOW, TINT_ALPHA);
+                outline(glow, poseStack, shelf.inflate(GLOW_OUT + i * STEP), camera, alpha);
             }
             buffers.endBatch(seeThrough);
         }
@@ -110,40 +115,51 @@ public final class HandheldRenderer {
         return hit;
     }
 
-    /** A box from {@code min} to {@code max} in block units around the block, all six faces. */
-    private static void box(VertexConsumer consumer, PoseStack poseStack, BlockPos pos, Vec3 camera, float min, float max, int rgb,
-                            int alpha) {
-        poseStack.pushPose();
-        poseStack.translate(pos.getX() - camera.x, pos.getY() - camera.y, pos.getZ() - camera.z);
+    /** The six faces of the box, seen from outside. */
+    private static void box(VertexConsumer consumer, PoseStack poseStack, AABB box, Vec3 camera, int rgb, int alpha) {
         PoseStack.Pose pose = poseStack.last();
-        float[][] corners = {{min, min, min}, {max, min, min}, {max, max, min}, {min, max, min},
-                {min, min, max}, {max, min, max}, {max, max, max}, {min, max, max}};
-        int[][] faces = {{0, 1, 2, 3}, {5, 4, 7, 6}, {4, 0, 3, 7}, {1, 5, 6, 2}, {3, 2, 6, 7}, {4, 5, 1, 0}};
-        for (int[] face : faces) {
+        float x0 = (float) (box.minX - camera.x);
+        float y0 = (float) (box.minY - camera.y);
+        float z0 = (float) (box.minZ - camera.z);
+        float x1 = (float) (box.maxX - camera.x);
+        float y1 = (float) (box.maxY - camera.y);
+        float z1 = (float) (box.maxZ - camera.z);
+        float[][] corners = {{x0, y0, z0}, {x1, y0, z0}, {x1, y1, z0}, {x0, y1, z0},
+                {x0, y0, z1}, {x1, y0, z1}, {x1, y1, z1}, {x0, y1, z1}};
+        for (int[] face : FACES) {
             for (int corner : face) {
                 consumer.addVertex(pose, corners[corner][0], corners[corner][1], corners[corner][2])
-                        .setColor(rgb >> 16 & 0xFF, rgb >> 8 & 0xFF, rgb & 0xFF, alpha);
+                        .setColor(rgb >> 16 & 0xFF, rgb >> 8 & 0xFF, rgb & 0xFF, alpha)
+                        .setLight(LightCoordsUtil.FULL_BRIGHT);
             }
         }
-        poseStack.popPose();
     }
 
-    /** The twelve edges of the block as crossed bands, seen through anything. */
-    private static void outline(VertexConsumer consumer, PoseStack poseStack, BlockPos pos, Vec3 camera, int alpha) {
-        poseStack.pushPose();
-        poseStack.translate(pos.getX() - camera.x, pos.getY() - camera.y, pos.getZ() - camera.z);
+    /**
+     * The twelve edges of the box as crossed bands. Bands along X run the full
+     * edge; bands along Y and Z stop one band width short of each corner.
+     */
+    private static void outline(VertexConsumer consumer, PoseStack poseStack, AABB box, Vec3 camera, int alpha) {
         PoseStack.Pose pose = poseStack.last();
-        float lo = -GLOW_OUT;
-        float hi = 1 + GLOW_OUT;
-        float[] ends = {lo, hi};
-        for (float a : ends) {
-            for (float b : ends) {
-                edge(consumer, pose, new Vector3f(lo, a, b), new Vector3f(hi, a, b), alpha);
-                edge(consumer, pose, new Vector3f(a, lo, b), new Vector3f(a, hi, b), alpha);
-                edge(consumer, pose, new Vector3f(a, b, lo), new Vector3f(a, b, hi), alpha);
+        float x0 = (float) (box.minX - camera.x);
+        float y0 = (float) (box.minY - camera.y);
+        float z0 = (float) (box.minZ - camera.z);
+        float x1 = (float) (box.maxX - camera.x);
+        float y1 = (float) (box.maxY - camera.y);
+        float z1 = (float) (box.maxZ - camera.z);
+        for (float a : new float[] {y0, y1}) {
+            for (float b : new float[] {z0, z1}) {
+                edge(consumer, pose, new Vector3f(x0, a, b), new Vector3f(x1, a, b), alpha);
             }
         }
-        poseStack.popPose();
+        for (float a : new float[] {x0, x1}) {
+            for (float b : new float[] {z0, z1}) {
+                edge(consumer, pose, new Vector3f(a, y0 + GLOW_BAND, b), new Vector3f(a, y1 - GLOW_BAND, b), alpha);
+            }
+            for (float b : new float[] {y0, y1}) {
+                edge(consumer, pose, new Vector3f(a, b, z0 + GLOW_BAND), new Vector3f(a, b, z1 - GLOW_BAND), alpha);
+            }
+        }
     }
 
     /** One edge as two crossed bands along it, each drawn from both sides. */

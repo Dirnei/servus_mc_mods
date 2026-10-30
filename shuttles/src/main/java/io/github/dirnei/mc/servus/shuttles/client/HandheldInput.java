@@ -27,7 +27,7 @@ public final class HandheldInput {
             return;
         }
         event.setCanceled(true);
-        ClientPacketDistributor.sendToServer(new HandheldModePayload(event.getScrollDeltaY() < 0 ? 1 : -1));
+        ClientPacketDistributor.sendToServer(HandheldModePayload.step(event.getScrollDeltaY() < 0 ? 1 : -1));
         ClientHandheld.clicked();
     }
 }

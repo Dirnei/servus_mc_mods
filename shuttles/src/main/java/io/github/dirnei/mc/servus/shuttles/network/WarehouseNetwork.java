@@ -90,6 +90,7 @@ import io.github.dirnei.mc.servus.shuttles.zone.PutAwayPlan;
 import io.github.dirnei.mc.servus.shuttles.zone.PutAwayRank;
 import io.github.dirnei.mc.servus.shuttles.zone.ZoneDefinition;
 import io.github.dirnei.mc.servus.shuttles.zone.LocationCode;
+import io.github.dirnei.mc.servus.shuttles.zone.ShelfZones;
 import io.github.dirnei.mc.servus.shuttles.zone.Zones;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -320,7 +321,9 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             machinesToNumber.addAll(namedMembers);
         }
         zones.remove(blockPos);
-        codedBays.remove(blockPos);
+        if (codedBays.remove(blockPos)) {
+            codesDirty = true;
+        }
         dropSource(blockPos);
         if (forGood && node instanceof HeavyRackBlockEntity) {
             brokenSources.add(blockPos);
@@ -672,11 +675,12 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return zones.blockCounts();
     }
 
-    /** Loaded rack bays and Fluid Rack bays per zone id. */
-    public Map<Integer, Integer> zoneBlockCountsById() {
-        Map<Integer, Integer> counts = zones.blockCountsById();
-        for (BlockPos pos : fluidRacks) {
-            if (loaded(pos) instanceof StorageNodeBlockEntity bay && bay.zoneDefinition() != null) {
+    /** Loaded rack shelves and Fluid Rack shelves per zone id, each shelf counted once by its leftmost bay. */
+    public Map<Integer, Integer> zoneShelfCountsById() {
+        Map<Integer, Integer> counts = new HashMap<>();
+        for (BlockPos pos : codedBays) {
+            if (loaded(pos) instanceof StorageNodeBlockEntity bay && bay.zonable() && bay.zoneDefinition() != null
+                    && ShelfZones.key(level, pos).equals(pos)) {
                 counts.merge(bay.zoneId(), 1, Integer::sum);
             }
         }
@@ -697,15 +701,45 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return Zones.definition(level, id);
     }
 
-    /** Gives every loaded bay its location code relative to the single controller, or none without one. */
+    /**
+     * Gives every loaded shelf one location code relative to the single
+     * controller, or none without one: measured from its code bay and written
+     * to all its bays.
+     */
     private void pushCodes() {
         codesDirty = false;
         BlockPos controller = status() == Status.ONLINE ? controllerPos : null;
+        Set<BlockPos> done = new HashSet<>();
         for (BlockPos pos : codedBays) {
-            if (loaded(pos) instanceof StorageNodeBlockEntity node) {
-                node.setLocationCode(controller == null ? "" : LocationCode.of(pos.getX() - controller.getX(),
-                        pos.getY() - controller.getY(), pos.getZ() - controller.getZ()));
+            if (done.contains(pos) || !(loaded(pos) instanceof StorageNodeBlockEntity)) {
+                continue;
             }
+            List<StorageNodeBlockEntity> bays = new ArrayList<>();
+            for (BlockPos bay : ShelfZones.shelf(level, pos)) {
+                if (codedBays.contains(bay) && loaded(bay) instanceof StorageNodeBlockEntity node) {
+                    bays.add(node);
+                    done.add(bay);
+                }
+            }
+            pushCode(bays, controller);
+        }
+    }
+
+    private static void pushCode(List<StorageNodeBlockEntity> bays, BlockPos controller) {
+        if (controller == null) {
+            bays.forEach(bay -> bay.setLocationCode("", false));
+            return;
+        }
+        List<LocationCode.Offset> offsets = new ArrayList<>();
+        for (StorageNodeBlockEntity bay : bays) {
+            BlockPos pos = bay.getBlockPos();
+            offsets.add(new LocationCode.Offset(pos.getX() - controller.getX(), pos.getY() - controller.getY(),
+                    pos.getZ() - controller.getZ()));
+        }
+        String code = LocationCode.ofShelf(offsets);
+        int codeBay = LocationCode.codeBay(offsets);
+        for (int i = 0; i < bays.size(); i++) {
+            bays.get(i).setLocationCode(code, i == codeBay);
         }
     }
 

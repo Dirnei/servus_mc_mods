@@ -128,7 +128,7 @@ public class FluidRackBlockEntity extends StorageNodeBlockEntity {
      * The shelf changed (its fluid, zone or bays): tells the warehouse and
      * sends watching clients the new level when its step moved.
      */
-    void shelfChanged() {
+    public void shelfChanged() {
         setChanged();
         if (level == null || level.isClientSide()) {
             return;

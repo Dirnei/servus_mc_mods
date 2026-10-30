@@ -1,7 +1,7 @@
 package io.github.dirnei.mc.servus.shuttles.gametest;
 
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
-import io.github.dirnei.mc.servus.shuttles.fluidrack.FluidRackBlock;
+import io.github.dirnei.mc.servus.shuttles.zone.ShelfZones;
 import io.github.dirnei.mc.servus.shuttles.zone.ZoneList;
 import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidInboundBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlocks.Activity;
@@ -32,7 +32,7 @@ public final class TankerLampGameTests {
             TankerFixtures.fill(source, Fluids.LAVA, 2000);
             Waits.when(helper, () -> lamp(helper, Activity.BLOCKED), 120, () -> "the lamp turns red first", () -> {
                 helper.assertTrue(TankerFixtures.out(helper) == 0 && TankerFixtures.network(helper).queuedJobs() == 0, "no tanker drives");
-                FluidRackBlock.stampShelf(helper.getLevel(), helper.absolutePos(TankerFixtures.FAR), ZoneList.NONE);
+                ShelfZones.set(helper.getLevel(), helper.absolutePos(TankerFixtures.FAR), ZoneList.NONE);
                 Waits.when(helper, () -> TankerFixtures.amount(helper, TankerFixtures.FAR) == 2000 && lamp(helper, Activity.IDLE), RUN,
                         () -> "the lava goes to the unzoned shelf and the lamp turns green", () -> {
                     helper.assertTrue(TankerFixtures.amount(source) == 0, "the Inbound is empty");

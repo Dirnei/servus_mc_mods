@@ -11,16 +11,16 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 /**
- * Server to client: the answer to a FIND. The client makes the bays glow for
- * {@code glowTicks} and shows item, total and codes on the panel.
+ * Server to client: the answer to a FIND. The client makes the shelves glow
+ * for {@code glowTicks} and shows item, total and codes on the panel.
  *
  * @param item      one of the item searched for
  * @param total     how many the bound warehouse holds
- * @param bays      the loaded bays holding it
+ * @param shelves   the loaded shelves holding it, each by one of its bays
  * @param codes     their location codes, in the same order
- * @param glowTicks how long the bays glow
+ * @param glowTicks how long the shelves glow
  */
-public record HandheldFindResultPayload(ItemStack item, long total, List<BlockPos> bays, List<String> codes, int glowTicks)
+public record HandheldFindResultPayload(ItemStack item, long total, List<BlockPos> shelves, List<String> codes, int glowTicks)
         implements CustomPacketPayload {
 
     public static final Type<HandheldFindResultPayload> TYPE =
@@ -29,7 +29,7 @@ public record HandheldFindResultPayload(ItemStack item, long total, List<BlockPo
     public static final StreamCodec<RegistryFriendlyByteBuf, HandheldFindResultPayload> STREAM_CODEC = StreamCodec.composite(
             ItemStack.STREAM_CODEC, HandheldFindResultPayload::item,
             ByteBufCodecs.VAR_LONG, HandheldFindResultPayload::total,
-            BlockPos.STREAM_CODEC.apply(ByteBufCodecs.list()), HandheldFindResultPayload::bays,
+            BlockPos.STREAM_CODEC.apply(ByteBufCodecs.list()), HandheldFindResultPayload::shelves,
             ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()), HandheldFindResultPayload::codes,
             ByteBufCodecs.VAR_INT, HandheldFindResultPayload::glowTicks,
             HandheldFindResultPayload::new);
