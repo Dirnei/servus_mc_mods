@@ -19,6 +19,7 @@ import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesComponents;
 import io.github.dirnei.mc.servus.shuttles.zone.ZoneFilter;
 import io.github.dirnei.mc.servus.shuttles.zone.ZoneList;
 import java.util.List;
+import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -73,6 +74,21 @@ public final class HandheldGameTests {
         helper.assertTrue(bay.zoneId() == ores && bay.zone().equals("Ores"), "the bay is in Ores, got '" + bay.zone() + "'");
         GameTestSteps.useOn(helper, helper.makeMockPlayer(GameType.SURVIVAL), ZoneFixtures.handheld(ZoneList.NONE), RACK, Direction.NORTH);
         helper.assertTrue(bay.zoneDefinition() == null, "No zone clears the bay, got '" + bay.zone() + "'");
+        helper.succeed();
+    }
+
+    /** A right click at a shelf beyond the normal reach but within the scan range zones it. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void scanReachesBeyondTheNormalReach(GameTestHelper helper) {
+        HeavyRackBlockEntity bay = WarehouseFixtures.rack(helper, RACK, Direction.NORTH);
+        int ores = ZoneFixtures.zone(helper, "Ores", ZoneFilter.EMPTY);
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        Vec3 stand = Vec3.atBottomCenterOf(helper.absolutePos(RACK.east(8)));
+        player.setPos(stand.x, stand.y, stand.z);
+        player.lookAt(EntityAnchorArgument.Anchor.EYES, Vec3.atCenterOf(helper.absolutePos(RACK)));
+        player.setItemInHand(InteractionHand.MAIN_HAND, ZoneFixtures.handheld(ores));
+        player.getMainHandItem().use(helper.getLevel(), player, InteractionHand.MAIN_HAND);
+        helper.assertTrue(bay.zoneId() == ores, "a scan from 8 blocks zones the shelf, got '" + bay.zone() + "'");
         helper.succeed();
     }
 

@@ -95,6 +95,7 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     public static final int DEFAULT_FLUID_STATION_TANK_CAPACITY = 16000;
 
     public static final int DEFAULT_HANDHELD_FIND_GLOW_SECONDS = 8;
+    public static final int DEFAULT_HANDHELD_SCAN_RANGE = 16;
 
     private static final double DEFAULT_FREE_SLOT_BUCKET = 0.25;
     private static final double DEFAULT_FOLLOW_GAP = 1.0;
@@ -187,6 +188,7 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     private volatile int fluidStationTankCapacity = DEFAULT_FLUID_STATION_TANK_CAPACITY;
     private volatile TravelWeights travelWeights = TravelWeights.DEFAULT;
     private volatile int handheldFindGlowSeconds = DEFAULT_HANDHELD_FIND_GLOW_SECONDS;
+    private volatile int handheldScanRange = DEFAULT_HANDHELD_SCAN_RANGE;
     private volatile double freeSlotBucket = DEFAULT_FREE_SLOT_BUCKET;
     private volatile double followGap = DEFAULT_FOLLOW_GAP;
     private volatile double trafficPerShuttle = DEFAULT_TRAFFIC_PER_SHUTTLE;
@@ -202,6 +204,7 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
         garageCapacity = intField(files.get(WAREHOUSE), "garage_capacity", DEFAULT_GARAGE_CAPACITY);
         railMaxSpan = intField(files.get(WAREHOUSE), "rail_max_span", DEFAULT_RAIL_MAX_SPAN);
         handheldFindGlowSeconds = intField(files.get(WAREHOUSE), "handheld_find_glow_seconds", DEFAULT_HANDHELD_FIND_GLOW_SECONDS);
+        handheldScanRange = Math.max(1, intField(files.get(WAREHOUSE), "handheld_scan_range", DEFAULT_HANDHELD_SCAN_RANGE));
         terminalOutputSlots = intField(files.get(WAREHOUSE), "terminal_output_slots", DEFAULT_TERMINAL_OUTPUT_SLOTS);
         pushInterval = intField(files.get(WAREHOUSE), "push_interval", DEFAULT_PUSH_INTERVAL);
         outboundCheckInterval = intField(files.get(WAREHOUSE), "outbound_check_interval", DEFAULT_OUTBOUND_CHECK_INTERVAL);
@@ -513,6 +516,11 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     /** How long the bays a handheld FIND points at glow, in seconds. */
     public int handheldFindGlowSeconds() {
         return handheldFindGlowSeconds;
+    }
+
+    /** How far the handheld scans a shelf, in blocks; a client on a remote server uses the default. */
+    public int handheldScanRange() {
+        return handheldScanRange;
     }
 
     public int rackBaysPerShelf() {

@@ -19,8 +19,6 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.HitResult;
 
 /**
  * What the client knows for the handheld's panel and effects: shelves
@@ -59,13 +57,10 @@ public final class ClientHandheld {
         return ItemStack.EMPTY;
     }
 
-    /** The bay under the crosshair, or null when the player aims at no bay. */
+    /** The bay the player aims at within the handheld's scan range, or null when it aims at no bay. */
     public static StorageNodeBlockEntity aimedBay() {
-        Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.level == null || !(minecraft.hitResult instanceof BlockHitResult hit) || hit.getType() != HitResult.Type.BLOCK) {
-            return null;
-        }
-        return minecraft.level.getBlockEntity(hit.getBlockPos()) instanceof StorageNodeBlockEntity bay && bay.zonable() ? bay : null;
+        LocalPlayer player = Minecraft.getInstance().player;
+        return player == null ? null : HandheldItem.aimedBay(player);
     }
 
     public static void scanned(HandheldScanPayload payload) {
