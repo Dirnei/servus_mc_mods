@@ -41,7 +41,9 @@ import net.minecraft.world.phys.Vec3;
 /**
  * Rail that links storage blocks into one warehouse network. Rails connect to
  * each other and to elevators sideways; a side that touches a stock holding
- * storage block is a dock and renders its own piece. A rail stands on a floor,
+ * storage block is a dock and renders its own piece. A Buffer Stop whose front
+ * faces the rail counts as a side with track for the look only; it links
+ * nothing and holds no rail up. A rail stands on a floor,
  * hangs on a rack front or elevator segment, or is free in the air; free rails
  * bridge short gaps and fall when the gap does not hold (see {@link RailSpan}).
  * The Data Potato reports the shuttles on it.
@@ -86,7 +88,8 @@ public class RailBlock extends ConnectableBlock implements PotatoInspectable {
         if (!direction.getAxis().isHorizontal()) {
             return false;
         }
-        if (neighborState.getBlock() instanceof RailBlock || neighborState.getBlock() instanceof ElevatorBlock) {
+        if (neighborState.getBlock() instanceof RailBlock || neighborState.getBlock() instanceof ElevatorBlock
+                || BufferStopBlock.facesTowards(neighborState, direction.getOpposite())) {
             return true;
         }
         return docksTo(level, neighborPos, direction);

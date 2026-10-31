@@ -143,6 +143,14 @@ final class ServusShuttlesRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_rail", has(ServusShuttlesItems.RAIL.get()))
                 .save(MaterialRecipes.output(output, registries, MaterialKind.WOOD));
 
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusShuttlesItems.BUFFER_STOP.get())
+                .pattern("III")
+                .pattern(" R ")
+                .define('I', Items.IRON_INGOT)
+                .define('R', ServusShuttlesItems.RAIL.get())
+                .unlockedBy("has_rail", has(ServusShuttlesItems.RAIL.get()))
+                .save(MaterialRecipes.output(output, registries, MaterialKind.WOOD));
+
         // The fluid stations: the item station on a Fluid Tank; the station's wood carries over.
         fluidStation(ServusShuttlesItems.FLUID_INBOUND.get(), ServusShuttlesItems.INBOUND_STATION.get());
         fluidStation(ServusShuttlesItems.FLUID_OUTBOUND.get(), ServusShuttlesItems.OUTBOUND_STATION.get());

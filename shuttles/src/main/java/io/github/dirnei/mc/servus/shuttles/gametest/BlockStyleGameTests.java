@@ -48,7 +48,8 @@ public final class BlockStyleGameTests {
     private BlockStyleGameTests() {
     }
 
-    private static ItemStack craft(GameTestHelper helper, String recipe, int width, int height, List<ItemStack> grid) {
+    /** Assembles the Shuttles crafting recipe of that name from the grid, asserting that it matches. */
+    static ItemStack craft(GameTestHelper helper, String recipe, int width, int height, List<ItemStack> grid) {
         RecipeHolder<?> holder = helper.getLevel().recipeAccess()
                 .byKey(ServusRecipes.key(Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, recipe)))
                 .orElseThrow(() -> new AssertionError("no recipe " + recipe));

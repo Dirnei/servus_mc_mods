@@ -10,6 +10,7 @@ import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.fluidrack.FluidRackBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.rail.BufferStopBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.rail.ElevatorBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.rail.RailBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.garage.ShuttleGarageBlockEntity;
@@ -64,6 +65,9 @@ public final class ServusShuttlesBlockEntities {
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<RailBlockEntity>> RAIL =
             BLOCK_ENTITIES.register("rail", () -> new BlockEntityType<>(RailBlockEntity::new, ServusShuttlesBlocks.RAIL.get(), ServusShuttlesBlocks.FARM_RAIL.get()));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BufferStopBlockEntity>> BUFFER_STOP =
+            BLOCK_ENTITIES.register("buffer_stop", () -> new BlockEntityType<>(BufferStopBlockEntity::new, ServusShuttlesBlocks.BUFFER_STOP.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ElevatorBlockEntity>> ELEVATOR =
             BLOCK_ENTITIES.register("elevator", () -> new BlockEntityType<>(ElevatorBlockEntity::new, ServusShuttlesBlocks.ELEVATOR.get()));

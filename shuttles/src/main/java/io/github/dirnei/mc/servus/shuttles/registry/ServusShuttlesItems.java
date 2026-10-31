@@ -45,6 +45,9 @@ public final class ServusShuttlesItems {
     public static final DeferredItem<RailItem> RAIL = ITEMS.registerItem("rail",
             properties -> new RailItem(ServusShuttlesBlocks.RAIL.get(), properties),
             Item.Properties::useBlockDescriptionPrefix);
+    public static final DeferredItem<MaterialBlockItem> BUFFER_STOP = ITEMS.registerItem("buffer_stop",
+            properties -> new MaterialBlockItem(ServusShuttlesBlocks.BUFFER_STOP.get(), properties),
+            Item.Properties::useBlockDescriptionPrefix);
     public static final DeferredItem<RailItem> FARM_RAIL = ITEMS.registerItem("farm_rail",
             properties -> new RailItem(ServusShuttlesBlocks.FARM_RAIL.get(), properties),
             Item.Properties::useBlockDescriptionPrefix);
@@ -112,7 +115,7 @@ public final class ServusShuttlesItems {
     public static final DeferredItem<HandheldItem> HANDHELD = ITEMS.registerItem("handheld", HandheldItem::new, () -> new Item.Properties().stacksTo(1));
 
     /** Items shown in the Servus creative tab, in order. */
-    public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(HEAVY_RACK, WAREHOUSE_CONTROLLER, WIRELESS_UPGRADE, STORAGE_TERMINAL, RAIL, ELEVATOR, INBOUND_STATION, PACKING_STATION, SHUTTLE_GARAGE, OUTBOUND_STATION, FLUID_INBOUND, FLUID_RACK, FLUID_OUTBOUND, CRAFTING_STATION, CRAFTING_CPU, CPU_BUFFER, PRODUCTION_TERMINAL, PATTERN_STORAGE, SHUTTLE_WORKSHOP, SHUTTLE_MK1, SHUTTLE_MK2, SHUTTLE_MK3, HANDLING_UPGRADE, MUFFLER, HARVESTER, SPREADER, LUMBER, TANKER, FARM_RAIL, FIELD_HEAD, RANGE_UPGRADE, HANDHELD, PARCEL_LOCKER);
+    public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(HEAVY_RACK, WAREHOUSE_CONTROLLER, WIRELESS_UPGRADE, STORAGE_TERMINAL, RAIL, BUFFER_STOP, ELEVATOR, INBOUND_STATION, PACKING_STATION, SHUTTLE_GARAGE, OUTBOUND_STATION, FLUID_INBOUND, FLUID_RACK, FLUID_OUTBOUND, CRAFTING_STATION, CRAFTING_CPU, CPU_BUFFER, PRODUCTION_TERMINAL, PATTERN_STORAGE, SHUTTLE_WORKSHOP, SHUTTLE_MK1, SHUTTLE_MK2, SHUTTLE_MK3, HANDLING_UPGRADE, MUFFLER, HARVESTER, SPREADER, LUMBER, TANKER, FARM_RAIL, FIELD_HEAD, RANGE_UPGRADE, HANDHELD, PARCEL_LOCKER);
 
     private ServusShuttlesItems() {
     }

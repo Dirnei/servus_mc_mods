@@ -26,7 +26,8 @@ public final class RailLook {
 
     public enum Piece { SINGLE, END, STRAIGHT, CURVE, CROSS }
 
-    public enum Part { SLEEPER, HEAD, DOCK }
+    /** What a box is made of: wood sleepers, rail heads, the striped dock beam or a steel frame. */
+    public enum Part { SLEEPER, HEAD, DOCK, FRAME }
 
     /** A piece of a rail and its clockwise rotation in degrees. */
     public record Placed(Piece piece, int rotation) {

@@ -10,6 +10,7 @@ import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerBlock;
 import io.github.dirnei.mc.servus.shuttles.fluidrack.FluidRackBlock;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlock;
+import io.github.dirnei.mc.servus.shuttles.rail.BufferStopBlock;
 import io.github.dirnei.mc.servus.shuttles.rail.ElevatorBlock;
 import io.github.dirnei.mc.servus.shuttles.rail.RailBlock;
 import io.github.dirnei.mc.servus.shuttles.garage.ShuttleGarageBlock;
@@ -67,6 +68,13 @@ public final class ServusShuttlesBlocks {
             () -> BlockBehaviour.Properties.of()
                     .mapColor(MapColor.METAL)
                     .strength(1.0F)
+                    .sound(SoundType.METAL)
+                    .noOcclusion());
+
+    public static final DeferredBlock<BufferStopBlock> BUFFER_STOP = BLOCKS.registerBlock("buffer_stop", BufferStopBlock::new,
+            () -> BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.METAL)
+                    .strength(2.0F)
                     .sound(SoundType.METAL)
                     .noOcclusion());
 

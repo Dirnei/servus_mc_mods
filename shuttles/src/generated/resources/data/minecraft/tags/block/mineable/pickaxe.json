@@ -2,6 +2,7 @@
   "values": [
     "servus_shuttles:warehouse_controller",
     "servus_shuttles:rail",
+    "servus_shuttles:buffer_stop",
     "servus_shuttles:elevator",
     "servus_shuttles:heavy_rack",
     "servus_shuttles:fluid_rack",

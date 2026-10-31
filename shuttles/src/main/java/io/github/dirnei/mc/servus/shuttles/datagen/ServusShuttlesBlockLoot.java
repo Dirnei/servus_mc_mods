@@ -21,7 +21,7 @@ final class ServusShuttlesBlockLoot extends BlockLootSubProvider {
             ServusShuttlesBlocks.SHUTTLE_GARAGE.get(), ServusShuttlesBlocks.OUTBOUND_STATION.get(), ServusShuttlesBlocks.CRAFTING_STATION.get(),
             ServusShuttlesBlocks.CRAFTING_CPU.get(), ServusShuttlesBlocks.CPU_BUFFER.get(), ServusShuttlesBlocks.PRODUCTION_TERMINAL.get(),
             ServusShuttlesBlocks.FIELD_HEAD.get(), ServusShuttlesBlocks.RAIL.get(), ServusShuttlesBlocks.FARM_RAIL.get(),
-            ServusShuttlesBlocks.SHUTTLE_WORKSHOP.get(), ServusShuttlesBlocks.ELEVATOR.get());
+            ServusShuttlesBlocks.SHUTTLE_WORKSHOP.get(), ServusShuttlesBlocks.ELEVATOR.get(), ServusShuttlesBlocks.BUFFER_STOP.get());
 
     ServusShuttlesBlockLoot(HolderLookup.Provider registries) {
         super(Set.of(), FeatureFlags.REGISTRY.allFlags(), registries);

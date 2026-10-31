@@ -23,7 +23,8 @@ import io.github.dirnei.mc.servus.foundation.datagen.model.MultiPartBlockStateBu
 
 /**
  * Datagen for the track rails: one model per {@link RailLook} piece (single,
- * end, straight, curve, cross) picked by the sides that carry rail, a dock
+ * end, straight, curve, cross) picked by the sides that carry rail (rails,
+ * elevator segments, garage backs and Buffer Stop fronts), a dock
  * beam per dock side and the track up to the beam when the rail runs straight
  * into it. Sleepers use the wood board texture so {@code MaterialModel} shows the
  * rail's wood; heads use one texture per rail type.
@@ -74,11 +75,22 @@ final class RailModels {
                                            List<Box> boxes) {
         BlockModelBuilder builder = provider.models().withExistingParent(model, "minecraft:block/block")
                 .texture("particle", head).texture("head", head).texture("wood", MaterialKind.WOOD.placeholder()).texture("dock", dock);
+        addBoxes(builder, boxes);
+        return builder;
+    }
+
+    /**
+     * Adds the boxes as elements with every face in the texture variable of
+     * its part: {@code #wood}, {@code #head}, {@code #dock} or {@code #frame}.
+     * Bottom faces on the floor cull against the block below.
+     */
+    static void addBoxes(BlockModelBuilder builder, List<Box> boxes) {
         for (Box box : boxes) {
             String texture = switch (box.part()) {
                 case SLEEPER -> "#wood";
                 case HEAD -> "#head";
                 case DOCK -> "#dock";
+                case FRAME -> "#frame";
             };
             ModelBuilder<BlockModelBuilder>.ElementBuilder element = builder.element()
                     .from((float) box.x0(), (float) box.y0(), (float) box.z0())
@@ -91,7 +103,6 @@ final class RailModels {
             });
             element.end();
         }
-        return builder;
     }
 
     /** The piece for a mask of sides that carry rail (bits north, east, south, west), conditioned on all four sides. */

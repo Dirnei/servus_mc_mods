@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "servus_shuttles:block/buffer_stop",
+      "y": 90
+    },
+    "facing=north": {
+      "model": "servus_shuttles:block/buffer_stop"
+    },
+    "facing=south": {
+      "model": "servus_shuttles:block/buffer_stop",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "servus_shuttles:block/buffer_stop",
+      "y": 270
+    }
+  }
+}

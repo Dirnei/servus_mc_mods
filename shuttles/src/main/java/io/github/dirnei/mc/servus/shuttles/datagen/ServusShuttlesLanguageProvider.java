@@ -17,6 +17,7 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add(ServusShuttlesBlocks.WAREHOUSE_CONTROLLER.get(), "Warehouse Controller");
         add(ServusShuttlesBlocks.STORAGE_TERMINAL.get(), "Storage Terminal");
         add(ServusShuttlesBlocks.RAIL.get(), "Warehouse Rail");
+        add(ServusShuttlesBlocks.BUFFER_STOP.get(), "Buffer Stop");
         add(ServusShuttlesBlocks.ELEVATOR.get(), "Rail Elevator");
         add(ServusShuttlesBlocks.HEAVY_RACK.get(), "Heavy Duty Rack");
         add("tooltip.servus_shuttles.heavy_rack.wood", "Wood: %s");

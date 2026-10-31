@@ -9,6 +9,7 @@ public final class ShuttlesGameTests {
             AdapterOrderGameTests.class,
             AdjacentDataGameTests.class,
             BlockStyleGameTests.class,
+            BufferStopGameTests.class,
             ChainHandoffGameTests.class,
             ControllerSiteGameTests.class,
             ControllerWirelessGameTests.class,
