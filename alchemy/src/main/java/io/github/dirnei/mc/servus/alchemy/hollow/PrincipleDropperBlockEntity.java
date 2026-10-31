@@ -81,7 +81,7 @@ public class PrincipleDropperBlockEntity extends BlockEntity {
             return 0;
         }
         return hollow.dripNeed().map(need -> {
-            Principles plan = PrincipleDrip.plan(tanks.contents(), need.stepCost(), need.room(), perDrip);
+            Principles plan = PrincipleDrip.plan(tanks.contents(), need.wanted(), need.room(), perDrip);
             int bits = 0;
             for (Principle principle : Principle.values()) {
                 int taken = hollow.receiveDrip(principle, plan.get(principle));

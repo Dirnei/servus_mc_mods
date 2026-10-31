@@ -10,18 +10,18 @@ public final class PrincipleDrip {
     }
 
     /**
-     * The amounts of one drip: of every principle the vein's step takes, as much as the Dropper holds, the Hollow has
-     * room for and one drip carries; nothing of a principle the step does not take.
+     * The amounts of one drip: of every principle the vein wants, as much as the Dropper holds, the Hollow has room for
+     * and one drip carries; nothing of a principle it does not want.
      *
      * @param held     what the Dropper's tanks hold
-     * @param stepCost what one ripening step of the vein takes
+     * @param wanted   what the vein takes now: its step cost while unripe, its feed amounts once ripe
      * @param room     free space in each of the Hollow's tanks
      * @param perDrip  mB of each principle one drip carries at most
      */
-    public static Principles plan(Principles held, Principles stepCost, Principles room, int perDrip) {
+    public static Principles plan(Principles held, Principles wanted, Principles room, int perDrip) {
         Principles drip = Principles.NONE;
         for (Principle principle : Principle.values()) {
-            if (stepCost.get(principle) > 0) {
+            if (wanted.get(principle) > 0) {
                 int amount = Math.min(Math.max(0, perDrip), Math.min(held.get(principle), room.get(principle)));
                 drip = drip.with(principle, amount);
             }

@@ -4,5 +4,10 @@
   "steps": 30,
   "step_ticks": 100,
   "step_cost": {"salt": 150, "mercury": 50},
-  "yield_ticks": 200
+  "yield_ticks": 1800,
+  "feed": {
+    "salt": {"amount": 10, "bonus": 0.5},
+    "mercury": {"amount": 15, "bonus": 1.0},
+    "sulfur": {"amount": 5, "bonus": 0.5}
+  }
 }

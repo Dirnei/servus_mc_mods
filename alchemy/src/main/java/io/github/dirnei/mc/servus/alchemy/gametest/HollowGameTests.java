@@ -10,6 +10,8 @@ import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity.Binding;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity.Gift;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity.Seeding;
+import io.github.dirnei.mc.servus.alchemy.hollow.VeinData;
+import io.github.dirnei.mc.servus.alchemy.hollow.VeinFeed;
 import io.github.dirnei.mc.servus.alchemy.hollow.VeinGrowth;
 import io.github.dirnei.mc.servus.alchemy.hollow.VeinSeedItem;
 import io.github.dirnei.mc.servus.alchemy.journal.Journal;
@@ -52,7 +54,8 @@ public final class HollowGameTests {
 
     private static final BlockPos MACHINE = AlchemyGameTests.MACHINE;
     private static final int IRON_STEPS = 20;
-    private static final int IRON_YIELD_TICKS = 200;
+    /** Ticks a test watches the gnome dig to compare his pace. */
+    private static final int PACE_TICKS = 10;
 
     private HollowGameTests() {
     }
@@ -104,6 +107,35 @@ public final class HollowGameTests {
             hollow.growth().ripeness = IRON_STEPS;
         }
         return hollow;
+    }
+
+    /** The vein's yield time while unfed and without a gift, as loaded. */
+    static int yieldTicks(GnomeHollowBlockEntity hollow) {
+        return hollow.veinDef().orElseThrow().growth().yieldTicks();
+    }
+
+    /**
+     * Watches the gnome for {@link #PACE_TICKS} ticks and expects {@code pace} times the base digging, then lets one item
+     * land and expects it to use exactly {@code cost} from the tanks.
+     */
+    private static void assertDigs(GameTestHelper helper, GnomeHollowBlockEntity hollow, int pace, Principles cost) {
+        int[] start = new int[1];
+        Principles[] held = new Principles[1];
+        helper.startSequence()
+                .thenExecuteAfter(1, () -> start[0] = hollow.growth().yieldTimer)
+                .thenExecuteAfter(PACE_TICKS, () -> {
+                    int work = hollow.growth().yieldTimer - start[0];
+                    helper.assertTrue(work == pace * PACE_TICKS, "x" + pace + ": " + pace * PACE_TICKS + " ticks of work in "
+                            + PACE_TICKS + " ticks, got " + work);
+                    held[0] = hollow.tanks().contents();
+                    hollow.growth().yieldTimer = yieldTicks(hollow) - 1;
+                })
+                .thenExecuteAfter(3, () -> {
+                    helper.assertTrue(hollow.store().count() == 1, "one item should land, got " + hollow.store().count());
+                    Principles used = held[0].minus(hollow.tanks().contents());
+                    helper.assertTrue(used.equals(cost), "the item should use " + cost + ", used " + used);
+                })
+                .thenSucceed();
     }
 
     /** A survival mock player with {@code stack} in the main hand, with or without Elemental Sight. */
@@ -226,7 +258,7 @@ public final class HollowGameTests {
     @ServusGameTest(timeoutTicks = 100)
     public static void storeOfTheOldVeinWaits(GameTestHelper helper) {
         GnomeHollowBlockEntity hollow = ironHollow(helper, true);
-        hollow.growth().yieldTimer = IRON_YIELD_TICKS - 1;
+        hollow.growth().yieldTimer = yieldTicks(hollow) - 1;
         helper.runAfterDelay(5, () -> {
             helper.assertTrue(hollow.store().count() == 1, "the iron gnome dug one Raw Iron");
             hollow.seed(seed("gold"));
@@ -300,26 +332,31 @@ public final class HollowGameTests {
     }
 
     /** A bound gnome digs raw iron into the store and pushes nothing into a chest beside it. */
-    @ServusGameTest(timeoutTicks = 600)
+    @ServusGameTest(timeoutTicks = 100)
     public static void boundHollowFillsItsStore(GameTestHelper helper) {
         BlockPos chestPos = MACHINE.east();
         helper.setBlock(chestPos, Blocks.CHEST.defaultBlockState());
         ChestBlockEntity chest = helper.getBlockEntity(chestPos, ChestBlockEntity.class);
         GnomeHollowBlockEntity hollow = ironHollow(helper, true);
+        hollow.growth().yieldTimer = yieldTicks(hollow) - 20;
         helper.succeedWhen(() -> {
-            helper.assertTrue(hollow.store().count() >= 2, "the store should get raw iron, has " + hollow.store().count());
+            helper.assertTrue(hollow.store().count() >= 1, "the store should get raw iron, has " + hollow.store().count());
             helper.assertTrue(chest.isEmpty(), "nothing is pushed into the chest");
         });
     }
 
-    /** A full store stops the gnome. */
-    @ServusGameTest(timeoutTicks = 2 * IRON_YIELD_TICKS)
+    /** A full store stops the gnome, and he eats nothing while it stays full. */
+    @ServusGameTest(timeoutTicks = 100)
     public static void fullStoreStops(GameTestHelper helper) {
         GnomeHollowBlockEntity hollow = ironHollow(helper, true);
         hollow.store().load(64);
-        helper.runAfterDelay(IRON_YIELD_TICKS + 20, () -> {
+        Principles plenty = new Principles(1000, 1000, 1000);
+        hollow.tanks().insert(plenty);
+        hollow.growth().yieldTimer = yieldTicks(hollow) - 1;
+        helper.runAfterDelay(60, () -> {
             helper.assertTrue(hollow.store().count() == 64, "the store stays at 64, has " + hollow.store().count());
-            helper.assertTrue(hollow.growth().yieldTimer == 0, "the gnome waits while the store is full");
+            helper.assertTrue(hollow.growth().yieldTimer == yieldTicks(hollow) - 1, "the gnome waits while the store is full");
+            helper.assertTrue(hollow.tanks().contents().equals(plenty), "no principle is used, has " + hollow.tanks().contents());
             helper.succeed();
         });
     }
@@ -506,8 +543,8 @@ public final class HollowGameTests {
         return ironHollow(helper, true);
     }
 
-    /** A cookie given by hand under the sight is used up and makes the gnome dig twice as fast. */
-    @ServusGameTest(timeoutTicks = 3 * IRON_YIELD_TICKS)
+    /** A cookie given by hand under the sight is used up and makes the unfed gnome dig twice as fast. */
+    @ServusGameTest(timeoutTicks = 60)
     public static void likedGiftSpeedsUpTheGnome(GameTestHelper helper) {
         GnomeHollowBlockEntity hollow = workingHollow(helper);
         ItemStack cookies = new ItemStack(Items.COOKIE, 3);
@@ -515,10 +552,89 @@ public final class HollowGameTests {
         helper.assertTrue(cookies.getCount() == 2, "one cookie is used up, " + cookies.getCount() + " left");
         helper.assertTrue(hollow.boostFactor() == 2 && hollow.boostTicksLeft() == 12000,
                 "a cookie boosts x2 for 12,000 ticks, got x" + hollow.boostFactor() + " for " + hollow.boostTicksLeft());
-        helper.runAfterDelay(2 * IRON_YIELD_TICKS + 10, () -> {
-            helper.assertTrue(hollow.store().count() == 4, "twice the base rate of 2 raw iron, got " + hollow.store().count());
-            helper.succeed();
-        });
+        assertDigs(helper, hollow, 2, Principles.NONE);
+    }
+
+    /** A gift multiplies the feed: all three fed (x3) and a cookie (x2) dig six times as fast, at the same cost per item. */
+    @ServusGameTest(timeoutTicks = 60)
+    public static void giftMultipliesTheFeed(GameTestHelper helper) {
+        GnomeHollowBlockEntity hollow = workingHollow(helper);
+        hollow.tanks().insert(new Principles(1000, 1000, 1000));
+        helper.assertTrue(hollow.offerGift(new ItemStack(Items.COOKIE)) == Gift.TAKEN, "the gnome takes the cookie");
+        assertDigs(helper, hollow, 6, new Principles(10, 2, 4));
+    }
+
+    /** Unfed, a ripe iron gnome digs at the base rate and uses nothing. */
+    @ServusGameTest(timeoutTicks = 60)
+    public static void unfedDigsAtTheBaseRate(GameTestHelper helper) {
+        GnomeHollowBlockEntity hollow = workingHollow(helper);
+        helper.assertTrue(yieldTicks(hollow) >= 1200, "an unfed iron gnome digs slowly, " + yieldTicks(hollow) + " ticks per item");
+        assertDigs(helper, hollow, 1, Principles.NONE);
+    }
+
+    /** Fed Salt only, the iron gnome digs twice as fast and each Raw Iron uses 10 mB Salt. */
+    @ServusGameTest(timeoutTicks = 60)
+    public static void saltFedDigsTwiceAsFast(GameTestHelper helper) {
+        GnomeHollowBlockEntity hollow = workingHollow(helper);
+        hollow.tanks().insert(new Principles(1000, 0, 0));
+        assertDigs(helper, hollow, 2, new Principles(10, 0, 0));
+    }
+
+    /** Fed all three, the iron gnome digs three times as fast and each Raw Iron uses 10 Salt, 2 Sulfur and 4 Mercury. */
+    @ServusGameTest(timeoutTicks = 60)
+    public static void allThreeFedDigThreeTimesAsFast(GameTestHelper helper) {
+        GnomeHollowBlockEntity hollow = workingHollow(helper);
+        hollow.tanks().insert(new Principles(1000, 1000, 1000));
+        assertDigs(helper, hollow, 3, new Principles(10, 2, 4));
+    }
+
+    /** A fed diamond gnome digs three times as fast, using its vein's whole feed per Diamond. */
+    @ServusGameTest(timeoutTicks = 60)
+    public static void fedDiamondDigsThreeTimesAsFast(GameTestHelper helper) {
+        GnomeHollowBlockEntity hollow = plantedHollow(helper, "diamond");
+        VeinGrowth.Vein diamond = hollow.veinDef().orElseThrow().growth();
+        hollow.growth().ripeness = diamond.steps();
+        hollow.tanks().insert(new Principles(1000, 1000, 1000));
+        assertDigs(helper, hollow, 3, diamond.feed().amounts());
+    }
+
+    /** With 15 mB Salt the next Raw Iron uses 10; the 5 left feed no more and the gnome digs at the base rate again. */
+    @ServusGameTest(timeoutTicks = 60)
+    public static void runningDryFallsBackToTheBaseRate(GameTestHelper helper) {
+        GnomeHollowBlockEntity hollow = workingHollow(helper);
+        hollow.tanks().insert(new Principles(15, 0, 0));
+        hollow.growth().yieldTimer = yieldTicks(hollow) - 1;
+        int[] start = new int[1];
+        helper.startSequence()
+                .thenExecuteAfter(3, () -> {
+                    helper.assertTrue(hollow.store().count() == 1, "one Raw Iron should land");
+                    helper.assertTrue(hollow.tanks().amount(Principle.SALT) == 5, "5 mB Salt left, got " + hollow.tanks().amount(Principle.SALT));
+                    start[0] = hollow.growth().yieldTimer;
+                })
+                .thenExecuteAfter(PACE_TICKS, () -> helper.assertTrue(hollow.growth().yieldTimer - start[0] == PACE_TICKS,
+                        "base rate again, got " + (hollow.growth().yieldTimer - start[0])))
+                .thenSucceed();
+    }
+
+    /** Principles outside a feed never count, and an unripe vein's Salt only ripens it. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void onlyARipeVeinsFeedCounts(GameTestHelper helper) {
+        GnomeHollowBlockEntity hollow = ironHollow(helper, false);
+        hollow.tanks().insert(new Principles(1000, 1000, 1000));
+        helper.assertTrue(hollow.feedFactor() == 1, "an unripe vein's gnome is not fed, factor " + hollow.feedFactor());
+        hollow.growth().ripeness = IRON_STEPS;
+        helper.assertTrue(hollow.feedFactor() == 3, "a ripe vein's gnome is fed, factor " + hollow.feedFactor());
+        helper.succeed();
+    }
+
+    /** The gold gnome is fed best by Sulfur: Sulfur alone speeds him more than Salt alone. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void goldWantsSulfur(GameTestHelper helper) {
+        VeinFeed gold = VeinData.INSTANCE.get(Identifier.fromNamespaceAndPath(ServusAlchemyIds.MOD_ID, "gold")).orElseThrow().growth().feed();
+        double sulfur = gold.factor(new Principles(0, 1000, 0));
+        double salt = gold.factor(new Principles(1000, 0, 0));
+        helper.assertTrue(sulfur > salt, "Sulfur x" + sulfur + " should beat Salt x" + salt);
+        helper.succeed();
     }
 
     /** Under the sight a stick on a bound Hollow stays in the hand and starts no boost. */

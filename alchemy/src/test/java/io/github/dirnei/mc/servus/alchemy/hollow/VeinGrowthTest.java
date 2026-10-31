@@ -5,15 +5,17 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.github.dirnei.mc.servus.alchemy.Principle;
 import io.github.dirnei.mc.servus.alchemy.Principles;
 import io.github.dirnei.mc.servus.alchemy.hollow.VeinGrowth.Outcome;
 import io.github.dirnei.mc.servus.alchemy.hollow.VeinGrowth.State;
 import io.github.dirnei.mc.servus.alchemy.hollow.VeinGrowth.Vein;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class VeinGrowthTest {
 
-    private static final Vein IRON = new Vein(2, 3, new Principles(100, 0, 20), 4);
+    private static final Vein IRON = new Vein(2, 3, new Principles(100, 0, 20), 4, VeinFeed.NONE);
     private static final Principles PLENTY = new Principles(1000, 0, 1000);
 
     /** A vein with a gnome, ripe or not. */
@@ -118,6 +120,17 @@ class VeinGrowthTest {
 
     @Test
     void zeroNumbersAreRefused() {
-        assertThrows(IllegalArgumentException.class, () -> new Vein(0, 1, Principles.NONE, 1));
+        assertThrows(IllegalArgumentException.class, () -> new Vein(0, 1, Principles.NONE, 1, VeinFeed.NONE));
+    }
+
+    @Test
+    void wantedFollowsRipeness() {
+        VeinFeed feed = new VeinFeed(Map.of(Principle.SALT, new VeinFeed.Entry(10, 1)));
+        Vein fed = new Vein(2, 3, new Principles(100, 0, 20), 4, feed);
+        State state = tended();
+        assertEquals(new Principles(100, 0, 20), fed.wanted(state), "an unripe vein wants its step cost");
+        state.ripeness = 2;
+        assertEquals(new Principles(10, 0, 0), fed.wanted(state), "a ripe vein wants its feed");
+        assertEquals(Principles.NONE, IRON.wanted(state), "a ripe vein without a feed wants nothing");
     }
 }

@@ -11,7 +11,6 @@ import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyItems;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
-import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
@@ -22,7 +21,7 @@ import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.fluids.FluidStack;
 
-/** The Principle Dropper: filled from outside, it drips what an unripe vein drinks onto the Gnome Hollow below and nowhere else. */
+/** The Principle Dropper: filled from outside, it drips what a vein takes onto the Gnome Hollow below and nowhere else. */
 public final class DropperGameTests {
 
     private static final BlockPos BELOW = AlchemyGameTests.MACHINE;
@@ -102,24 +101,33 @@ public final class DropperGameTests {
         });
     }
 
-    /** A Hollow without a vein, and one whose vein is ripe, get nothing. */
-    @ServusGameTest(timeoutTicks = 2 * SEVERAL_DRIPS + 20)
-    public static void ripeOrEmptyHollowGetsNothing(GameTestHelper helper) {
-        UUID team = UUID.randomUUID();
-        HollowGameTests.finishVillach(helper.getLevel(), team);
-        GnomeHollowBlockEntity hollow = HollowGameTests.hollow(helper, team);
+    /** A Hollow without a vein gets nothing. */
+    @ServusGameTest(timeoutTicks = SEVERAL_DRIPS + 20)
+    public static void emptyHollowGetsNothing(GameTestHelper helper) {
+        HollowGameTests.boundHollow(helper);
         PrincipleDropperBlockEntity dropper = dropper(helper);
         fill(helper, Principle.SALT, 500);
         helper.runAfterDelay(SEVERAL_DRIPS, () -> {
             helper.assertTrue(dropper.tanks().amount(Principle.SALT) == 500, "a Hollow without a vein gets no Salt");
-            hollow.growth().bound = true;
-            hollow.seed(HollowGameTests.seed("iron"));
-            hollow.growth().ripeness = hollow.veinDef().orElseThrow().growth().steps();
-            helper.runAfterDelay(SEVERAL_DRIPS, () -> {
-                helper.assertTrue(dropper.tanks().amount(Principle.SALT) == 500, "a ripe vein gets no Salt");
-                helper.assertTrue(hollow.tanks().amount(Principle.SALT) == 0, "the ripe Hollow's tank stays empty");
-                helper.succeed();
-            });
+            helper.succeed();
+        });
+    }
+
+    /** A ripe iron vein gets all three principles of its feed, and its gnome digs at the fed rate. */
+    @ServusGameTest(timeoutTicks = SEVERAL_DRIPS + 20)
+    public static void ripeVeinGetsItsFeed(GameTestHelper helper) {
+        GnomeHollowBlockEntity hollow = HollowGameTests.ironHollow(helper, true);
+        PrincipleDropperBlockEntity dropper = dropper(helper);
+        for (Principle principle : Principle.values()) {
+            fill(helper, principle, 500);
+        }
+        helper.runAfterDelay(SEVERAL_DRIPS, () -> {
+            for (Principle principle : Principle.values()) {
+                helper.assertTrue(dropper.tanks().amount(principle) < 500, "the Dropper's " + principle + " should go down");
+                helper.assertTrue(hollow.tanks().amount(principle) > 0, principle + " should reach the ripe Hollow");
+            }
+            helper.assertTrue(hollow.feedFactor() == 3, "the gnome is fed all three, factor " + hollow.feedFactor());
+            helper.succeed();
         });
     }
 

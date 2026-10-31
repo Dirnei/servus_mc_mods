@@ -340,13 +340,19 @@ final class WorkshopCategory extends CategoryProvider {
                             + "and once ripe he digs its ore for you, as long as the Hollow stands.\n\n"
                             + "Give him the seed of another metal and he digs the old vein out and plants the new one. "
                             + "The old vein is lost; what he dug stays in his store.");
+            e.text("feeding", "Feeding the Gnome",
+                    "A working gnome eats Salt, Sulfur and Mercury. Each one he is fed makes him dig faster, all three "
+                            + "three times as fast, and every ore uses a little of each.\n\n"
+                            + "Unfed he still digs, only slowly. Each vein has its own taste: iron and copper want mostly Salt, "
+                            + "gold Sulfur, quartz and redstone Mercury, diamond and emerald much of all three. "
+                            + "Under the sight a fed vein flows faster.");
             e.text("store", "The Gnome's Store",
                     "The gnome keeps what it digs in a small store inside the Hollow and stops when the store is full. "
                             + "Use an empty hand on the Hollow, under the sight, to take the ore out. "
                             + "After a new seed, take the old ore out before he digs the new one.");
             e.text("gifts", "Gifts",
                     "Gnomes have a sweet tooth. Under the sight, hand a working gnome a cookie, bread or berries and it digs "
-                            + "twice as fast for a while. It needs no gifts to work; it only works slower without them. "
+                            + "twice as fast for a while, on top of what its feed gives. It needs no gifts to work; it only works slower without them. "
                             + "Anything else it will not touch.");
             e.text("moving", "Moving It",
                     "Break the Hollow under the sight and you get an empty Hollow back, with the ore from its store. "
@@ -405,10 +411,11 @@ final class WorkshopCategory extends CategoryProvider {
                     "Set the Dropper right on top of a Gnome Hollow and lead Salt, Sulfur and Mercury into it with a Fluid Pipe, "
                             + "or pour buckets in. Each principle has its own small tank.\n\n"
                             + "While the vein below is seeded and not yet ripe, the Dropper lets fall what the vein drinks, a few drops at a time, "
-                            + "and the vein ripens without your buckets. A ripe vein, an empty Hollow or plain stone gets nothing; "
+                            + "and the vein ripens without your buckets. Once the vein is ripe, it lets fall what the gnome eats "
+                            + "and keeps him fed. An empty Hollow or plain stone gets nothing; "
                             + "the Dropper keeps its principles and pours them into nothing else.");
             e.text("binding", "Still by Hand",
-                    "The drops only ripen the vein. Binding the gnome with a Salt Crystal and taking its ore out remain your work, "
+                    "The drops only ripen the vein and feed the gnome. Binding the gnome with a Salt Crystal and taking its ore out remain your work, "
                             + "under the sight.");
         });
     }

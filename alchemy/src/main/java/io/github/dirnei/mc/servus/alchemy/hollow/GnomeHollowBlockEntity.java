@@ -23,6 +23,7 @@ import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -46,7 +47,8 @@ import net.neoforged.neoforge.fluids.FluidStack;
 
 /**
  * A Gnome Hollow: a Salt Crystal calls a gnome in, he plants the vein of a Seed, principles poured in by bucket ripen
- * it while he tends it, and once ripe he digs the vein's ore into a small internal store until that is full. Another
+ * it while he tends it, and once ripe he digs the vein's ore into a small internal store until that is full, faster
+ * while the tanks hold the principles of the vein's feed, using some of them per dug item. Another
  * Seed makes him dig out the old vein and plant the new one; the store keeps what he dug. It offers nothing to pipes
  * or other blocks; only a player under Elemental Sight tends it. Clients get the vein's look for drawing under the sight.
  * The bound gnome is an Old Miner entity kept by the Hollow; breaking the Hollow sends him away.
@@ -116,6 +118,8 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
     private long shownBoundAt = NOT_SEEN_BINDING;
     private boolean shownOnce;
     private boolean shownBoosted;
+    /** The feed factor rounded to a whole number of at least 1; on the client from the update tag. */
+    private int feedPace = 1;
 
     public GnomeHollowBlockEntity(BlockPos pos, BlockState state) {
         super(ServusAlchemyBlockEntities.GNOME_HOLLOW.get(), pos, state);
@@ -266,31 +270,54 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
 
     /**
      * Principles dripped in by a Principle Dropper above: like a poured bucket, but taken only while the vein is
-     * seeded, not ripe and its steps take that principle. Returns the mB taken.
+     * seeded and wants that principle, by its steps while unripe and by its feed once ripe. Returns the mB taken.
      */
     int receiveDrip(Principle principle, int amount) {
-        Optional<VeinDef> def = veinDef();
-        if (amount <= 0 || def.isEmpty() || growth.ripe(def.get().growth()) || def.get().growth().stepCost().get(principle) <= 0) {
+        if (amount <= 0 || wanted().get(principle) <= 0) {
             return 0;
         }
         return tanks.tank(principle).fill(new FluidStack(PrincipleFluids.fluid(principle), amount), false);
     }
 
-    /** What one drip from above may bring: what the vein's steps take, and the free space of each tank. */
+    /** What one drip from above may bring: what the vein wants now, and the free space of each tank. */
     Optional<DripNeed> dripNeed() {
-        Optional<VeinDef> def = veinDef();
-        if (def.isEmpty() || growth.ripe(def.get().growth())) {
+        Principles wanted = wanted();
+        if (wanted.isEmpty()) {
             return Optional.empty();
         }
         Principles room = Principles.NONE;
         for (Principle principle : Principle.values()) {
             room = room.with(principle, Math.max(0, tanks.capacity() - tanks.amount(principle)));
         }
-        return Optional.of(new DripNeed(def.get().growth().stepCost(), room));
+        return Optional.of(new DripNeed(wanted, room));
     }
 
-    /** What an unripe vein drinks per step and how much more each tank of the Hollow holds. */
-    record DripNeed(Principles stepCost, Principles room) {
+    /** What the vein takes now: its step cost while unripe, its feed amounts once ripe, nothing without a vein. */
+    private Principles wanted() {
+        return veinDef().map(def -> def.growth().wanted(growth)).orElse(Principles.NONE);
+    }
+
+    /** What the vein wants per step or per dug item and how much more each tank of the Hollow holds. */
+    record DripNeed(Principles wanted, Principles room) {
+    }
+
+    /**
+     * How many times faster the feed in the tanks makes the gnome dig, 1 without a bound gnome on a ripe vein. The
+     * gift is not included.
+     */
+    public double feedFactor() {
+        return veinDef()
+                .filter(def -> growth.bound && growth.ripe(def.growth()))
+                .map(def -> def.growth().feed().factor(tanks.contents()))
+                .orElse(1.0);
+    }
+
+    /** Ticks the gnome takes per dug item at the current feed and gift, empty without a bound gnome on a ripe vein. */
+    public OptionalInt ticksPerItem() {
+        return veinDef()
+                .filter(def -> growth.bound && growth.ripe(def.growth()))
+                .map(def -> OptionalInt.of((int) Math.ceil(def.growth().yieldTicks() / (feedFactor() * boost.factor()))))
+                .orElse(OptionalInt.empty());
     }
 
     /** One of what the store holds: what was dug, else the vein's yield; empty without either. */
@@ -352,20 +379,23 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
         MachineStats stats = stats();
         tanks.setCapacity(stats.fluidCapacity());
         store.setCapacity(stats.itemCapacity());
+        Optional<VeinDef> def = veinDef();
+        boolean storeRoom = def.isPresent() && storeTakes(def.get().yield());
+        double feedFactor = storeRoom ? feedFactor() : 1;
         boolean wasBoosted = boost.active();
-        int work = boost.work();
+        int work = boost.work(feedFactor);
         if (wasBoosted) {
             setChanged();
             if (!boost.active()) {
                 syncToClients();
             }
         }
-        Optional<VeinDef> def = veinDef();
+        showFeedPace((int) Math.round(feedFactor));
         if (def.isEmpty()) {
             return;
         }
         ItemStack yield = def.get().yield();
-        Outcome outcome = VeinGrowth.tick(def.get().growth(), growth, tanks.contents(), storeTakes(yield), work);
+        Outcome outcome = VeinGrowth.tick(def.get().growth(), growth, tanks.contents(), storeRoom, work);
         switch (outcome) {
             case RIPENED -> {
                 tanks.take(def.get().growth().stepCost());
@@ -375,6 +405,7 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
                 }
             }
             case YIELD -> {
+                tanks.take(def.get().growth().feed().cost(tanks.contents()));
                 storedYield = yield.copyWithCount(1);
                 store.add();
             }
@@ -383,6 +414,15 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
         }
         if (outcome != Outcome.NONE || growth.stepTimer > 0 || growth.yieldTimer > 0) {
             setChanged();
+        }
+    }
+
+    /** Tells the clients the whole feed factor when it changed, so the sight shows the fed flow. */
+    private void showFeedPace(int pace) {
+        int clamped = Math.max(1, pace);
+        if (clamped != feedPace) {
+            feedPace = clamped;
+            syncToClients();
         }
     }
 
@@ -417,6 +457,11 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
      */
     public long shownBoundAt() {
         return shownBoundAt;
+    }
+
+    /** The feed factor rounded to a whole number of at least 1, as the client knows it. */
+    public int shownFeedPace() {
+        return feedPace;
     }
 
     /** Whether a gift boost runs, as the client knows it. */
@@ -493,6 +538,7 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
         storedYield = tag.contains("StoredYield") ? ValueIo.parseStack(registries, tag.getCompoundOrEmpty("StoredYield")) : ItemStack.EMPTY;
         boost.load(input.getDoubleOr("GiftFactor", 1), input.getIntOr("GiftTicks", 0));
         shownBoosted = input.getBooleanOr("Boosted", false);
+        feedPace = Math.max(1, input.getIntOr("FeedPace", 1));
         ownership.load(tag);
         keeper.load(input);
         if (tag.contains("ShownYield")) {
@@ -519,6 +565,7 @@ public class GnomeHollowBlockEntity extends BlockEntity implements TeamOwned {
         tag.putInt("Ripeness", growth.ripeness);
         tag.putBoolean("Bound", growth.bound);
         tag.putBoolean("Boosted", boost.active());
+        tag.putInt("FeedPace", feedPace);
         Optional<VeinDef> def = veinDef();
         tag.put("ShownYield", def.map(d -> d.yield().isEmpty() ? new CompoundTag() : ValueIo.saveStack(registries, d.yield())).orElseGet(CompoundTag::new));
         tag.putInt("ShownSteps", def.map(d -> d.growth().steps()).orElse(0));

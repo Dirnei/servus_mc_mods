@@ -6,11 +6,13 @@ import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.github.dirnei.mc.servus.alchemy.HexColor;
+import io.github.dirnei.mc.servus.alchemy.Principle;
 import io.github.dirnei.mc.servus.alchemy.PrincipleCodecs;
 import io.github.dirnei.mc.servus.alchemy.Principles;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemy;
 import io.github.dirnei.mc.servus.alchemy.ServusAlchemyIds;
 import io.github.dirnei.mc.servus.alchemy.hollow.VeinGrowth.Vein;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -63,15 +65,30 @@ public final class VeinData extends SimpleJsonResourceReloadListener<JsonElement
                     .orElseGet(() -> DataResult.error(() -> "Not a #rrggbb colour: " + text)),
             HexColor::format);
 
+    private static final Codec<Principle> PRINCIPLE = Codec.STRING.comapFlatMap(
+            id -> Arrays.stream(Principle.values()).filter(principle -> principle.id().equals(id)).findFirst()
+                    .map(DataResult::success)
+                    .orElseGet(() -> DataResult.error(() -> "Not a principle: " + id)),
+            Principle::id);
+
+    private static final Codec<VeinFeed.Entry> FEED_ENTRY = RecordCodecBuilder.create(instance -> instance.group(
+            Codec.intRange(1, Integer.MAX_VALUE).fieldOf("amount").forGetter(VeinFeed.Entry::amount),
+            Codec.doubleRange(0, Double.MAX_VALUE).fieldOf("bonus").forGetter(VeinFeed.Entry::bonus)
+    ).apply(instance, VeinFeed.Entry::new));
+
+    private static final Codec<VeinFeed> FEED = Codec.unboundedMap(PRINCIPLE, FEED_ENTRY)
+            .xmap(VeinFeed::new, VeinFeed::entries);
+
     private static final Codec<VeinDef> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             ItemStackTemplate.CODEC.fieldOf("yield").forGetter(VeinDef::yieldTemplate),
             Codec.intRange(1, Integer.MAX_VALUE).fieldOf("steps").forGetter(def -> def.growth().steps()),
             Codec.intRange(1, Integer.MAX_VALUE).fieldOf("step_ticks").forGetter(def -> def.growth().stepTicks()),
             PrincipleCodecs.CODEC.optionalFieldOf("step_cost", Principles.NONE).forGetter(def -> def.growth().stepCost()),
             Codec.intRange(1, Integer.MAX_VALUE).fieldOf("yield_ticks").forGetter(def -> def.growth().yieldTicks()),
+            FEED.optionalFieldOf("feed", VeinFeed.NONE).forGetter(def -> def.growth().feed()),
             HEX_COLOR.optionalFieldOf("color").forGetter(VeinDef::namedColor)
-    ).apply(instance, (yield, steps, stepTicks, stepCost, yieldTicks, color) ->
-            new VeinDef(yield, new Vein(steps, stepTicks, stepCost, yieldTicks), color)));
+    ).apply(instance, (yield, steps, stepTicks, stepCost, yieldTicks, feed, color) ->
+            new VeinDef(yield, new Vein(steps, stepTicks, stepCost, yieldTicks, feed), color)));
 
     public static final VeinData INSTANCE = new VeinData();
 

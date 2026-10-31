@@ -132,7 +132,7 @@ public final class HollowRevealRenderer implements RevealRenderers.RevealRendere
     private static Shown shown(GnomeHollowBlockEntity hollow, long gameTime, float partialTick) {
         BlockState state = hollow.getBlockState();
         Direction facing = state.hasProperty(GnomeHollowBlock.FACING) ? state.getValue(GnomeHollowBlock.FACING) : Direction.NORTH;
-        int pace = hollow.shownBoosted() ? GIFTED_PACE : 1;
+        int pace = hollow.shownFeedPace() * (hollow.shownBoosted() ? GIFTED_PACE : 1);
         float phase = (float) (Math.TAU * pace * (gameTime % FLOW_TICKS + partialTick) / FLOW_TICKS);
         return new Shown(facing, !hollow.shownYield().isEmpty(), hollow.shownBound(), hollow.shownRipeness(),
                 opening(hollow, gameTime, partialTick), phase, hollow.shownColor());

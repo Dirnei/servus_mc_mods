@@ -11,14 +11,20 @@ public final class VeinGrowth {
      * @param steps      ripening steps until it is ripe
      * @param stepTicks  ticks per step
      * @param stepCost   principles each step takes
-     * @param yieldTicks ticks per yielded item once a gnome works it
+     * @param yieldTicks ticks per yielded item once a gnome works it, unfed and without a gift
+     * @param feed       what the working gnome eats to dig faster
      */
-    public record Vein(int steps, int stepTicks, Principles stepCost, int yieldTicks) {
+    public record Vein(int steps, int stepTicks, Principles stepCost, int yieldTicks, VeinFeed feed) {
 
         public Vein {
             if (steps < 1 || stepTicks < 1 || yieldTicks < 1) {
                 throw new IllegalArgumentException("Vein numbers must be at least 1");
             }
+        }
+
+        /** The principles a drip may bring at {@code state}: the step cost while unripe, the feed amounts once ripe. */
+        public Principles wanted(State state) {
+            return state.ripe(this) ? feed.amounts() : stepCost;
         }
     }
 

@@ -9,9 +9,13 @@ import org.junit.jupiter.api.Test;
 class GiftBoostTest {
 
     private static int workFor(GiftBoost boost, int ticks) {
+        return workFor(boost, ticks, 1);
+    }
+
+    private static int workFor(GiftBoost boost, int ticks, double feedFactor) {
         int work = 0;
         for (int i = 0; i < ticks; i++) {
-            work += boost.work();
+            work += boost.work(feedFactor);
         }
         return work;
     }
@@ -66,5 +70,27 @@ class GiftBoostTest {
         boost.load(3, 42);
         assertEquals(3, boost.factor());
         assertEquals(42, boost.ticksLeft());
+    }
+
+    @Test
+    void fractionalFeedCarries() {
+        GiftBoost boost = new GiftBoost();
+        assertEquals(10, workFor(boost, 4, 2.5));
+    }
+
+    @Test
+    void giftAndFeedMultiply() {
+        GiftBoost boost = new GiftBoost();
+        boost.give(2, 100);
+        assertEquals(6, boost.work(3));
+        assertEquals(60, workFor(boost, 10, 3));
+    }
+
+    @Test
+    void feedDoesNotChangeTheCountdown() {
+        GiftBoost boost = new GiftBoost();
+        boost.give(2, 10);
+        workFor(boost, 4, 3);
+        assertEquals(6, boost.ticksLeft());
     }
 }

@@ -1,8 +1,8 @@
 package io.github.dirnei.mc.servus.alchemy.hollow;
 
 /**
- * How much faster a gnome works after a gift, and for how long. Pure Java: {@link #work()} is called once per tick
- * and says how many ticks of digging the gnome does in it.
+ * How much faster a gnome works after a gift, and for how long. Pure Java: {@link #work(double)} is called once per
+ * tick and says how many ticks of digging the gnome does in it.
  */
 public final class GiftBoost {
 
@@ -29,9 +29,12 @@ public final class GiftBoost {
         return ticksLeft;
     }
 
-    /** Counts one tick down and returns the whole ticks of digging done in it; fractions carry to later ticks. */
-    public int work() {
-        carry += factor();
+    /**
+     * Counts one tick down and returns the whole ticks of digging done in it at the gift factor times
+     * {@code feedFactor}; fractions carry to later ticks.
+     */
+    public int work(double feedFactor) {
+        carry += factor() * Math.max(0, feedFactor);
         if (ticksLeft > 0) {
             ticksLeft--;
         }

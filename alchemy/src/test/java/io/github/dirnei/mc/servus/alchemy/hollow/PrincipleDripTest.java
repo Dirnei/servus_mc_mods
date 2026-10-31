@@ -34,6 +34,13 @@ class PrincipleDripTest {
     }
 
     @Test
+    void dripsOnlyWhatTheFeedNames() {
+        Principles saltFeed = new Principles(10, 0, 0);
+        Principles drip = PrincipleDrip.plan(new Principles(500, 500, 500), saltFeed, PLENTY, 25);
+        assertEquals(new Principles(25, 0, 0), drip);
+    }
+
+    @Test
     void nothingWhenEmptyOrFull() {
         assertEquals(Principles.NONE, PrincipleDrip.plan(Principles.NONE, IRON_STEP, PLENTY, 25));
         assertEquals(Principles.NONE, PrincipleDrip.plan(PLENTY, IRON_STEP, Principles.NONE, 25));

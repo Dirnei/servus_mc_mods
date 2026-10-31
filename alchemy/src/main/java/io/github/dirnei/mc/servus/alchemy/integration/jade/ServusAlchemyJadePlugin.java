@@ -14,6 +14,7 @@ import io.github.dirnei.mc.servus.alchemy.salamander.Salamander;
 import io.github.dirnei.mc.servus.alchemy.hint.AncientHollowBlock;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlock;
 import io.github.dirnei.mc.servus.alchemy.hollow.GnomeHollowBlockEntity;
+import io.github.dirnei.mc.servus.alchemy.hollow.VeinFeed;
 import io.github.dirnei.mc.servus.alchemy.sight.ElementalSight;
 import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerPorts;
 import io.github.dirnei.mc.servus.alchemy.calciner.CalcinerShellBlock;
@@ -213,7 +214,10 @@ public final class ServusAlchemyJadePlugin implements IWailaPlugin {
         }
     }
 
-    /** The Gnome Hollow under Elemental Sight: its vein, ripeness or gnome, its store and its principles. */
+    /**
+     * The Gnome Hollow under Elemental Sight: its vein, ripeness or gnome, its store and its principles, and for a
+     * working gnome which principles feed him and how long he takes per item.
+     */
     private enum HollowProvider implements IServerDataProvider<BlockAccessor> {
         INSTANCE;
 
@@ -241,6 +245,17 @@ public final class ServusAlchemyJadePlugin implements IWailaPlugin {
             for (Principle principle : Principle.values()) {
                 tag.putInt(principle.id(), hollow.tanks().amount(principle));
             }
+            hollow.ticksPerItem().ifPresent(ticks -> {
+                tag.putInt("TicksPerItem", ticks);
+                VeinFeed feed = hollow.veinDef().map(vein -> vein.growth().feed()).orElse(VeinFeed.NONE);
+                CompoundTag fed = new CompoundTag();
+                for (Principle principle : Principle.values()) {
+                    if (feed.eats(principle)) {
+                        fed.putBoolean(principle.id(), feed.fed(principle, hollow.tanks().contents()));
+                    }
+                }
+                tag.put("Fed", fed);
+            });
             data.put("Hollow", tag);
         }
 
@@ -270,10 +285,23 @@ public final class ServusAlchemyJadePlugin implements IWailaPlugin {
             }
             tooltip.add(Component.translatable("jade.servus_alchemy.gnome_hollow.store", tag.getIntOr("Stored", 0), tag.getIntOr("Capacity", 0)));
             int tank = tag.getIntOr("Tank", 0);
+            CompoundTag fed = tag.getCompoundOrEmpty("Fed");
             for (Principle principle : Principle.values()) {
-                tooltip.add(Component.translatable("jade.servus_alchemy.calciner.principle", tag.getIntOr(principle.id(), 0), tank,
+                tooltip.add(Component.translatable(principleKey(fed, principle), tag.getIntOr(principle.id(), 0), tank,
                         principleName(principle)));
             }
+            if (tag.contains("TicksPerItem")) {
+                tooltip.add(Component.translatable("jade.servus_alchemy.gnome_hollow.per_item", clockText(tag.getIntOr("TicksPerItem", 0))));
+            }
+        }
+
+        /** The line of a principle: marked fed or hungry when the gnome's feed names it. */
+        private static String principleKey(CompoundTag fed, Principle principle) {
+            if (!fed.contains(principle.id())) {
+                return "jade.servus_alchemy.calciner.principle";
+            }
+            return fed.getBooleanOr(principle.id(), false) ? "jade.servus_alchemy.gnome_hollow.principle_fed"
+                    : "jade.servus_alchemy.gnome_hollow.principle_hungry";
         }
 
         /** What the gnome of the Hollow does, as a key under {@code jade.servus_alchemy.gnome_hollow}. */

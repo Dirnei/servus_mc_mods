@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.alchemy.hollow;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -12,6 +13,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
@@ -46,5 +48,29 @@ class VeinFilesTest {
         JsonObject json = load(vein);
         assertFalse(json.has("samples"), vein + " lists no samples");
         assertFalse(json.has("chapter"), vein + " names no chapter");
+    }
+
+    @ParameterizedTest
+    @MethodSource("veins")
+    void shippedVeinFeedsAllThreePrinciplesForThreeTimesTheSpeed(String vein) throws IOException {
+        JsonObject feed = load(vein).getAsJsonObject("feed");
+        assertNotNull(feed, vein + " names a feed");
+        double bonuses = 0;
+        for (String principle : List.of("salt", "sulfur", "mercury")) {
+            JsonObject entry = feed.getAsJsonObject(principle);
+            assertNotNull(entry, vein + " feeds " + principle);
+            assertTrue(entry.get("amount").getAsInt() >= 1, vein + " uses at least 1 mB of " + principle);
+            bonuses += entry.get("bonus").getAsDouble();
+        }
+        assertEquals(3, feed.size(), vein + " feeds only the three principles");
+        assertEquals(2, bonuses, 1e-9, vein + " digs three times as fast with all three fed");
+    }
+
+    @ParameterizedTest
+    @MethodSource("veins")
+    void unfedGnomesDigSlowly(String vein) throws IOException {
+        Map<String, Integer> minimum = Map.of("coal", 600, "iron", 1200, "copper", 1200, "diamond", 4800, "emerald", 4800);
+        int yieldTicks = load(vein).get("yield_ticks").getAsInt();
+        assertTrue(yieldTicks >= minimum.getOrDefault(vein, 600), vein + " digs no faster than its minimum unfed");
     }
 }
