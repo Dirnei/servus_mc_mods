@@ -4,7 +4,7 @@ A family of NeoForge mods for Minecraft 26.1.2, built to fit packs like ATM11 bu
 
 | Mod | Mod ID | Purpose |
 |---|---|---|
-| Servus: Foundation | `servus_foundation` | Base of the family: shared APIs, network graph, tick mailbox, the Utility Duct (item, energy, fluid and data lines) with facades, the Fluid Tank, pumps, the Sink, the Ender Anchor, the Coal Generator, Configuration Carrot (the wrench role), goggles, config helpers |
+| Servus: Foundation | `servus_foundation` | Base of the family: shared APIs, network graph, tick mailbox, the Utility Duct (item, energy, fluid and data lines) with facades, the Fluid Tank, pumps, the Incinerator, the Ender Anchor, the Coal Generator, Configuration Carrot (the wrench role), goggles, config helpers |
 | Servus: Alchemy | `servus_alchemy` | Alchemy after Paracelsus: the three principles, gnome grown ore veins, the Athanor and his journal as the tech tree |
 | Servus: Shuttles | `servus_shuttles` | An automated warehouse run by shuttles on rails: storage, autocrafting, field farming and outposts |
 | Servus: Delicacies | `servus_delicacies` | An alcohol free Bavarian kitchen: own crops, the Tiled Stove, Pretzels, dumplings, roast pork and plated meals |
@@ -60,7 +60,7 @@ Repository: `github.com/Dirnei/servus_mc_mods`. Group id `io.github.dirnei.mc.se
 **Core idea:** alchemy after Paracelsus. Matter is split into the three principles, Salt, Sulfur and Mercury, and products are made again from them. Paracelsus' elemental spirits do the work, and gnomes grow ore veins instead of the world generating them. The story is Paracelsus' own life, told by his journal, which is also the tech tree.
 
 - **Two audiences, one path.** Nothing forces a factory, everything rewards one. A casual player does alchemy with a handful of blocks and buckets; a planner pipes the principles, balances the ratios and lets the Crafting CPU order. Both reach the same chapters. No task ever asks for a sustained throughput.
-- **Tria Prima.** Every input and every product has its own ratio, so surplus of one principle is normal and goes to the Sink or to a later converter. In Nigredo the Calciner takes almost anything, so the early game needs no ore source but the pickaxe.
+- **Tria Prima.** Every input and every product has its own ratio, so surplus of one principle is normal and goes to the Incinerator or to a later converter. In Nigredo the Calciner takes almost anything, so the early game needs no ore source but the pickaxe.
 - **Machines are built, not placed.** Alchemy machines are multiblocks of vanilla blocks and custom parts with fixed ports by position, formed with Paracelsus' Journal, drawn as one model, with no side configuration and no GUI.
 - **No world generation.** Gnomes grow the veins: a Gnome Hollow seeded with an ore by tag ripens while it is fed principles, and a bound gnome works it forever. Seeds are gated by stage.
 - **The elementals** are the workforce: Gnomes (earth: veins) and Salamanders (fire), with the homunculus as the late servant. They live unseen in their element and show only under Elemental Sight.
@@ -85,7 +85,7 @@ The stage plan for Citrinitas and Rubedo, the hidden Gnome Hollow, the homunculu
 
 ### 2.2 Servus: Foundation
 
-The base mod every Servus mod builds on: the shared API, the Configuration Carrot, the goggles, the Utility Duct with its lines and the general utilities (Fluid Tank, pumps, Sink, Ender Anchor, Coal Generator). They live here because Shuttles needs them as much as Alchemy. Everything in Foundation uses plain crafting recipes.
+The base mod every Servus mod builds on: the shared API, the Configuration Carrot, the goggles, the Utility Duct with its lines and the general utilities (Fluid Tank, pumps, Incinerator, Ender Anchor, Coal Generator). They live here because Shuttles needs them as much as Alchemy. Everything in Foundation uses plain crafting recipes.
 
 ### 2.3 Servus: Shuttles
 
@@ -151,7 +151,7 @@ The bridge between the mods lives in Servus: Foundation as a small API (producti
 |---|---|
 | M0 Repository and build | multi project Gradle with ModDevGradle, run configs, CI, the port to 26.1.2 |
 | M1 Foundations | network graph with split and merge, mailbox tick, `NetworkManager`, Configuration Carrot, config |
-| M2, M3 Factorio style factory | superseded by M9; what lived on: pumps, Sink, Ender Anchor, side config, JEI, the docs site |
+| M2, M3 Factorio style factory | superseded by M9; what lived on: pumps, Incinerator, Ender Anchor, side config, JEI, the docs site |
 | M4 Warehouse first slice | Heavy Duty Rack with sections, Warehouse Controller, terminal |
 | M5 Logistics | Utility Duct with item, power and fluid lines, side tabs with In, Out, Pull, redstone and On/Off per line, named team channels, item and fluid filters with search and JEI, keep and fill up to amounts, priorities, facades, goggles, Data Potato, Fluid Tank |
 | M6 Warehouse automation | rails, elevators with lift cars, simulated shuttles, garages with a roll-up door, Inbound Station, Zone Labels, placement assist |
@@ -243,7 +243,7 @@ Tanker shuttles carry fluids from Fluid Inbounds to Fluid Racks and from Fluid R
 
 ## 5. Open decisions
 
-- A converter between principles (surplus Sulfur to Salt and so on), or only the Sink
+- A converter between principles (surplus Sulfur to Salt and so on), or only the Incinerator
 - Alchemist's Spectacles as a permanent Elemental Sight in a later stage
 - Other field kinds (fungi first) and which modules they need
 - Art style and texture direction (shared look across the family)

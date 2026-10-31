@@ -45,8 +45,8 @@ import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 import org.jspecify.annotations.Nullable;
 
 /**
- * A Sink block. Eight of them of one stone in a 2x2x2 cube form the Sink when
- * the carrot clicks a side of the cube; that side becomes the front. The block states
+ * A Sink block, shown to players as the Incinerator. Eight of them of one stone
+ * in a 2x2x2 cube form the Sink when the carrot clicks a side of the cube; that side becomes the front. The block states
  * alone describe a formed Sink: {@link #FORMED}, the front {@link #FACING} and
  * the block's {@link #PART} (see {@link SinkLayout}). Part 0, the controller,
  * carries {@link #ACTIVE} and owns the buffer. No ticker: the controller's

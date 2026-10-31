@@ -95,7 +95,7 @@ final class WorkshopCategory extends CategoryProvider {
                             + "In this work they are liquids. They flow through Fluid Pipes, rest in Fluid Tanks and fill buckets.");
             e.text("keeping", "Keeping Them",
                     "A Fluid Tank holds one principle at a time, so give each principle its own tank.\n\n"
-                            + "Poured on the ground they spread like water but never make a new source. What you do not need, pour into a Sink.");
+                            + "Poured on the ground they spread like water but never make a new source. What you do not need, pour into an Incinerator.");
         });
     }
 

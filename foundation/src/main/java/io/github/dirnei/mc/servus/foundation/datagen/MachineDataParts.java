@@ -85,7 +85,7 @@ final class MachineDataParts {
         provider.add("servus_foundation.configuration.enderAnchorRespectsFtbChunks", "Ender Anchor stays inactive with FTB Chunks");
         provider.add("servus_foundation.configuration.enderAnchorRespectsFtbChunks.tooltip",
                 "On: while FTB Chunks is installed, Ender Anchors stay inactive and warehouse sites do not wake. Off (default): both work next to FTB Chunks");
-        provider.add(MachineContent.SINK.get(), "Sink");
+        provider.add(MachineContent.SINK.get(), "Incinerator");
         provider.add(MachineContent.MILL.get(), "Mill");
         provider.add(MachineContent.MIXER.get(), "Mixer");
         provider.add(MachineContent.HAND_CRANK.get(), "Hand Crank");
@@ -117,11 +117,12 @@ final class MachineDataParts {
         provider.add("gui.servus_foundation.sink.upgrade_slot", "Capacity Upgrade: opens one more row and tank");
         provider.add("gui.servus_foundation.sink.upgrade_refused", "Empty the last row and tank first");
         provider.add("message.servus_foundation.sink.casing",
-                "Build a 2x2x2 cube of Sink blocks and click its front with the Configuration Carrot");
-        provider.add("message.servus_foundation.sink.incomplete", "A Sink needs a full 2x2x2 cube of Sink blocks behind this face");
+                "Build a 2x2x2 cube of Incinerator blocks and click its front with the Configuration Carrot");
+        provider.add("message.servus_foundation.sink.incomplete",
+                "An Incinerator needs a full 2x2x2 cube of Incinerator blocks behind this face");
         provider.add("message.servus_foundation.sink.side_face", "Click a side of the cube: that side becomes the front");
-        provider.add("message.servus_foundation.sink.mixed_stone", "All eight Sink blocks need the same stone; found %s");
-        provider.add("message.servus_foundation.chimney.sink", "The Sink controls this chimney's smoke");
+        provider.add("message.servus_foundation.sink.mixed_stone", "All eight Incinerator blocks need the same stone; found %s");
+        provider.add("message.servus_foundation.chimney.sink", "The Incinerator controls this chimney's smoke");
         provider.add("message.servus_foundation.chimney.smoke", "Chimney: %s");
         provider.add("message.servus_foundation.chimney.smoke.off", "Off");
         provider.add("message.servus_foundation.chimney.smoke.thin", "Thin smoke");
