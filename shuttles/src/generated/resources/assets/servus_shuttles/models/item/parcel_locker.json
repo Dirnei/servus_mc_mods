@@ -1,6 +1,3 @@
 {
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "servus_shuttles:item/parcel_locker"
-  }
+  "parent": "servus_shuttles:block/parcel_locker_item"
 }

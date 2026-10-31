@@ -81,6 +81,22 @@ public final class LockerLayout {
         return boxes;
     }
 
+    /**
+     * The box a click hits in the block at that column and row, or null for
+     * the head's column.
+     *
+     * @param hitY the height of the click inside the block in pixels, 0 to 16
+     */
+    public static Box boxAt(int column, int row, double hitY) {
+        double y = row * BLOCK + Math.clamp(hitY, 0, BLOCK - 1e-6);
+        for (Box box : BOXES) {
+            if (box.column() == column && y >= box.bottom() && y < box.top()) {
+                return box;
+            }
+        }
+        return null;
+    }
+
     /** The box with that label, or null. */
     public static Box box(String id) {
         for (Box box : BOXES) {

@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.shuttles.gametest;
 
+import io.github.dirnei.mc.servus.foundation.gametest.PlayerClicks;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldActions;
@@ -9,11 +10,14 @@ import io.github.dirnei.mc.servus.shuttles.handheld.HandheldMode;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldOrders;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldRelocation;
 import io.github.dirnei.mc.servus.shuttles.locker.LockerLamp;
+import io.github.dirnei.mc.servus.shuttles.locker.BoxInfo;
+import io.github.dirnei.mc.servus.shuttles.locker.LockerGlance;
 import io.github.dirnei.mc.servus.shuttles.locker.LockerLayout;
 import io.github.dirnei.mc.servus.shuttles.locker.LockerOrder;
 import io.github.dirnei.mc.servus.shuttles.locker.LockerOrders;
 import io.github.dirnei.mc.servus.shuttles.locker.LockerPart;
 import io.github.dirnei.mc.servus.shuttles.locker.LockerReturns;
+import io.github.dirnei.mc.servus.shuttles.locker.LockerScreen;
 import io.github.dirnei.mc.servus.shuttles.locker.ParcelLockerBlock;
 import io.github.dirnei.mc.servus.shuttles.locker.ParcelLockerBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.locker.ParcelLockerBlockEntity.BoxView;
@@ -27,7 +31,10 @@ import java.util.List;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -38,11 +45,13 @@ import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * The Parcel Locker: placing it as one piece, breaking it, its number, orders
  * from the Handheld's STOCK basket delivered by shuttle, refusals, collecting
- * only one's own boxes and parcels going back to the racks.
+ * only one's own boxes, scanning the screen to open the doors, taking from
+ * open boxes and parcels going back to the racks.
  *
  * <pre>
  *   z 3:  garage(x1)  rack(x3)  rack(x5)            controller(x9)
@@ -215,8 +224,8 @@ public final class ParcelLockerGameTests {
                         LockerOrder ready = locker.orders().getFirst();
                         helper.assertTrue(count(locker, ready, Items.COBBLESTONE) == 128, "the box holds the 128 cobblestone");
                         helper.assertTrue(WarehouseFixtures.count(rack(helper), Items.COBBLESTONE) == 0, "the rack gave them");
-                        helper.assertTrue(helper.getBlockState(part(LockerPart.S_COLUMN_HIGH)).getValue(ParcelLockerBlock.LAMP_TOP)
-                                == LockerLamp.READY, "the lamp of S-01 is green");
+                        helper.assertTrue(locker.lamp(0, player.getUUID()) == LockerLamp.READY, "the lamp of S-01 is green");
+                        helper.assertTrue(locker.lamp(0, UUID.randomUUID()) == LockerLamp.TAKEN, "others see it ochre");
                         helper.succeed();
                     });
         });
@@ -263,27 +272,80 @@ public final class ParcelLockerGameTests {
         });
     }
 
-    /** The GUI shows only the player's own boxes to take from; emptying one frees it, others show as taken. */
+    /** The GUI lists every box with who ordered it, read only: nothing can be taken through it. */
     @ServusGameTest(timeoutTicks = 40)
-    public static void collectingOnlyOwnBoxes(GameTestHelper helper) {
+    public static void guiListsBoxesReadOnly(GameTestHelper helper) {
         footing(helper);
         ParcelLockerBlockEntity locker = place(helper);
         Player steve = helper.makeMockPlayer(GameType.SURVIVAL);
         UUID alex = UUID.randomUUID();
         parcel(locker, alex, "Alex", 0, new ItemStack(Items.BREAD, 32), helper.getLevel().getGameTime());
-        LockerOrder mine = parcel(locker, steve.getUUID(), "Steve", 1, new ItemStack(Items.IRON_INGOT, 20), helper.getLevel().getGameTime());
-        List<BoxView> views = locker.views(steve.getUUID());
-        helper.assertTrue(views.get(0) == BoxView.TAKEN && views.get(1) == BoxView.MINE && views.get(2) == BoxView.FREE,
+        parcel(locker, steve.getUUID(), "Steve", 1, new ItemStack(Items.IRON_INGOT, 20), helper.getLevel().getGameTime());
+        List<BoxInfo> boxes = locker.infos(steve.getUUID());
+        helper.assertTrue(boxes.get(0).view() == BoxView.TAKEN && boxes.get(1).view() == BoxView.MINE && boxes.get(2).view() == BoxView.FREE,
                 "Steve sees Alex's box taken, his own box his, the rest free");
-        ParcelLockerMenu menu = new ParcelLockerMenu(0, steve.getInventory(), locker, views);
-        helper.assertTrue(menu.boxSlots() == ShuttlesStatsManager.INSTANCE.lockerCapacities().small(), "the GUI shows Steve's box only");
-        helper.assertTrue(!menu.slots.getFirst().mayPlace(new ItemStack(Items.DIRT)), "nothing goes into a box by hand");
-        menu.quickMoveStack(steve, 0);
-        helper.assertTrue(steve.getInventory().countItem(Items.IRON_INGOT) == 20, "Steve takes his iron");
-        helper.assertTrue(locker.orders().stream().noneMatch(order -> order.id() == mine.id()) && locker.orderOfBox(1).isEmpty(),
-                "his emptied box is free again");
-        helper.assertTrue(count(locker, locker.orderOfBox(0).orElseThrow(), Items.BREAD) == 32, "Alex's parcel stays");
+        helper.assertTrue(boxes.get(0).owner().equals("Alex") && boxes.get(0).state() == LockerReturns.State.READY,
+                "Alex's box names him and says his parcel is ready");
+        ParcelLockerMenu menu = new ParcelLockerMenu(0, locker, boxes);
+        helper.assertTrue(menu.slots.isEmpty(), "the GUI has no slots to take from");
+        helper.assertTrue(menu.quickMoveStack(steve, 0).isEmpty() && steve.getInventory().countItem(Items.IRON_INGOT) == 0,
+                "nothing comes out through the GUI");
+        helper.assertTrue(locker.orderOfBox(1).isPresent(), "Steve's parcel stays in its box");
         helper.succeed();
+    }
+
+    /** An open box holding more of one item than a stack takes still syncs to clients, with its whole total. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void openBoxSyncsTotalsPastStackLimit(GameTestHelper helper) {
+        footing(helper);
+        ParcelLockerBlockEntity locker = place(helper);
+        Player steve = helper.makeMockPlayer(GameType.SURVIVAL);
+        parcel(locker, steve.getUUID(), "Steve", 1, new ItemStack(Items.BREAD, 64), helper.getLevel().getGameTime());
+        locker.boxes().setStackInSlot(locker.range(1).first() + 1, new ItemStack(Items.BREAD, 49));
+        locker.scan(steve);
+        CompoundTag box = locker.getUpdateTag(helper.getLevel().registryAccess()).getCompoundOrEmpty("View")
+                .getListOrEmpty("Boxes").getCompoundOrEmpty(1);
+        helper.assertTrue(box.getListOrEmpty("Stacks").getCompoundOrEmpty(0).getIntOr("Count", 0) == 113,
+                "the open box sends its 113 bread as one total");
+        helper.succeed();
+    }
+
+    /** What a look at the locker sends: the viewer's own box with its items, someone else's box only with its orderer. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void glanceShowsItemsOfOwnBoxOnly(GameTestHelper helper) {
+        footing(helper);
+        ParcelLockerBlockEntity locker = place(helper);
+        UUID steve = UUID.randomUUID();
+        long now = helper.getLevel().getGameTime();
+        parcel(locker, UUID.randomUUID(), "Alex", 0, new ItemStack(Items.IRON_INGOT, 20), now);
+        parcel(locker, steve, "Steve", 1, new ItemStack(Items.BREAD, 64), now);
+        locker.boxes().setStackInSlot(locker.range(1).first() + 1, new ItemStack(Items.BREAD, 49));
+        HolderLookup.Provider registries = helper.getLevel().registryAccess();
+
+        LockerGlance.Line own = sent(locker, LockerPart.S_COLUMN_HIGH, 4, steve, registries).getFirst();
+        helper.assertTrue(own.box().id().equals("S-02") && own.owner().equals("Steve") && own.state() == LockerReturns.State.READY,
+                "the look at S-02 names Steve and says his parcel is ready");
+        helper.assertTrue(own.items().size() == 1 && own.items().getFirst().is(Items.BREAD) && own.items().getFirst().getCount() == 113,
+                "Steve's own box sends its 113 bread as one total");
+
+        LockerGlance.Line other = sent(locker, LockerPart.S_COLUMN_HIGH, 12, steve, registries).getFirst();
+        helper.assertTrue(other.box().id().equals("S-01") && other.owner().equals("Alex") && other.items().isEmpty(),
+                "Alex's box names Alex but sends none of his items to Steve");
+
+        LockerGlance.Line free = sent(locker, LockerPart.S_COLUMN_LOW, 4, steve, registries).getFirst();
+        helper.assertTrue(free.box().id().equals("S-04") && free.free(), "an empty box is free");
+
+        List<LockerGlance.Line> head = sent(locker, LockerPart.HEAD_SCREEN, 8, steve, registries);
+        helper.assertTrue(head.size() == 2 && head.get(0).owner().equals("Alex") && head.get(0).items().isEmpty()
+                        && head.get(1).owner().equals("Steve") && head.get(1).items().getFirst().getCount() == 113,
+                "the screen lists both taken boxes, items only in Steve's");
+        helper.succeed();
+    }
+
+    /** The lines a look at the part sends to the viewer, after the trip to the client. */
+    private static List<LockerGlance.Line> sent(ParcelLockerBlockEntity locker, LockerPart part, double hitY, UUID viewer,
+            HolderLookup.Provider registries) {
+        return LockerGlance.read(LockerGlance.write(LockerGlance.lines(locker, part, hitY, viewer), registries), registries);
     }
 
     /** A parcel past its time goes back into the racks by shuttle and frees its box. */
@@ -334,5 +396,131 @@ public final class ParcelLockerGameTests {
                     && locker.orders().isEmpty(), "the basket stays and no order is placed");
             helper.succeed();
         });
+    }
+
+    /** A survival player in front of the screen with a Handheld in hand. */
+    private static ServerPlayer scanner(GameTestHelper helper) {
+        return PlayerClicks.player(helper, part(LockerPart.HEAD_SCREEN), ZoneFixtures.handheld(HandheldMode.STOCK));
+    }
+
+    private static void scan(GameTestHelper helper, ServerPlayer player) {
+        PlayerClicks.use(helper, player, part(LockerPart.HEAD_SCREEN));
+    }
+
+    /** Right clicks the front of a part {@code hitY} pixels above its bottom. */
+    private static void click(GameTestHelper helper, ServerPlayer player, LockerPart part, double hitY) {
+        BlockPos absolute = helper.absolutePos(part(part));
+        PlayerClicks.use(helper, player, part(part), new Vec3(absolute.getX() + 0.5, absolute.getY() + hitY / 16, absolute.getZ()));
+    }
+
+    /** A Handheld scan opens only the scanner's ready boxes and greets them; reserved and others' boxes stay shut. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void scanOpensOnlyOwnReadyBoxes(GameTestHelper helper) {
+        footing(helper);
+        ParcelLockerBlockEntity locker = place(helper);
+        ServerPlayer steve = scanner(helper);
+        long now = helper.getLevel().getGameTime();
+        parcel(locker, UUID.randomUUID(), "Alex", 4, new ItemStack(Items.APPLE, 16), now);
+        parcel(locker, steve.getUUID(), "Steve", 1, new ItemStack(Items.BREAD, 32), now);
+        parcel(locker, steve.getUUID(), "Steve", 7, new ItemStack(Items.IRON_INGOT, 64), now);
+        locker.reserve(3000, steve.getUUID(), "Steve", List.of(9));
+        scan(helper, steve);
+        helper.assertTrue(locker.isOpen(1) && locker.isOpen(7), "S-02 and M-02 open");
+        helper.assertTrue(!locker.isOpen(4) && !locker.isOpen(9), "Alex's S-05 and the reserved L-01 stay shut");
+        helper.assertTrue(locker.screen() == LockerScreen.HELLO && locker.greeted() == 2, "the screen greets Steve with 2 boxes");
+        helper.succeed();
+    }
+
+    /** A scan with nothing waiting says so on the screen and opens no door. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void nothingWaitingSaysNone(GameTestHelper helper) {
+        footing(helper);
+        ParcelLockerBlockEntity locker = place(helper);
+        parcel(locker, UUID.randomUUID(), "Alex", 4, new ItemStack(Items.APPLE, 16), helper.getLevel().getGameTime());
+        scan(helper, scanner(helper));
+        helper.assertTrue(locker.screen() == LockerScreen.NONE, "the screen says there is no parcel");
+        for (int box = 0; box < LockerLayout.BOXES.size(); box++) {
+            helper.assertTrue(!locker.isOpen(box), "no door opens");
+        }
+        helper.succeed();
+    }
+
+    /** A click on an open own box moves its items into the inventory; the emptied box closes and is free. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void takingFromOpenBoxFreesIt(GameTestHelper helper) {
+        footing(helper);
+        ParcelLockerBlockEntity locker = place(helper);
+        ServerPlayer steve = scanner(helper);
+        parcel(locker, steve.getUUID(), "Steve", 1, new ItemStack(Items.BREAD, 32), helper.getLevel().getGameTime());
+        scan(helper, steve);
+        click(helper, steve, LockerPart.S_COLUMN_HIGH, 4);
+        helper.assertTrue(steve.getInventory().countItem(Items.BREAD) == 32, "the bread is in Steve's inventory");
+        helper.assertTrue(locker.orderOfBox(1).isEmpty() && !locker.isOpen(1), "S-02 closes and is free");
+        helper.succeed();
+    }
+
+    /** What does not fit into a full inventory stays in the box, which stays held and open. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void fullInventoryLeavesRest(GameTestHelper helper) {
+        footing(helper);
+        ParcelLockerBlockEntity locker = place(helper);
+        ServerPlayer steve = scanner(helper);
+        for (int slot = 1; slot < 35; slot++) {
+            steve.getInventory().setItem(slot, new ItemStack(Items.STONE, 64));
+        }
+        LockerOrder order = parcel(locker, steve.getUUID(), "Steve", 1, new ItemStack(Items.BREAD, 64), helper.getLevel().getGameTime());
+        locker.boxes().setStackInSlot(locker.range(1).first() + 1, new ItemStack(Items.BREAD, 64));
+        scan(helper, steve);
+        click(helper, steve, LockerPart.S_COLUMN_HIGH, 4);
+        helper.assertTrue(steve.getInventory().countItem(Items.BREAD) == 64, "one stack fits");
+        helper.assertTrue(count(locker, order, Items.BREAD) == 64 && locker.orderOfBox(1).isPresent() && locker.isOpen(1),
+                "the other stack stays in the open box");
+        helper.succeed();
+    }
+
+    /** A click on someone else's box opens nothing and the screen says it is not theirs. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void othersBoxIsDenied(GameTestHelper helper) {
+        footing(helper);
+        ParcelLockerBlockEntity locker = place(helper);
+        ServerPlayer steve = scanner(helper);
+        LockerOrder alex = parcel(locker, UUID.randomUUID(), "Alex", 4, new ItemStack(Items.APPLE, 16), helper.getLevel().getGameTime());
+        click(helper, steve, LockerPart.MIXED_HIGH, 12);
+        helper.assertTrue(locker.screen() == LockerScreen.DENY, "the screen says the box is not Steve's");
+        helper.assertTrue(!locker.isOpen(4) && count(locker, alex, Items.APPLE) == 16 && steve.getInventory().countItem(Items.APPLE) == 0,
+                "Alex's box stays shut and full");
+        helper.succeed();
+    }
+
+    /** Open doors close by themselves after the open time; the screen falls back and the box keeps its items. */
+    @ServusGameTest(timeoutTicks = 300)
+    public static void doorsCloseAfterOpenTime(GameTestHelper helper) {
+        footing(helper);
+        ParcelLockerBlockEntity locker = place(helper);
+        ServerPlayer steve = scanner(helper);
+        LockerOrder order = parcel(locker, steve.getUUID(), "Steve", 1, new ItemStack(Items.BREAD, 32), helper.getLevel().getGameTime());
+        scan(helper, steve);
+        helper.runAfterDelay(ShuttlesStatsManager.INSTANCE.lockerDoorOpenTicks() + 1, () -> {
+            helper.assertTrue(!locker.isOpen(1), "S-02 closes");
+            helper.assertTrue(locker.screen() == LockerScreen.IDLE, "the screen shows the scan code again");
+            click(helper, steve, LockerPart.S_COLUMN_HIGH, 4);
+            helper.assertTrue(count(locker, order, Items.BREAD) == 32 && steve.getInventory().countItem(Items.BREAD) == 0,
+                    "a closed box gives nothing");
+            helper.succeed();
+        });
+    }
+
+    /** An empty hand on the screen opens the locker GUI, whose title renames the locker. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void emptyHandOpensGuiAndRenames(GameTestHelper helper) {
+        footing(helper);
+        ParcelLockerBlockEntity locker = place(helper);
+        ServerPlayer player = PlayerClicks.player(helper, part(LockerPart.HEAD_SCREEN), ItemStack.EMPTY);
+        scan(helper, player);
+        helper.assertTrue(player.containerMenu instanceof ParcelLockerMenu, "the locker GUI opens");
+        ((ParcelLockerMenu) player.containerMenu).renameMachine(player, "Front Gate");
+        helper.assertTrue(locker.name().equals("Front Gate"), "the locker is called Front Gate, got " + locker.name());
+        helper.assertTrue(locker.screen() == LockerScreen.IDLE, "an empty hand scans nothing");
+        helper.succeed();
     }
 }

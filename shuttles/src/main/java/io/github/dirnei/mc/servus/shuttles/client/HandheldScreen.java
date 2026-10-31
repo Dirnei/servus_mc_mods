@@ -268,8 +268,9 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
                 addButton(requestX, "request", this::basketShown, () -> !basket().isEmpty(), this::openPicker);
             }
             case PICKER -> {
-                addButton(LEFT, "send", () -> lockerPicker != null && lockerPicker.chosen().isPresent(), this::send);
-                addButton(LEFT + font.width(Component.translatable(KEY + "send")) + 10, "cancel", () -> true, () -> show(View.STOCK));
+                addButton(LEFT, "cancel", () -> true, () -> show(View.STOCK));
+                addButton(LEFT + font.width(Component.translatable(KEY + "cancel")) + 10, "order",
+                        () -> lockerPicker != null && lockerPicker.chosen().isPresent(), this::send);
             }
         }
         setFocused(view == View.FORM ? name : search.visible ? search : null);
@@ -617,7 +618,7 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
         lockerPicker = new LockerPicker();
     }
 
-    /** SEND: orders the basket to the chosen locker; the server empties the basket. */
+    /** ORDER: orders the basket to the chosen locker; the server empties the basket. */
     private void send() {
         if (lockerPicker == null) {
             return;

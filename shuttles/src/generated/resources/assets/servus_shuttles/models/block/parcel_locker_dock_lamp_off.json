@@ -1,0 +1,68 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "texture": "#lamp",
+          "uv": [
+            0,
+            0,
+            4,
+            0.5
+          ]
+        },
+        "east": {
+          "texture": "#lamp",
+          "uv": [
+            0,
+            0,
+            0.5,
+            2
+          ]
+        },
+        "north": {
+          "texture": "#lamp",
+          "uv": [
+            0,
+            0,
+            4,
+            2
+          ]
+        },
+        "up": {
+          "texture": "#lamp",
+          "uv": [
+            0,
+            0,
+            4,
+            0.5
+          ]
+        },
+        "west": {
+          "texture": "#lamp",
+          "uv": [
+            0,
+            0,
+            0.5,
+            2
+          ]
+        }
+      },
+      "from": [
+        6,
+        12,
+        -0.5
+      ],
+      "to": [
+        10,
+        14,
+        0
+      ]
+    }
+  ],
+  "textures": {
+    "lamp": "servus_shuttles:block/parcel_locker_dock_lamp_off",
+    "particle": "servus_shuttles:block/parcel_locker_dock_lamp_off"
+  }
+}

@@ -6,11 +6,15 @@ import io.github.dirnei.mc.servus.foundation.item.PotatoInspectable;
 import io.github.dirnei.mc.servus.foundation.naming.NamedMachinePart;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldItem;
 import io.github.dirnei.mc.servus.shuttles.rail.RailFacings;
+import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlockEntities;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -28,8 +32,11 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.BlockHitResult;
@@ -42,22 +49,28 @@ import org.jspecify.annotations.Nullable;
  * lower row keeps the block entity; every other part points at it. A part
  * whose neighbour in the locker is gone turns into air, so breaking any part
  * takes the whole locker down, and the dock drops the item and every box's
- * items. The screen above the dock opens the locker for a Handheld or an
- * empty hand. Two lamp properties show the boxes whose lamp sits on a part,
- * or on the dock whether shuttles are bringing orders.
+ * items. A Handheld on the screen above the dock scans it and opens the
+ * player's ready boxes, an empty hand opens the locker GUI, and a click on a
+ * box takes its items. The screen part shows its {@link LockerScreen}, the
+ * dock whether shuttles are bringing orders; doors, their lamps and the items
+ * of open boxes are drawn by the dock's renderer.
  */
 public class ParcelLockerBlock extends BaseEntityBlock implements PotatoInspectable, NamedMachinePart {
 
     public static final MapCodec<ParcelLockerBlock> CODEC = simpleCodec(ParcelLockerBlock::new);
     public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
     public static final EnumProperty<LockerPart> PART = EnumProperty.create("part", LockerPart.class);
-    public static final EnumProperty<LockerLamp> LAMP_TOP = EnumProperty.create("lamp_top", LockerLamp.class);
-    public static final EnumProperty<LockerLamp> LAMP_BOTTOM = EnumProperty.create("lamp_bottom", LockerLamp.class);
+    public static final EnumProperty<LockerScreen> SCREEN = EnumProperty.create("screen", LockerScreen.class);
+    public static final BooleanProperty LOADING = BooleanProperty.create("loading");
+    private static final float SCAN_PITCH = 2.0F;
+    private static final float BUZZ_PITCH = 0.6F;
+    private static final float TAKE_VOLUME = 0.4F;
+    private static final float TAKE_PITCH = 1.2F;
 
     public ParcelLockerBlock(Properties properties) {
         super(properties);
         registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(PART, LockerPart.HEAD_DOCK)
-                .setValue(LAMP_TOP, LockerLamp.OFF).setValue(LAMP_BOTTOM, LockerLamp.OFF));
+                .setValue(SCREEN, LockerScreen.IDLE).setValue(LOADING, false));
     }
 
     @Override
@@ -67,7 +80,7 @@ public class ParcelLockerBlock extends BaseEntityBlock implements PotatoInspecta
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING, PART, LAMP_TOP, LAMP_BOTTOM);
+        builder.add(FACING, PART, SCREEN, LOADING);
     }
 
     @Override
@@ -78,6 +91,26 @@ public class ParcelLockerBlock extends BaseEntityBlock implements PotatoInspecta
     @Override
     protected RenderShape getRenderShape(BlockState state) {
         return RenderShape.MODEL;
+    }
+
+    /** The dock ticks on clients only, to swing the doors and ring them. */
+    @Override
+    public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        if (!level.isClientSide() || state.getValue(PART) != LockerPart.HEAD_DOCK) {
+            return null;
+        }
+        return createTickerHelper(type, ServusShuttlesBlockEntities.PARCEL_LOCKER.get(), ParcelLockerBlockEntity::clientTick);
+    }
+
+    /** The screen's fall back from a passing state. */
+    @Override
+    protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
+        if (state.getValue(PART) == LockerPart.HEAD_SCREEN) {
+            ParcelLockerBlockEntity locker = locker(level, pos);
+            if (locker != null) {
+                locker.refreshScreen();
+            }
+        }
     }
 
     /** Where the dock of the locker the part at {@code pos} belongs to stands. */
@@ -158,22 +191,49 @@ public class ParcelLockerBlock extends BaseEntityBlock implements PotatoInspecta
         return PushReaction.BLOCK;
     }
 
-    /** The Handheld on the screen opens the player's boxes; the potato passes to its report, other items to their own use. */
+    /**
+     * A Handheld on the screen scans it; any hand on a box takes from it.
+     * The potato passes to its report; other items on the screen fall to
+     * the empty hand, which opens the GUI.
+     */
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
                                           InteractionHand hand, BlockHitResult hitResult) {
-        if (stack.getItem() instanceof DataPotatoItem || !(stack.getItem() instanceof HandheldItem)) {
+        if (stack.getItem() instanceof DataPotatoItem) {
             return InteractionResult.PASS;
         }
-        return open(state, level, pos, player);
+        LockerPart part = state.getValue(PART);
+        if (part == LockerPart.HEAD_SCREEN) {
+            return stack.getItem() instanceof HandheldItem ? scan(level, pos, player) : InteractionResult.TRY_WITH_EMPTY_HAND;
+        }
+        LockerLayout.Box box = part.box((hitResult.getLocation().y - pos.getY()) * LockerLayout.BLOCK);
+        ParcelLockerBlockEntity locker = locker(level, pos);
+        if (box == null || locker == null) {
+            return InteractionResult.PASS;
+        }
+        if (level.isClientSide()) {
+            return locker.shown(box.index()).state() == null ? InteractionResult.PASS : InteractionResult.SUCCESS;
+        }
+        return switch (locker.take(player, box.index())) {
+            case FREE -> InteractionResult.PASS;
+            case TAKEN -> {
+                level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.PLAYERS, TAKE_VOLUME, TAKE_PITCH);
+                yield InteractionResult.SUCCESS;
+            }
+            case NOT_YOURS -> {
+                level.playSound(null, pos, SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.BLOCKS, 1.0F, BUZZ_PITCH);
+                player.sendOverlayMessage(Component.translatable("message.servus_shuttles.parcel_locker.not_yours", box.id()));
+                yield InteractionResult.SUCCESS;
+            }
+            case CLOSED -> {
+                player.sendOverlayMessage(Component.translatable("message.servus_shuttles.parcel_locker.scan_to_open"));
+                yield InteractionResult.SUCCESS;
+            }
+        };
     }
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        return open(state, level, pos, player);
-    }
-
-    private static InteractionResult open(BlockState state, Level level, BlockPos pos, Player player) {
         if (state.getValue(PART) != LockerPart.HEAD_SCREEN) {
             return InteractionResult.PASS;
         }
@@ -182,6 +242,24 @@ public class ParcelLockerBlock extends BaseEntityBlock implements PotatoInspecta
             if (locker != null) {
                 serverPlayer.openMenu(locker, buf -> locker.writeOpening(buf, serverPlayer.getUUID()));
             }
+        }
+        return InteractionResult.SUCCESS;
+    }
+
+    /** Opens the player's ready boxes and greets them on the screen, with a chirp and a line on the action bar. */
+    private static InteractionResult scan(Level level, BlockPos pos, Player player) {
+        ParcelLockerBlockEntity locker = locker(level, pos);
+        if (level.isClientSide() || locker == null) {
+            return InteractionResult.SUCCESS;
+        }
+        List<Integer> opened = locker.scan(player);
+        level.playSound(null, pos, SoundEvents.NOTE_BLOCK_BIT.value(), SoundSource.BLOCKS, 0.8F, SCAN_PITCH);
+        if (opened.isEmpty()) {
+            level.playSound(null, pos, SoundEvents.NOTE_BLOCK_BASS.value(), SoundSource.BLOCKS, 1.0F, BUZZ_PITCH);
+            player.sendOverlayMessage(Component.translatable("message.servus_shuttles.parcel_locker.nothing", locker.label()));
+        } else {
+            player.sendOverlayMessage(Component.translatable("message.servus_shuttles.parcel_locker.opened", locker.label(),
+                    String.join(", ", opened.stream().map(box -> LockerLayout.BOXES.get(box).id()).toList())));
         }
         return InteractionResult.SUCCESS;
     }

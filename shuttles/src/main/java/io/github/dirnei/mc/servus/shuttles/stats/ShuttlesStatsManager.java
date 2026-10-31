@@ -104,6 +104,7 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     public static final int DEFAULT_LOCKER_BOX_L = 9;
     public static final int DEFAULT_LOCKER_RETURN_TICKS = 24000;
     public static final int DEFAULT_LOCKER_CHECK_INTERVAL = 20;
+    public static final int DEFAULT_LOCKER_DOOR_OPEN_TICKS = 200;
 
     private static final double DEFAULT_FREE_SLOT_BUCKET = 0.25;
     private static final double DEFAULT_FOLLOW_GAP = 1.0;
@@ -203,6 +204,7 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
             new LockerLayout.Capacities(DEFAULT_LOCKER_BOX_S, DEFAULT_LOCKER_BOX_M, DEFAULT_LOCKER_BOX_L);
     private volatile int lockerReturnTicks = DEFAULT_LOCKER_RETURN_TICKS;
     private volatile int lockerCheckInterval = DEFAULT_LOCKER_CHECK_INTERVAL;
+    private volatile int lockerDoorOpenTicks = DEFAULT_LOCKER_DOOR_OPEN_TICKS;
     private volatile double freeSlotBucket = DEFAULT_FREE_SLOT_BUCKET;
     private volatile double followGap = DEFAULT_FOLLOW_GAP;
     private volatile double trafficPerShuttle = DEFAULT_TRAFFIC_PER_SHUTTLE;
@@ -225,6 +227,7 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
                 intField(files.get(WAREHOUSE), "locker_box_l", DEFAULT_LOCKER_BOX_L));
         lockerReturnTicks = intField(files.get(WAREHOUSE), "locker_return_ticks", DEFAULT_LOCKER_RETURN_TICKS);
         lockerCheckInterval = intField(files.get(WAREHOUSE), "locker_check_interval", DEFAULT_LOCKER_CHECK_INTERVAL);
+        lockerDoorOpenTicks = intField(files.get(WAREHOUSE), "locker_door_open_ticks", DEFAULT_LOCKER_DOOR_OPEN_TICKS);
         terminalOutputSlots = intField(files.get(WAREHOUSE), "terminal_output_slots", DEFAULT_TERMINAL_OUTPUT_SLOTS);
         pushInterval = intField(files.get(WAREHOUSE), "push_interval", DEFAULT_PUSH_INTERVAL);
         refusedShipmentTimeout = Math.max(pushInterval,
@@ -800,6 +803,11 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     /** Ticks between two looks of a warehouse at its Parcel Lockers. */
     public int lockerCheckInterval() {
         return lockerCheckInterval;
+    }
+
+    /** Ticks the doors a scan opened stay open. */
+    public int lockerDoorOpenTicks() {
+        return lockerDoorOpenTicks;
     }
 
     /** mB a Fluid Inbound tank holds before a tanker run starts for it, unless it is full. */

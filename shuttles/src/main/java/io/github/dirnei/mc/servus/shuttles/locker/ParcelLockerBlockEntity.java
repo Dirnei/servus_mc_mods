@@ -21,30 +21,38 @@ import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesMachineKinds;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import io.github.dirnei.mc.servus.shuttles.zone.PutAwayPlan;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.UnaryOperator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The dock of a Parcel Locker and everything the locker keeps: the boxes as
@@ -53,12 +61,24 @@ import net.neoforged.neoforge.transfer.transaction.TransactionContext;
  * boxes only; nothing is put into a box by hand, by pipe or by any other
  * delivery. A ready parcel the warehouse sends back exposes its boxes to
  * put-away. A box of a delivered order is free again once it is empty.
- * Server thread only, apart from the client copy a menu reads.
+ * A Handheld scan opens the doors of the scanner's ready boxes for a time;
+ * an emptied box closes. Clients get every box's state, owner, closing time
+ * and the first items of open boxes in the update tag, which the renderer
+ * and the client tick read. Server thread only, apart from that client copy
+ * and the one a menu reads.
  */
 public class ParcelLockerBlockEntity extends StorageNodeBlockEntity implements DeliveryTarget, PutAwaySource, NamedMachine, LockHolder,
         MenuProvider {
 
-    /** What a player sees of a box in the locker GUI. */
+    private static final int SCREEN_TICKS = 60;
+    private static final int SHOWN_STACKS = 3;
+    private static final String VIEW = "View";
+    private static final float DING_VOLUME = 0.7F;
+    private static final float DING_PITCH = 1.6F;
+    private static final float CLOSE_VOLUME = 0.3F;
+    private static final float CLOSE_PITCH = 1.6F;
+
+    /** Whose a box is for a player: free, theirs or someone else's. */
     public enum BoxView { FREE, MINE, TAKEN }
 
     private final LockerLayout.Capacities capacities = ShuttlesStatsManager.INSTANCE.lockerCapacities();
@@ -73,6 +93,10 @@ public class ParcelLockerBlockEntity extends StorageNodeBlockEntity implements D
         protected void onContentsChanged(int slot) {
             setChanged();
             freeEmptyBoxes();
+            int box = capacities.boxOf(slot);
+            if (box >= 0 && isOpen(box)) {
+                sync();
+            }
         }
 
         @Override
@@ -86,9 +110,29 @@ public class ParcelLockerBlockEntity extends StorageNodeBlockEntity implements D
     private boolean dropItem = true;
     private PutAwayPlan.Reason blockedReason;
     private ItemStack blockedStack = ItemStack.EMPTY;
+    private final long[] openUntil = new long[LockerLayout.BOXES.size()];
+    private long screenUntil;
+    private long scanTime = Long.MIN_VALUE;
+    private int greeted;
+    private final Shown[] shown = new Shown[LockerLayout.BOXES.size()];
+    private final LockerDoors doors = new LockerDoors(LockerLayout.BOXES.size());
+
+    /**
+     * What a client knows of one box.
+     *
+     * @param state     the state of the order holding it, null while free
+     * @param owner     the order's owner, null while free
+     * @param openUntil the game time its door closes, 0 when closed
+     * @param stacks    the first items of an open box, empty otherwise
+     */
+    public record Shown(LockerReturns.@Nullable State state, @Nullable UUID owner, long openUntil, List<ItemStack> stacks) {
+
+        static final Shown FREE = new Shown(null, null, 0, List.of());
+    }
 
     public ParcelLockerBlockEntity(BlockPos pos, BlockState state) {
         super(ServusShuttlesBlockEntities.PARCEL_LOCKER.get(), pos, state);
+        Arrays.fill(shown, Shown.FREE);
     }
 
     public LockerLayout.Capacities capacities() {
@@ -180,9 +224,11 @@ public class ParcelLockerBlockEntity extends StorageNodeBlockEntity implements D
 
     /** Ends an order: its boxes are free at once, whatever they still hold stays in them until taken or broken. */
     public void cancel(int orderId) {
-        if (orders.removeIf(order -> order.id() == orderId)) {
+        order(orderId).ifPresent(order -> {
+            order.boxes().forEach(box -> openUntil[box] = 0);
+            orders.remove(order);
             changed();
-        }
+        });
     }
 
     /**
@@ -249,8 +295,22 @@ public class ParcelLockerBlockEntity extends StorageNodeBlockEntity implements D
 
     /** The items an order's boxes hold, one stack per item with its total count. */
     public List<ItemStack> contents(LockerOrder order) {
+        return merged(slotsOf(order));
+    }
+
+    /** The items a box holds, one stack per item with its total count. */
+    public List<ItemStack> contents(int box) {
+        LockerLayout.Range range = ranges.get(box);
+        List<Integer> slots = new ArrayList<>();
+        for (int slot = range.first(); slot < range.first() + range.count(); slot++) {
+            slots.add(slot);
+        }
+        return merged(slots);
+    }
+
+    private List<ItemStack> merged(List<Integer> slots) {
         List<ItemStack> stacks = new ArrayList<>();
-        for (int slot : slotsOf(order)) {
+        for (int slot : slots) {
             ItemStack stack = boxes.getStackInSlot(slot);
             if (stack.isEmpty()) {
                 continue;
@@ -275,6 +335,7 @@ public class ParcelLockerBlockEntity extends StorageNodeBlockEntity implements D
     /** The parcel waited too long: its boxes join the put-away buffer. */
     public void markReturning(LockerOrder order) {
         order.returning();
+        order.boxes().forEach(box -> openUntil[box] = 0);
         changed();
     }
 
@@ -327,6 +388,7 @@ public class ParcelLockerBlockEntity extends StorageNodeBlockEntity implements D
             for (int box : order.boxes()) {
                 if (boxEmpty(box)) {
                     order.release(box);
+                    openUntil[box] = 0;
                     any = true;
                 }
             }
@@ -358,36 +420,158 @@ public class ParcelLockerBlockEntity extends StorageNodeBlockEntity implements D
         return views;
     }
 
-    /** The lamp a box shows. */
-    public LockerLamp lamp(int box) {
-        return orderOfBox(box).map(order -> LockerLamp.of(order.state())).orElse(LockerLamp.OFF);
+    /** The lamp a box shows to that player. */
+    public LockerLamp lamp(int box, UUID viewer) {
+        return orderOfBox(box).map(order -> LockerLamp.of(order.state(), order.owner().equals(viewer))).orElse(LockerLamp.OFF);
     }
 
-    /** The dock's lamp: orange while shuttles bring orders. */
-    public LockerLamp dockLamp() {
-        return orders.stream().anyMatch(order -> order.state() == LockerReturns.State.RESERVED) ? LockerLamp.RESERVED : LockerLamp.OFF;
+    /** Whether shuttles are bringing orders: the dock lamp blinks and the screen shows LOAD. */
+    public boolean loading() {
+        return orders.stream().anyMatch(order -> order.state() == LockerReturns.State.RESERVED);
     }
 
-    /** Saves and turns every part's lamps to the boxes' states. */
+    /** Whether the box's door stands open on the server. */
+    public boolean isOpen(int box) {
+        return level != null && openUntil[box] > level.getGameTime();
+    }
+
+    /** The boxes of the player's ready parcels, in box order. */
+    public List<Integer> readyBoxes(UUID player) {
+        List<Integer> ready = new ArrayList<>();
+        for (LockerOrder order : orders) {
+            if (order.owner().equals(player) && order.state() == LockerReturns.State.READY) {
+                ready.addAll(order.boxes());
+            }
+        }
+        ready.sort(null);
+        return ready;
+    }
+
+    /**
+     * A Handheld scan: opens the doors of the player's ready boxes for the
+     * time from data and greets them on the screen, or says there is no
+     * parcel. Returns the boxes it opened.
+     */
+    public List<Integer> scan(Player player) {
+        if (level == null || level.isClientSide()) {
+            return List.of();
+        }
+        long now = level.getGameTime();
+        List<Integer> ready = readyBoxes(player.getUUID());
+        long until = now + ShuttlesStatsManager.INSTANCE.lockerDoorOpenTicks();
+        ready.forEach(box -> openUntil[box] = until);
+        greeted = ready.size();
+        scanTime = now;
+        show(ready.isEmpty() ? LockerScreen.NONE : LockerScreen.HELLO);
+        sync();
+        return ready;
+    }
+
+    /** What a click on a box did. */
+    public enum Take { TAKEN, NOT_YOURS, CLOSED, FREE }
+
+    /**
+     * A click on a box: the owner's open box moves its items into the
+     * player's inventory, what does not fit stays; an emptied box closes and
+     * is free. Someone else's box stays closed and the screen says so.
+     */
+    public Take take(Player player, int box) {
+        Optional<LockerOrder> order = orderOfBox(box);
+        if (order.isEmpty()) {
+            return Take.FREE;
+        }
+        if (!order.get().owner().equals(player.getUUID())) {
+            show(LockerScreen.DENY);
+            return Take.NOT_YOURS;
+        }
+        if (order.get().state() != LockerReturns.State.READY || !isOpen(box)) {
+            return Take.CLOSED;
+        }
+        LockerLayout.Range range = ranges.get(box);
+        for (int slot = range.first(); slot < range.first() + range.count(); slot++) {
+            ItemStack stack = boxes.getStackInSlot(slot);
+            if (stack.isEmpty()) {
+                continue;
+            }
+            ItemStack rest = stack.copy();
+            player.getInventory().add(rest);
+            if (rest.getCount() != stack.getCount()) {
+                boxes.setStackInSlot(slot, rest.isEmpty() ? ItemStack.EMPTY : rest);
+            }
+        }
+        sync();
+        return Take.TAKEN;
+    }
+
+    private BlockPos screenPos() {
+        return LockerPart.HEAD_SCREEN.at(worldPosition, facing());
+    }
+
+    /** Shows a passing state on the screen for a few seconds. */
+    private void show(LockerScreen screen) {
+        if (level == null || level.isClientSide()) {
+            return;
+        }
+        screenUntil = level.getGameTime() + SCREEN_TICKS;
+        setScreen(screen);
+        level.scheduleTick(screenPos(), getBlockState().getBlock(), SCREEN_TICKS);
+    }
+
+    /** The screen's scheduled tick: a passing state whose time is up falls back to LOAD or IDLE. */
+    public void refreshScreen() {
+        if (level == null || level.isClientSide()) {
+            return;
+        }
+        long left = screenUntil - level.getGameTime();
+        if (left > 0) {
+            level.scheduleTick(screenPos(), getBlockState().getBlock(), (int) left);
+            return;
+        }
+        setScreen(loading() ? LockerScreen.LOAD : LockerScreen.IDLE);
+    }
+
+    /** What the screen shows now. */
+    public LockerScreen screen() {
+        BlockState state = level == null ? null : level.getBlockState(screenPos());
+        return state != null && state.getBlock() instanceof ParcelLockerBlock ? state.getValue(ParcelLockerBlock.SCREEN) : LockerScreen.IDLE;
+    }
+
+    private void setScreen(LockerScreen screen) {
+        setPart(LockerPart.HEAD_SCREEN, state -> state.setValue(ParcelLockerBlock.SCREEN, screen));
+    }
+
+    private void setPart(LockerPart part, UnaryOperator<BlockState> change) {
+        BlockPos pos = part.at(worldPosition, facing());
+        BlockState state = level.getBlockState(pos);
+        if (!(state.getBlock() instanceof ParcelLockerBlock) || state.getValue(ParcelLockerBlock.PART) != part) {
+            return;
+        }
+        BlockState changed = change.apply(state);
+        if (changed != state) {
+            level.setBlock(pos, changed, Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
+        }
+    }
+
+    /** Saves, sets the dock lamp and the screen's LOAD to whether shuttles bring orders, and tells clients. */
     private void changed() {
         setChanged();
         if (level == null || level.isClientSide()) {
             return;
         }
-        Direction facing = facing();
-        for (LockerPart part : LockerPart.values()) {
-            BlockPos pos = part.at(worldPosition, facing);
-            BlockState state = level.getBlockState(pos);
-            if (!(state.getBlock() instanceof ParcelLockerBlock) || state.getValue(ParcelLockerBlock.PART) != part) {
-                continue;
-            }
-            List<LockerLayout.Box> lamps = part.lampBoxes();
-            LockerLamp top = part == LockerPart.HEAD_DOCK ? dockLamp() : lamps.isEmpty() ? LockerLamp.OFF : lamp(lamps.get(0).index());
-            LockerLamp bottom = lamps.size() < 2 ? LockerLamp.OFF : lamp(lamps.get(1).index());
-            BlockState lit = state.setValue(ParcelLockerBlock.LAMP_TOP, top).setValue(ParcelLockerBlock.LAMP_BOTTOM, bottom);
-            if (lit != state) {
-                level.setBlock(pos, lit, Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
-            }
+        boolean loading = loading();
+        setPart(LockerPart.HEAD_DOCK, state -> state.setValue(ParcelLockerBlock.LOADING, loading));
+        if (level.getGameTime() >= screenUntil) {
+            setScreen(loading ? LockerScreen.LOAD : LockerScreen.IDLE);
+        }
+        sync();
+    }
+
+    /** Sends the boxes' states, owners, open doors and the items of open boxes to clients. */
+    private void sync() {
+        setChanged();
+        if (level != null && !level.isClientSide()) {
+            BlockState state = getBlockState();
+            level.sendBlockUpdated(worldPosition, state, state, Block.UPDATE_CLIENTS);
         }
     }
 
@@ -396,11 +580,25 @@ public class ParcelLockerBlockEntity extends StorageNodeBlockEntity implements D
         dropItem = false;
     }
 
+    /** What the GUI shows of every box to that player, in {@link LockerLayout#BOXES} order: read only. */
+    public List<BoxInfo> infos(UUID player) {
+        List<BoxView> views = views(player);
+        List<BoxInfo> infos = new ArrayList<>();
+        for (LockerLayout.Box box : LockerLayout.BOXES) {
+            int index = box.index();
+            BoxView view = views.get(index);
+            infos.add(orderOfBox(index)
+                    .map(order -> new BoxInfo(view, order.ownerName(), order.state()))
+                    .orElse(new BoxInfo(view, "", null)));
+        }
+        return infos;
+    }
+
     /** Writes what the GUI needs: the dock's position and what the opening player sees of every box. */
     public void writeOpening(RegistryFriendlyByteBuf buf, UUID player) {
         buf.writeBlockPos(worldPosition);
-        for (BoxView view : views(player)) {
-            buf.writeEnum(view);
+        for (BoxInfo info : infos(player)) {
+            info.write(buf);
         }
     }
 
@@ -411,7 +609,7 @@ public class ParcelLockerBlockEntity extends StorageNodeBlockEntity implements D
 
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
-        return new ParcelLockerMenu(containerId, playerInventory, this, views(player.getUUID()));
+        return new ParcelLockerMenu(containerId, this, infos(player.getUUID()));
     }
 
     /**
@@ -447,6 +645,7 @@ public class ParcelLockerBlockEntity extends StorageNodeBlockEntity implements D
         ListTag list = new ListTag();
         orders.forEach(order -> list.add(order.save()));
         tag.put("Orders", list);
+        tag.putLongArray("OpenUntil", openUntil);
         output.store(tag);
     }
 
@@ -464,6 +663,127 @@ public class ParcelLockerBlockEntity extends StorageNodeBlockEntity implements D
         for (int i = 0; i < list.size(); i++) {
             LockerOrder.load(list.getCompoundOrEmpty(i)).ifPresent(orders::add);
         }
+        long[] open = tag.getLongArray("OpenUntil").orElse(new long[0]);
+        Arrays.fill(openUntil, 0);
+        System.arraycopy(open, 0, openUntil, 0, Math.min(open.length, openUntil.length));
+        tag.getCompound(VIEW).ifPresent(view -> readView(registries, view));
+    }
+
+    /**
+     * The client copy of the boxes: per box the state and owner of its order,
+     * when its door closes and the first items of an open box; and the last
+     * scan with how many boxes it opened.
+     */
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        CompoundTag tag = super.getUpdateTag(registries);
+        CompoundTag view = new CompoundTag();
+        ListTag list = new ListTag();
+        for (LockerLayout.Box box : LockerLayout.BOXES) {
+            CompoundTag entry = new CompoundTag();
+            int index = box.index();
+            orderOfBox(index).ifPresent(order -> {
+                entry.putString("State", order.state().name());
+                entry.store("Owner", UUIDUtil.CODEC, order.owner());
+            });
+            entry.putLong("OpenUntil", openUntil[index]);
+            if (isOpen(index)) {
+                ListTag stacks = new ListTag();
+                contents(index).stream().limit(SHOWN_STACKS).forEach(stack -> stacks.add(shownStack(registries, stack)));
+                entry.put("Stacks", stacks);
+            }
+            list.add(entry);
+        }
+        view.put("Boxes", list);
+        view.putLong("ScanTime", scanTime);
+        view.putInt("Greeted", greeted);
+        tag.put(VIEW, view);
+        return tag;
+    }
+
+    /** A merged stack for the client: the item saved as one, its total beside it, since a total can pass the stack limit. */
+    static CompoundTag shownStack(HolderLookup.Provider registries, ItemStack stack) {
+        CompoundTag tag = new CompoundTag();
+        tag.put("Item", ValueIo.saveStack(registries, stack.copyWithCount(1)));
+        tag.putInt("Count", stack.getCount());
+        return tag;
+    }
+
+    static ItemStack shownStack(HolderLookup.Provider registries, Tag tag) {
+        if (!(tag instanceof CompoundTag compound)) {
+            return ItemStack.EMPTY;
+        }
+        ItemStack stack = compound.get("Item") == null ? ItemStack.EMPTY : ValueIo.parseStack(registries, compound.get("Item"));
+        stack.setCount(compound.getIntOr("Count", 0));
+        return stack;
+    }
+
+    private void readView(HolderLookup.Provider registries, CompoundTag view) {
+        ListTag list = view.getListOrEmpty("Boxes");
+        for (int box = 0; box < shown.length; box++) {
+            CompoundTag entry = list.getCompoundOrEmpty(box);
+            LockerReturns.State state = null;
+            for (LockerReturns.State candidate : LockerReturns.State.values()) {
+                if (candidate.name().equals(entry.getStringOr("State", ""))) {
+                    state = candidate;
+                }
+            }
+            List<ItemStack> stacks = new ArrayList<>();
+            for (Tag stack : entry.getListOrEmpty("Stacks")) {
+                ItemStack parsed = shownStack(registries, stack);
+                if (!parsed.isEmpty()) {
+                    stacks.add(parsed);
+                }
+            }
+            shown[box] = new Shown(state, entry.read("Owner", UUIDUtil.CODEC).orElse(null), entry.getLongOr("OpenUntil", 0L), List.copyOf(stacks));
+        }
+        scanTime = view.getLongOr("ScanTime", Long.MIN_VALUE);
+        greeted = view.getIntOr("Greeted", 0);
+    }
+
+    /** The client copy of a box. */
+    public Shown shown(int box) {
+        return shown[box];
+    }
+
+    /** The game time of the last scan, on the client. */
+    public long scanTime() {
+        return scanTime;
+    }
+
+    /** How many boxes the last scan opened. */
+    public int greeted() {
+        return greeted;
+    }
+
+    /** The doors' swing on the client. */
+    public LockerDoors doors() {
+        return doors;
+    }
+
+    /** Client tick: starts doors swinging as their open times say and plays a ding per opening door and a click per closing one. */
+    public static void clientTick(Level level, BlockPos pos, BlockState state, ParcelLockerBlockEntity locker) {
+        long now = level.getGameTime();
+        boolean[] open = new boolean[locker.shown.length];
+        for (int box = 0; box < open.length; box++) {
+            open[box] = locker.shown[box].openUntil() > now;
+        }
+        locker.doors.update(open, now);
+        for (int started : locker.doors.started(now)) {
+            boolean opening = started >= 0;
+            BlockPos at = locker.boxPos(opening ? started : -1 - started);
+            if (opening) {
+                level.playLocalSound(at, SoundEvents.NOTE_BLOCK_BELL.value(), SoundSource.BLOCKS, DING_VOLUME, DING_PITCH, false);
+            } else {
+                level.playLocalSound(at, SoundEvents.IRON_TRAPDOOR_CLOSE, SoundSource.BLOCKS, CLOSE_VOLUME, CLOSE_PITCH, false);
+            }
+        }
+    }
+
+    /** The block the box's bottom lies in. */
+    public BlockPos boxPos(int box) {
+        LockerLayout.Box at = LockerLayout.BOXES.get(box);
+        return worldPosition.relative(LockerPart.right(facing()), at.column() - LockerLayout.HEAD_COLUMN).above(at.bottom() / LockerLayout.BLOCK);
     }
 
     @Override

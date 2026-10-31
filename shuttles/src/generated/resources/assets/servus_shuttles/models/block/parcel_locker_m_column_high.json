@@ -3,28 +3,8 @@
   "elements": [
     {
       "faces": {
-        "down": {
-          "cullface": "down",
-          "texture": "#steel",
-          "uv": [
-            0,
-            0,
-            16,
-            15
-          ]
-        },
-        "east": {
-          "cullface": "east",
-          "texture": "#steel",
-          "uv": [
-            0,
-            0,
-            15,
-            16
-          ]
-        },
         "north": {
-          "texture": "#steel",
+          "texture": "#carcass",
           "uv": [
             0,
             0,
@@ -34,29 +14,9 @@
         },
         "south": {
           "cullface": "south",
-          "texture": "#steel",
+          "texture": "#back",
           "uv": [
             0,
-            0,
-            16,
-            16
-          ]
-        },
-        "up": {
-          "cullface": "up",
-          "texture": "#steel",
-          "uv": [
-            0,
-            1,
-            16,
-            16
-          ]
-        },
-        "west": {
-          "cullface": "west",
-          "texture": "#steel",
-          "uv": [
-            1,
             0,
             16,
             16
@@ -66,7 +26,7 @@
       "from": [
         0,
         0,
-        1
+        8
       ],
       "to": [
         16,
@@ -76,128 +36,191 @@
     },
     {
       "faces": {
-        "down": {
-          "texture": "#yellow",
+        "north": {
+          "texture": "#ochre",
           "uv": [
+            0,
+            0,
             1,
-            15,
-            15,
             16
           ]
         },
-        "east": {
-          "texture": "#yellow",
-          "uv": [
-            15,
-            1,
-            16,
-            15
-          ]
-        },
-        "north": {
-          "texture": "#front",
-          "uv": [
-            1,
-            1,
-            15,
-            15
-          ]
-        },
-        "up": {
-          "texture": "#yellow",
-          "uv": [
-            1,
-            0,
-            15,
-            1
-          ]
-        },
         "west": {
-          "texture": "#yellow",
+          "texture": "#carcass",
           "uv": [
+            1,
             0,
-            1,
-            1,
-            15
+            8,
+            16
           ]
         }
       },
       "from": [
-        1,
-        1,
-        0
+        15,
+        0,
+        1
       ],
       "to": [
-        15,
-        15,
-        1
+        16,
+        16,
+        8
       ]
     },
     {
       "faces": {
-        "down": {
-          "texture": "#handle",
-          "uv": [
-            1,
-            1,
-            2,
-            2
-          ]
-        },
         "east": {
-          "texture": "#handle",
+          "texture": "#carcass",
           "uv": [
-            1,
-            1,
-            2,
-            4
+            8,
+            0,
+            15,
+            16
           ]
         },
         "north": {
-          "texture": "#handle",
+          "texture": "#ochre",
+          "uv": [
+            14,
+            0,
+            16,
+            16
+          ]
+        }
+      },
+      "from": [
+        0,
+        0,
+        1
+      ],
+      "to": [
+        2,
+        16,
+        8
+      ]
+    },
+    {
+      "faces": {
+        "north": {
+          "texture": "#ochre",
           "uv": [
             1,
-            1,
-            2,
-            4
+            14,
+            14,
+            16
           ]
         },
         "up": {
-          "texture": "#handle",
+          "texture": "#carcass",
           "uv": [
-            1,
-            1,
             2,
-            2
-          ]
-        },
-        "west": {
-          "texture": "#handle",
-          "uv": [
             1,
-            1,
-            2,
-            4
+            15,
+            8
           ]
         }
       },
       "from": [
         2,
-        6.5,
+        0,
+        1
+      ],
+      "to": [
+        15,
+        2,
+        8
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#carcass",
+          "uv": [
+            2,
+            8,
+            15,
+            15
+          ]
+        },
+        "north": {
+          "texture": "#ochre",
+          "uv": [
+            1,
+            0,
+            14,
+            1
+          ]
+        }
+      },
+      "from": [
+        2,
+        15,
+        1
+      ],
+      "to": [
+        15,
+        16,
+        8
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#roof_top",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "north": {
+          "texture": "#roof",
+          "uv": [
+            0,
+            0,
+            16,
+            3
+          ]
+        },
+        "south": {
+          "texture": "#roof",
+          "uv": [
+            0,
+            0,
+            16,
+            3
+          ]
+        },
+        "up": {
+          "texture": "#roof_top",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        }
+      },
+      "from": [
+        0,
+        16,
         -1
       ],
       "to": [
-        3,
-        9.5,
-        0
+        16,
+        19,
+        17
       ]
     }
   ],
   "textures": {
-    "front": "servus_shuttles:block/parcel_locker_front_m_column_high",
-    "handle": "servus_shuttles:block/parcel_locker_handle",
-    "particle": "servus_shuttles:block/heavy_rack_iron",
-    "steel": "servus_shuttles:block/heavy_rack_iron",
-    "yellow": "servus_shuttles:block/parcel_locker_yellow"
+    "back": "servus_shuttles:block/heavy_rack_iron",
+    "carcass": "servus_shuttles:block/parcel_locker_carcass",
+    "dock": "servus_shuttles:block/parcel_locker_dock",
+    "ochre": "servus_shuttles:block/parcel_locker_ochre",
+    "particle": "servus_shuttles:block/parcel_locker_side",
+    "roof": "servus_shuttles:block/parcel_locker_roof",
+    "roof_top": "servus_shuttles:block/parcel_locker_roof_top",
+    "side": "servus_shuttles:block/parcel_locker_side"
   }
 }

@@ -11,6 +11,10 @@ dependencies {
     // JEI: API at compile time only (soft dependency); dev client runs get JEI from Alchemy.
     compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
+
+    // Jade: only the Jade plugin class touches it, and Jade alone loads it (soft dependency).
+    compileOnly "maven.modrinth:jade:${jade_version}"
+    localRuntime "maven.modrinth:jade:${jade_version}"
 }
 
 // Resolved outside the neoForge block: inside it, project(':foundation') would be

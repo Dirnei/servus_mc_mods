@@ -60,6 +60,7 @@ public final class ServusShuttlesClient {
         event.registerBlockEntityRenderer(ServusShuttlesBlockEntities.FLUID_RACK.get(), FluidRackRenderer::new);
         event.registerBlockEntityRenderer(ServusShuttlesBlockEntities.FLUID_INBOUND.get(), FluidStationRenderer::new);
         event.registerBlockEntityRenderer(ServusShuttlesBlockEntities.FLUID_OUTBOUND.get(), FluidStationRenderer::new);
+        event.registerBlockEntityRenderer(ServusShuttlesBlockEntities.PARCEL_LOCKER.get(), ParcelLockerRenderer::new);
     }
 
     /** The Shuttle Workshop draws its shuttle large as a picture in picture. */

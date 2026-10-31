@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.shuttles.locker;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -43,5 +44,34 @@ class LockerLayoutTest {
     void totalStacksFromSizes() {
         assertEquals(45, DEFAULT.total());
         assertEquals(6 + 3 * 2 + 4, new LockerLayout.Capacities(1, 2, 4).total());
+    }
+
+    @Test
+    void lowerSOfFourColumn() {
+        assertEquals("S-04", LockerLayout.boxAt(0, 0, 3).id());
+        assertEquals("S-03", LockerLayout.boxAt(0, 0, 8).id());
+        assertEquals("S-01", LockerLayout.boxAt(0, 1, 15.5).id());
+        assertEquals("S-01", LockerLayout.boxAt(0, 1, 16).id());
+    }
+
+    @Test
+    void mBoxBelowTwoS() {
+        assertEquals("M-01", LockerLayout.boxAt(1, 0, 12).id());
+        assertEquals("S-06", LockerLayout.boxAt(1, 1, 2).id());
+        assertEquals("S-05", LockerLayout.boxAt(1, 1, 9).id());
+    }
+
+    @Test
+    void lBoxFromBothParts() {
+        assertEquals("L-01", LockerLayout.boxAt(4, 0, 0).id());
+        assertEquals("L-01", LockerLayout.boxAt(4, 1, 14).id());
+        assertEquals("M-03", LockerLayout.boxAt(3, 0, 5).id());
+        assertEquals("M-02", LockerLayout.boxAt(3, 1, 5).id());
+    }
+
+    @Test
+    void headHasNoBox() {
+        assertNull(LockerLayout.boxAt(LockerLayout.HEAD_COLUMN, 0, 8));
+        assertNull(LockerLayout.boxAt(LockerLayout.HEAD_COLUMN, 1, 8));
     }
 }

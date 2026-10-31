@@ -34,5 +34,6 @@
   "locker_box_l": 9,
   "locker_return_ticks": 24000,
   "locker_check_interval": 20,
+  "locker_door_open_ticks": 200,
   "travel_costs": { "rail_block": 7, "corner": 5, "lift_block": 10, "lift_handover": 20, "stop": 14, "lift_wait_per_job": 50, "traffic_per_shuttle": 4 }
 }

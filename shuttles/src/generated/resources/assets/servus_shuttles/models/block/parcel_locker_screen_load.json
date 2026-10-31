@@ -1,0 +1,179 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "east": {
+          "texture": "#screen",
+          "uv": [
+            15,
+            0,
+            16,
+            16
+          ]
+        },
+        "north": {
+          "texture": "#screen",
+          "uv": [
+            0,
+            0,
+            1.5,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#screen",
+          "uv": [
+            0,
+            0,
+            1,
+            16
+          ]
+        }
+      },
+      "from": [
+        14.5,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        1
+      ]
+    },
+    {
+      "faces": {
+        "east": {
+          "texture": "#screen",
+          "uv": [
+            15,
+            0,
+            16,
+            16
+          ]
+        },
+        "north": {
+          "texture": "#screen",
+          "uv": [
+            14.5,
+            0,
+            16,
+            16
+          ]
+        },
+        "west": {
+          "texture": "#screen",
+          "uv": [
+            0,
+            0,
+            1,
+            16
+          ]
+        }
+      },
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        1.5,
+        16,
+        1
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#screen",
+          "uv": [
+            1.5,
+            15,
+            14.5,
+            16
+          ]
+        },
+        "north": {
+          "texture": "#screen",
+          "uv": [
+            1.5,
+            0,
+            14.5,
+            3
+          ]
+        }
+      },
+      "from": [
+        1.5,
+        13,
+        0
+      ],
+      "to": [
+        14.5,
+        16,
+        1
+      ]
+    },
+    {
+      "faces": {
+        "north": {
+          "texture": "#screen",
+          "uv": [
+            1.5,
+            14.5,
+            14.5,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#screen",
+          "uv": [
+            1.5,
+            0,
+            14.5,
+            1
+          ]
+        }
+      },
+      "from": [
+        1.5,
+        0,
+        0
+      ],
+      "to": [
+        14.5,
+        1.5,
+        1
+      ]
+    },
+    {
+      "faces": {
+        "north": {
+          "texture": "#screen",
+          "uv": [
+            1.5,
+            3,
+            14.5,
+            14.5
+          ]
+        }
+      },
+      "from": [
+        1.5,
+        1.5,
+        0.5
+      ],
+      "light_emission": 15,
+      "to": [
+        14.5,
+        13,
+        1
+      ]
+    }
+  ],
+  "textures": {
+    "particle": "servus_shuttles:block/parcel_locker_screen_load",
+    "screen": "servus_shuttles:block/parcel_locker_screen_load"
+  }
+}

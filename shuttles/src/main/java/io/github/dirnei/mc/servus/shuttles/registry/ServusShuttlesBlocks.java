@@ -192,6 +192,7 @@ public final class ServusShuttlesBlocks {
                             .mapColor(MapColor.COLOR_YELLOW)
                             .strength(3.0F)
                             .sound(SoundType.METAL)
+                            .noOcclusion()
                             .noLootTable());
 
     private ServusShuttlesBlocks() {

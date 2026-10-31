@@ -63,12 +63,12 @@ final class LockerPicker {
         }
     }
 
-    /** The dock of the selected locker, empty while SEND cannot be used. */
+    /** The dock of the selected locker, empty while ORDER cannot be used. */
     Optional<BlockPos> chosen() {
         return reason().isEmpty() ? Optional.of(entries.get(selected).row().dock()) : Optional.empty();
     }
 
-    /** The lang key suffix of why SEND cannot be used, empty when it can. */
+    /** The lang key suffix of why ORDER cannot be used, empty when it can. */
     String reason() {
         if (waiting) {
             return "picker.waiting";

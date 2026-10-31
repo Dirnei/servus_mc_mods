@@ -5,26 +5,16 @@
       "faces": {
         "down": {
           "cullface": "down",
-          "texture": "#steel",
+          "texture": "#back",
           "uv": [
             0,
             0,
             16,
-            14
-          ]
-        },
-        "east": {
-          "cullface": "east",
-          "texture": "#steel",
-          "uv": [
-            0,
-            0,
-            14,
-            16
+            15
           ]
         },
         "north": {
-          "texture": "#hatch",
+          "texture": "#dock",
           "uv": [
             0,
             0,
@@ -34,29 +24,9 @@
         },
         "south": {
           "cullface": "south",
-          "texture": "#steel",
+          "texture": "#back",
           "uv": [
             0,
-            0,
-            16,
-            16
-          ]
-        },
-        "up": {
-          "cullface": "up",
-          "texture": "#steel",
-          "uv": [
-            0,
-            2,
-            16,
-            16
-          ]
-        },
-        "west": {
-          "cullface": "west",
-          "texture": "#steel",
-          "uv": [
-            2,
             0,
             16,
             16
@@ -66,7 +36,7 @@
       "from": [
         0,
         0,
-        2
+        1
       ],
       "to": [
         16,
@@ -78,171 +48,150 @@
       "faces": {
         "down": {
           "cullface": "down",
-          "texture": "#steel",
+          "texture": "#dock",
           "uv": [
-            0,
-            14,
-            3,
+            13,
+            15,
+            16,
             16
           ]
         },
         "east": {
-          "texture": "#steel",
+          "texture": "#dock",
           "uv": [
-            14,
+            15,
             0,
             16,
             16
           ]
         },
         "north": {
-          "texture": "#steel",
-          "uv": [
-            13,
-            0,
-            16,
-            16
-          ]
-        },
-        "up": {
-          "cullface": "up",
-          "texture": "#steel",
+          "texture": "#dock",
           "uv": [
             0,
             0,
             3,
-            2
+            16
           ]
         },
         "west": {
-          "texture": "#steel",
+          "texture": "#dock",
           "uv": [
             0,
             0,
-            2,
+            1,
             16
           ]
         }
       },
       "from": [
-        0,
+        13,
         0,
         0
       ],
       "to": [
-        3,
         16,
-        2
+        16,
+        1
       ]
     },
     {
       "faces": {
         "down": {
           "cullface": "down",
-          "texture": "#steel",
+          "texture": "#dock",
           "uv": [
-            13,
-            14,
-            16,
+            0,
+            15,
+            3,
             16
           ]
         },
         "east": {
-          "texture": "#steel",
+          "texture": "#dock",
           "uv": [
-            14,
+            15,
             0,
             16,
             16
           ]
         },
         "north": {
-          "texture": "#steel",
-          "uv": [
-            0,
-            0,
-            3,
-            16
-          ]
-        },
-        "up": {
-          "cullface": "up",
-          "texture": "#steel",
+          "texture": "#dock",
           "uv": [
             13,
             0,
             16,
-            2
+            16
           ]
         },
         "west": {
-          "texture": "#steel",
+          "texture": "#dock",
           "uv": [
             0,
             0,
-            2,
+            1,
             16
           ]
         }
       },
       "from": [
-        13,
+        0,
         0,
         0
       ],
       "to": [
+        3,
         16,
-        16,
-        2
+        1
       ]
     },
     {
       "faces": {
         "down": {
-          "texture": "#steel",
+          "texture": "#dock",
           "uv": [
             3,
-            14,
+            15,
             13,
             16
           ]
         },
         "north": {
-          "texture": "#steel",
+          "texture": "#dock",
           "uv": [
             3,
             0,
             13,
-            4
-          ]
-        },
-        "up": {
-          "cullface": "up",
-          "texture": "#steel",
-          "uv": [
-            3,
-            0,
-            13,
-            2
+            5
           ]
         }
       },
       "from": [
         3,
-        12,
+        11,
         0
       ],
       "to": [
         13,
         16,
-        2
+        1
       ]
     },
     {
       "faces": {
         "down": {
           "cullface": "down",
-          "texture": "#steel",
+          "texture": "#dock",
+          "uv": [
+            3,
+            15,
+            13,
+            16
+          ]
+        },
+        "north": {
+          "texture": "#dock",
           "uv": [
             3,
             14,
@@ -250,22 +199,13 @@
             16
           ]
         },
-        "north": {
-          "texture": "#steel",
-          "uv": [
-            3,
-            13,
-            13,
-            16
-          ]
-        },
         "up": {
-          "texture": "#steel",
+          "texture": "#dock",
           "uv": [
             3,
             0,
             13,
-            2
+            1
           ]
         }
       },
@@ -276,16 +216,19 @@
       ],
       "to": [
         13,
-        3,
-        2
+        2,
+        1
       ]
     }
   ],
   "textures": {
-    "handle": "servus_shuttles:block/parcel_locker_handle",
-    "hatch": "servus_shuttles:block/parcel_locker_hatch",
-    "particle": "servus_shuttles:block/heavy_rack_iron",
-    "steel": "servus_shuttles:block/heavy_rack_iron",
-    "yellow": "servus_shuttles:block/parcel_locker_yellow"
+    "back": "servus_shuttles:block/heavy_rack_iron",
+    "carcass": "servus_shuttles:block/parcel_locker_carcass",
+    "dock": "servus_shuttles:block/parcel_locker_dock",
+    "ochre": "servus_shuttles:block/parcel_locker_ochre",
+    "particle": "servus_shuttles:block/parcel_locker_side",
+    "roof": "servus_shuttles:block/parcel_locker_roof",
+    "roof_top": "servus_shuttles:block/parcel_locker_roof_top",
+    "side": "servus_shuttles:block/parcel_locker_side"
   }
 }

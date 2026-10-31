@@ -3,6 +3,9 @@
 ## Unreleased
 
 ### Added
+- Parcel Locker: a yellow pickup station of six S, three M and one L box beside a shuttle dock, placed as one piece facing a rail. Scan its screen with the Handheld and the doors of your parcels swing open; right click an open box to take what is inside. An empty hand opens a map of the boxes with who ordered each, where you can also rename it. Parcels nobody collects go back to the racks after an in-game day, and breaking the locker drops everything in it.
+- Handheld orders: REQUEST on the STOCK screen picks a Parcel Locker of the bound warehouse, nearest first, and ORDER sends the basket there while you stand near the warehouse. Shuttles pick it from the racks, and the Handheld panel says when the parcel is ready.
+- Jade shows a Parcel Locker's name, who ordered the box you look at and, for your own box, what is in it.
 - Fluid Rack: bays join into shelves of up to three that share one tank behind a glass front. The Handheld zones a whole shelf at once, and a fluid container in the zone's filter makes it take only that fluid. Tankers dock into one port per shelf, and rails hang along every bay.
 - Fluid Inbound and Fluid Outbound: an Inbound or Outbound Station on top of a Fluid Tank, in the station's wood, with one tank you can see from every side. A swing hose arm docks onto the Tanker's filler cap. The Outbound keeps a fluid picked from a searchable list.
 - Shuttles rumble quietly as they drive, with a dull wheel click and a loose rattle now and then. Only the few nearest moving shuttles sound at once.

@@ -1,10 +1,10 @@
 package io.github.dirnei.mc.servus.shuttles.locker;
 
-import java.util.List;
 import java.util.Locale;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.StringRepresentable;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The ten blocks of a Parcel Locker by their column, 0 to 4 from the left as
@@ -54,14 +54,9 @@ public enum LockerPart implements StringRepresentable {
         return pos.relative(right(facing), LockerLayout.HEAD_COLUMN - column).below(row);
     }
 
-    /**
-     * The boxes whose lamp sits on this part, at most two, top first: a box
-     * shows its lamp near its top edge, in the block that edge lies in.
-     */
-    public List<LockerLayout.Box> lampBoxes() {
-        return LockerLayout.boxesIn(column, row).stream()
-                .filter(box -> box.top() > row * LockerLayout.BLOCK && box.top() <= (row + 1) * LockerLayout.BLOCK)
-                .toList();
+    /** The box a click at {@code hitY} pixels up inside this part hits, or null on the head. */
+    public LockerLayout.@Nullable Box box(double hitY) {
+        return LockerLayout.boxAt(column, row, hitY);
     }
 
     @Override
