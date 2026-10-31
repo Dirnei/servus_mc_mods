@@ -17,6 +17,12 @@
 
 - [x] 4.1 New `shuttles/.../gametest/BufferStopGameTests`: placed beside the last rail faces it; sneak placement faces the player; faces a Farm Rail; the rail end shows straight with the stop facing it and END again when the stop is broken or turned away with the carrot; carrot turns it clockwise; sneak carrot dismantles it with its wood; floor removed drops it with its wood; a hung rail beside only a stop is not held; controller, three rails and a stop: the network holds three rails and no node at the stop; a field ending at a stop has the same rail count as without it; the recipe result carries the rail's wood. Verify `gradlew build` and the full GameTest run
 
-## 5. Play check
+## 5. Farm Buffer Stop
 
-- [ ] 5.1 User play check: place stops at Warehouse Rail and Farm Rail ends, turn and dismantle them, look for flicker on every part from several angles and with a shuttle parked and a Harvester at the last rail, check the stub wood matches the rail.
+- [ ] 5.1 `shuttles/.../registry`: second block `farm_buffer_stop` of `BufferStopBlock` (same properties), its item after `FARM_RAIL` in the creative tab, the buffer stop block entity type valid for both blocks; `ServusShuttles` registers it as a wood material block. `BufferStopModels`: a model per stop kind, heads `farm_rail_head` and beam `farm_rail_dock` for the farm stop. Loot (drop itself copying `MATERIAL`), pickaxe tag, recipe `III` over ` R ` with the Farm Rail, lang "Farm Buffer Stop". Run `gradlew :shuttles:runData`; verify `gradlew build`
+- [ ] 5.2 `BufferStopGameTests`: a Farm Buffer Stop faces and connects a Farm Rail and a Warehouse Rail; recipe from a Farm Rail carries its wood; aging a field that ends at a Farm Buffer Stop leaves the stop unchanged and the field's rail count the same. Verify `gradlew build` and the full GameTest run
+- [ ] 5.3 On main once `m10-rail-corrosion-per-rail` is there: `BufferStopGameTests` case where a Farm Rail with a `RAIL_CORROSION` stage past copper still crafts a Farm Buffer Stop with no corrosion component. Verify `gradlew build` and the full GameTest run
+
+## 6. Play check
+
+- [ ] 6.1 User play check: place both stops at Warehouse Rail and Farm Rail ends, turn and dismantle them, look for flicker on every part from several angles and with a shuttle parked and a Harvester at the last rail, check the stub wood matches the rail and the farm stop shows copper heads.

@@ -10,7 +10,7 @@ A parked shuttle body spans z 2..14 of its rail block and the Harvester tool rea
 
 **Goals:** a decorative Buffer Stop block that the player places beyond a rail end, turns to the rail, makes the rail draw full track into it, and shows the dock stripe in the family's steel.
 
-**Non-Goals:** any effect on shuttles, routes, the network or fields. No stop placed by itself. No Farm Rail variant with copper heads or corrosion. No dye colours. No waterlogging.
+**Non-Goals:** any effect on shuttles, routes, the network or fields. No stop placed by itself. No corrosion on the farm stop. No dye colours. No waterlogging.
 
 ## Decisions
 
@@ -18,6 +18,13 @@ A parked shuttle body spans z 2..14 of its rail block and the Harvester tool rea
 `BufferStopBlock` extends `BaseEntityBlock` with a horizontal `FACING` (front = the side with the buffer heads). `BufferStopBlockEntity` holds only a `MaterialSlot` (`MaterialHolder`), like the `ElevatorBlockEntity` does, so the track stub's sleepers show the wood of the rail it was crafted from. It is registered as a wood material block (`Material.register(id, MaterialKind.WOOD)` in `ServusShuttles`, next to the rail), so Foundation's `MaterialModels` wraps its block models and its item uses the material item model.
 
 It is not a `StorageNodeBlockEntity`, so the network never sees it. Alternative: no block entity and fixed sleepers. Rejected because a stub in the wrong wood stands right next to the rail's sleepers.
+
+### Farm Buffer Stop as a second block
+The Farm Buffer Stop is a second registration, `servus_shuttles:farm_buffer_stop`, of the same `BufferStopBlock` class, with the same block entity type (valid for both blocks) and its own item, loot table and model. The model is the same `BufferStopLook` boxes with `block/farm_rail_head` (fresh copper) for `HEAD` and `block/farm_rail_dock` for `DOCK`. It is a wood material block like the Buffer Stop. `RailBlock.connectsTo` checks `instanceof BufferStopBlock`, so it covers both.
+
+Alternative: one block with a stored "farm" flag on the item and block entity. Rejected: a flag needs its own data component, model property and item model swap, while a second block reuses the Rail and Farm Rail pattern and shows as its own item in JEI and the creative tab.
+
+It carries no corrosion stage and is not a `FarmRailBlock`, so field walks, water reach and aging never see it. Its recipe takes `ServusShuttlesItems.FARM_RAIL` as a plain item ingredient, which matches any `RAIL_CORROSION` component; `MaterialRecipe` copies only the wood, so the result is always fresh.
 
 ### Facing
 `getStateForPlacement` uses `RailFacings.frontToRail(context, RailFacings.ANY_RAIL)`, the shared rule (clicked rail, look direction, only rail, else face the player; sneaking faces the player). `onWrench` (Foundation `Wrenchable`) turns `FACING` clockwise; a sneak wrench dismantles it into its item with its wood, as rails do.
@@ -60,7 +67,7 @@ Overlap check (no two boxes share volume; where boxes touch, their touching face
 Selection and collision use one shape: the sole plus a box around the frame and beam (x 1..15, y 0..10, z 6..15) and the stub as a 2 px slab. The shuttle never enters the block, so the shape only matters for the player.
 
 ### Recipe
-A `MaterialRecipe` (shaped) via `MaterialRecipes.output(..., MaterialKind.WOOD)`: `III` over ` R `, `I` iron ingot, `R` Warehouse Rail; the wood comes from the rail, like the Rail Elevator recipe. Result count 1.
+Two `MaterialRecipe`s (shaped) via `MaterialRecipes.output(..., MaterialKind.WOOD)`: `III` over ` R `, `I` iron ingot, `R` Warehouse Rail for the Buffer Stop, or Farm Rail for the Farm Buffer Stop; the wood comes from the rail, like the Rail Elevator recipe. Result count 1 each.
 
 ## Risks / Trade-offs
 
