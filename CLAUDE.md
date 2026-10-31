@@ -59,7 +59,7 @@ openspec view                      # dashboard of specs and changes
 - After each task: `gradlew build` and `gradlew test` must pass.
 - Block, GUI and worldgen behavior: launch the client run config and check it in game. GameTests where practical.
 - Do not report a task as done without a green build.
-- The docs site in `docs/` (Astro Starlight) describes only released mod versions; check pages against the release tags. Preview it with `npm run dev` in `docs/`.
+- The docs site in `docs/` (Astro Starlight) describes only released mod versions; check pages against the release tags. Preview it with `npm run dev` in `docs/`. Write current versions as `%foundation_version%`, `%shuttles_version%`, `%alchemy_version%` or `%foundation_min_version%` (filled from the CHANGELOG headings and `gradle.properties` by `docs/src/versions.mjs`); only historical mentions ("added in 0.5.0") stay literal.
 
 ## Code style
 - Code explains itself through names and small methods. Extract a shared helper instead of copying logic.

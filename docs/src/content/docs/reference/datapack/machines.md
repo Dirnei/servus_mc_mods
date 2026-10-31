@@ -5,7 +5,7 @@ sidebar:
   order: 1
 ---
 
-Every Servus machine reads its balance numbers from a machine stats file. All numbers on this page are the values of Foundation 0.5.0 and Alchemy 0.4.0-alpha; they live in datapack JSON and modpacks can change them.
+Every Servus machine reads its balance numbers from a machine stats file. All numbers on this page are the values of Foundation %foundation_version% and Alchemy %alchemy_version%; they live in datapack JSON and modpacks can change them.
 
 ## File location
 
@@ -13,7 +13,7 @@ Every Servus machine reads its balance numbers from a machine stats file. All nu
 data/<namespace>/machine/<machine>.json
 ```
 
-The file name is the machine id and the namespace is the mod that owns the machine: the Coal Generator, the pumps, the Ender Anchor and the Electric Motor are `servus_foundation`, the other machines on this page `servus_alchemy`. To retune the Coagulator, a datapack provides `data/servus_alchemy/machine/coagulator.json`. Files reload with `/reload`.
+The file name is the machine id and the namespace is the mod that owns the machine: the Coal Generator, the pumps, the Ender Anchor, the Electric Motor and the Mixer are `servus_foundation`, the other machines on this page `servus_alchemy`. To retune the Coagulator, a datapack provides `data/servus_alchemy/machine/coagulator.json`. Files reload with `/reload`.
 
 ## Fields
 
@@ -27,11 +27,12 @@ Every field is optional. A field the file leaves out, or a missing file, falls b
 | `fuel_divisor` | int | 1 | The furnace burn time of a fuel item is divided by this. Values below 1 count as 1. |
 | `items_per_tick` | int | 0 | Reserved. No shipped machine uses it. |
 | `fluid_per_cycle` | int | 0 | mB of water a pump adds to its buffer per work cycle, or mB of each principle one drip of the Principle Dropper carries. |
-| `fluid_capacity` | int | 0 | Size of a pump's water buffer, or of each tank of the Coagulator, Athanor, Purifier, Gnome Hollow and Principle Dropper, in mB. |
-| `item_capacity` | int | 0 | Items a machine's own store holds: the Calciner's Ash Pan (counted in Ash) and the Gnome Hollow's store of dug ore. |
+| `fluid_capacity` | int | 0 | Size of a pump's water buffer, or of each tank of the Coagulator, Athanor, Purifier, Gnome Hollow and Principle Dropper, or of the Mixer's tank, in mB. |
+| `item_capacity` | int | 0 | Items a machine's own store holds: the Calciner's Ash Pan (counted in Ash), the Gnome Hollow's store of dug ore and the rot in the Venter Equinus' Cucurbit. |
 | `min_source_neighbours` | int | 0 | How many of the four horizontal neighbours of the water source below a pump must be water sources too. |
-| `upkeep_item` | item id | per machine | The item a machine keeps stocked in its fuel slot from the data line. |
-| `upkeep_level` | int | per machine | How many of the upkeep item the fuel slot is kept at. 0 switches upkeep off. |
+| `upkeep_item` | item id | per machine | The item a machine keeps stocked in its fuel slot from the data line while the slot is empty. While the slot holds a fuel, the machine asks for more of that fuel instead, such as Coal Blocks. |
+| `upkeep_level` | int | per machine | How many of the upkeep item the fuel slot is kept at, at most one stack of the fuel in the slot. 0 switches upkeep off. |
+| `upkeep_batch` | int | per machine | How many must be missing before the machine asks the data line again. An empty fuel slot always asks. Values below 1 count as 1. |
 | `restart_below` | number | per machine | Restart threshold of the Coal Generator and the pumps, as a share of their buffer. Once the buffer is full, the machine stays off until the buffer holds less than this share, then runs until it is full again. 1 restarts as soon as there is room. Values outside 0 to 1 are clamped. Other machines ignore it. |
 
 ## Example
@@ -71,13 +72,15 @@ These are the defaults built into the code, used for any field a file leaves out
 | `salamander_forge` | crafter | `minecraft:smelting`, without fuel | 100 | 0 | 0 | 1 | 0 |
 | `receptaculum` | crafter | the homunculus | 1 | 0 | 0 | 1 | 0 |
 | `prelum` | crafter | `servus_alchemy:pressing`, without fuel | 600 | 0 | 0 | 1 | 0 |
+| `venter_equinus` | crafter | `servus_alchemy:putrefaction`, without fuel | 1 | 0 | 0 | 1 | 0 |
 | `servus_foundation:coal_generator` | generator | burns fuel | 1 | 40 | 16000 | 4 | 0 |
 | `servus_foundation:ender_anchor` | powered | keeps chunks loaded | 1 | 10 per chunk | 20000 | 1 | 0 |
 | `servus_foundation:burner_pump` | burner | water | 20 | 0 | 0 | 1 | 4000 |
 | `servus_foundation:electric_pump` | powered | water | 20 | 20 | 8000 | 1 | 4000 |
 | `servus_foundation:electric_motor` | powered | drives the block its shaft faces | 1 | 20 | 8000 | 1 | 0 |
+| `servus_foundation:mixer` | driven | `servus_foundation:mixing` | 1 | 0 | 0 | 1 | 4000 |
 
-`item_capacity` is 64 for the Calciner and the Gnome Hollow and 0 for the others. The pumps add `fluid_per_cycle` 250 (Burner Pump) and 500 (Electric Pump) and `min_source_neighbours` 2, and the Principle Dropper `fluid_per_cycle` 25; these are 0 for every other machine. `upkeep_item` is `minecraft:coal` and `upkeep_level` 16 for the Burner Pump, the Coal Generator and the Calciner; every other machine keeps no upkeep. `restart_below` is 0.5 for the Coal Generator and both pumps and 1 for every other machine.
+`item_capacity` is 64 for the Calciner and the Gnome Hollow, 256 for the Venter Equinus and 0 for the others. The pumps add `fluid_per_cycle` 250 (Burner Pump) and 500 (Electric Pump) and `min_source_neighbours` 2, and the Principle Dropper `fluid_per_cycle` 25; these are 0 for every other machine. `upkeep_item` is `minecraft:coal`, `upkeep_level` 16 and `upkeep_batch` 8 for the Burner Pump, the Coal Generator and the Calciner; every other machine keeps no upkeep. `restart_below` is 0.5 for the Coal Generator and both pumps and 1 for every other machine.
 
 ## Timing rules
 
@@ -87,11 +90,12 @@ Which number decides how long a cycle takes depends on the machine:
 |---|---|
 | Calciner, Coagulator, Athanor, Purifier | The recipe's `time`. `work_ticks` is not used. |
 | Prelum | The pressing recipe's `time`. |
+| Venter Equinus | Between the putrefaction recipe's `time` (full bed of straw) and its `cold_time` (no straw), in step with the straw left. |
 | Salamander Forge | `work_ticks` per item, whatever the smelting recipe's own cooking time. |
 | Coal Generator | Makes `energy_per_tick` for as long as one fuel item burns. |
 | Burner Pump, Electric Pump | `work_ticks` per `fluid_per_cycle` mB of water. |
 | Principle Dropper | One drip every `work_ticks`. |
-| Electric Motor | One work tick per tick while the driven block has work. The Mill finishes when the recipe's `work` is collected. |
+| Electric Motor | One work tick per tick while the driven block has work. The Mill and the Mixer finish when the recipe's `work` is collected. |
 
 Fuel and energy:
 
@@ -116,7 +120,7 @@ Every field is optional and falls back to the driver's code default.
 | `exhaustion_per_turn` | float | 0.1 (Hand Crank) | Food exhaustion a full turn costs the player. 4 exhaustion is one hunger point or saturation point. |
 | `work_per_tick` | int | 5 (Electric Motor) | Work the motor gives per working tick, before upgrades. |
 
-The motor's FE comes from its machine stats above: it spends `energy_per_tick` on every tick it gives work, and nothing while the driven block has nothing to do. A Speed Upgrade multiplies its work and its FE per tick alike. The Mill has no stats file; each milling recipe's `work` decides (see [Recipes](/servus_mc_mods/reference/datapack/recipes/)).
+The motor's FE comes from its machine stats above: it spends `energy_per_tick` on every tick it gives work, and nothing while the driven block has nothing to do. A Speed Upgrade multiplies its work and its FE per tick alike. The Mill has no stats file, and the Mixer's only sets its tank; each milling or mixing recipe's `work` decides (see [Recipes](/servus_mc_mods/reference/datapack/recipes/)).
 
 ```json
 {

@@ -9,11 +9,11 @@ All Servus mods run on **Minecraft 26.1.2** with **NeoForge 26.1.2.116** or newe
 
 | Mod | Version | Needs |
 |---|---|---|
-| <a href="https://www.curseforge.com/minecraft/mc-mods/servus-foundation" target="_blank" rel="noopener">Servus: Foundation</a> | 0.5.0 | nothing else |
-| <a href="https://www.curseforge.com/minecraft/mc-mods/servus-shuttles" target="_blank" rel="noopener">Servus: Shuttles</a> | 0.5.0 | Servus: Foundation 0.5.0 or newer |
-| <a href="https://www.curseforge.com/minecraft/mc-mods/servus-alchemy" target="_blank" rel="noopener">Servus: Alchemy</a> | 0.4.0-alpha | Servus: Foundation 0.5.0 or newer, and Modonomicon |
+| <a href="https://www.curseforge.com/minecraft/mc-mods/servus-foundation" target="_blank" rel="noopener">Servus: Foundation</a> | %foundation_version% | nothing else |
+| <a href="https://www.curseforge.com/minecraft/mc-mods/servus-shuttles" target="_blank" rel="noopener">Servus: Shuttles</a> | %shuttles_version% | Servus: Foundation %foundation_min_version% or newer |
+| <a href="https://www.curseforge.com/minecraft/mc-mods/servus-alchemy" target="_blank" rel="noopener">Servus: Alchemy</a> | %alchemy_version% | Servus: Foundation %foundation_min_version% or newer, and Modonomicon |
 
-Shuttles and Alchemy do not need each other. They work alone and together. JEI is optional; with it installed the Servus recipes show up there. Jade is optional too and shows the state of the Alchemy machines.
+Shuttles and Alchemy do not need each other. They work alone and together. JEI is optional; with it installed the Servus recipes show up there. Jade is optional too and shows the state of the Alchemy machines and the Parcel Locker.
 
 :::caution[Alchemy is an alpha]
 Servus: Alchemy is still an alpha. Builds can change between versions, and a few journal pages are placeholders. Back up your world before you update it.

@@ -14,7 +14,7 @@ Shuttles lets you build a real warehouse. There are no storage disks: items sit 
 
 You need five things, all crafted from vanilla materials:
 
-1. **Heavy Duty Rack**: a shelf of 27 slots. Racks in a row join into sections.
+1. **Heavy Duty Rack**: a bay of 27 slots. Racks in a row join into shelves of up to three bays.
 2. **Warehouse Rail**: lay it in front of the racks. Rails link everything they touch into one warehouse.
 3. **Shuttle Garage**: place it beside the rail. It holds up to four shuttles.
 4. **Shuttle Mk1**: put it into the garage.
@@ -26,17 +26,31 @@ Then add a way in and a way out:
 - **Outbound Station**: on the rail. Set keep amounts, and shuttles keep it stocked. It pushes into the machine next to it.
 - **Storage Terminal**: search your stock, request items and hand items in. It sits on a Foundation data line, together with a **Packing Station** on the rail. The Packing Station is the door between the warehouse and the data line. A data line belongs to one warehouse: a line that reaches two warehouses pauses until you split it.
 
+Stations, racks and the controller turn their front to a rail beside them when placed, and a rack placed against a rack takes its facing. Sneak while placing to face a block towards you instead, the garage included. A rack or a rail in hand places against a rack instead of opening it. Click the top of a rack with racks in hand to put a rack on every bay of its shelf at once, and sneak while looking at a rack to extend its row sideways or its column upwards, with a ghost and an arrow.
+
 Every station gets a number from its warehouse, such as "Outbound #3". Click the pencil in the title row of its screen to give it a name as well, such as "Compost Dock (Outbound #3)". Garages, elevator shafts, Field Heads, Crafting Stations and CPUs are numbered the same way, and messages, terminals and the Data Potato use these names.
 
 ## More of the warehouse
 
 - **Rail Elevator**: a shaft that carries shuttles between floors. Speed Upgrades make its car faster.
-- **Zone Label**: name a zone and give it item filters, then stamp it onto racks. Put-aways go to matching racks first.
+- **Parcel Locker**: a yellow pickup station of six S, three M and one L box beside a shuttle dock, placed as one piece facing a rail. Orders from the Handheld arrive here. Scan its screen with the Handheld and the doors of your parcels swing open; right click an open box to take what is inside. An empty hand opens a map of the boxes with who ordered each. Parcels nobody collects go back to the racks after an in-game day.
 - **Shuttle Workshop**: builds a Mk1 shuttle into a Mk2 and a Mk2 into a Mk3. Higher tiers carry more stacks per trip. Here you also fit Speed Upgrades, Handling Upgrades and one tool.
 - **Storage Terminal tabs**: the Stock tab shows your items, the Rules tab lists every stock rule. Right click an item for one popup to request it, craft it or set its rule.
 - **Stock rules**: set a minimum and a maximum for an item. When the stock drops below the minimum, the warehouse orders more from a Crafting CPU. A rule can also refuse the item at Inbound Stations above a cap, or ship the surplus above a threshold out through an Outbound Station.
+- **Shuttle sounds**: shuttles rumble quietly as they drive, with a wheel click and a rattle now and then. A **Muffler** in a shuttle (fitted in the Shuttle Workshop) or in a garage's Muffler slot (for every shuttle of that garage) makes them much quieter.
 - **Shuttle lights**: shuttles have headlights, tail lights that show whether they drive, brake or wait, and a number plate. Use the Data Potato on a rail to see which shuttles stand there and what they wait for.
 - **Sites**: every controller is a site with a name. With **Anchor Upgrades** a far away site can wake up for a transfer. With a **Wireless Upgrade** and FE, sites of your team in the same dimension trade with each other, and the Storage Terminal can request from them.
+
+## The Handheld HH-1
+
+A warehouse scanner with a yellow bumper and a green screen. Sneak and scroll to switch between its modes **ZONE**, **INFO** and **STOCK**. While you hold it, a panel shows the mode and the location code of the shelf you aim at. Right click the air to open its screen, a green CRT on the current mode. It scans shelves up to 16 blocks away, through rails and elevator shafts.
+
+- **Zones**: your team keeps one list of zones, each with a name, a colour and a filter, made in the Handheld's screen. The filter is picked in the item picker, where `#` searches item tags. Put-aways go to matching shelves first. A zone always covers a whole shelf, and changing or deleting a zone applies to all its shelves at once.
+- **ZONE**: right click a bay to put its whole shelf into the active zone. Hold the button to sweep across shelves.
+- **INFO**: scan a shelf to see its code, zone, filter, slots in use and everything it holds.
+- **STOCK**: scan a Warehouse Controller to bind the Handheld, and its screen lists the whole warehouse. Right click an item, and every shelf holding it glows through walls for a few seconds.
+- **Baskets**: left click items in INFO or STOCK to put them into a basket. **RELOCATE** in INFO sends a shelf's basket to the next shelf you scan, carried by shuttles. **REQUEST** in STOCK picks a Parcel Locker of the bound warehouse, and **ORDER** sends the basket there while you are near the warehouse. The panel says when the parcel is ready.
+- **Location codes**: every shelf of a warehouse with a controller has a code such as N12.E5+2, counted from the controller. It is printed on a barcode sticker on the shelf's bay closest to the controller. Zoned shelves show a stripe in the zone's colour.
 
 ## Autocrafting
 
@@ -69,13 +83,15 @@ Set a Field Head to **Trees** and pick a sapling. It needs no water. The field p
 
 ## Fluids
 
-- **Fluid Gantry**: a frame over a straight rail with two tanks. It stores fluids, takes them in from pipes, or gives them out, set in its screen. Capacity Upgrades make the tanks bigger.
-- **Tanker**: a tool module that makes a shuttle carry fluids between gantries.
+- **Fluid Rack**: bays join into shelves of up to three that share one tank behind a glass front. A shelf holds one fluid, takes buckets on its front and has one port where a Tanker docks. Zone it with the Handheld; a fluid container in the zone's filter makes it take only that fluid. Without a rail at its port, pipes can fill and drain it.
+- **Fluid Inbound**: an Inbound Station on top of a Fluid Tank. Pipes fill its tank, and Tankers carry the fluid to the racks.
+- **Fluid Outbound**: an Outbound Station on top of a Fluid Tank. Pick the fluid to keep, and drag the white keep arrow and the orange restock arrow on its gauge (or type both levels). Once the tank falls below the restock level, Tankers fill it up again in whole buckets. It pushes the fluid into the block behind it.
+- **Tanker**: a tool module that makes a shuttle carry fluids. It docks into a rack's port, and a swing hose arm on the fluid stations docks onto its filler cap.
 
 ## Numbers
 
-Rates, slot counts, speeds and travel times live in datapack JSON under `data/<namespace>/shuttles/` (`warehouse.json`, `shuttle.json`, `rack.json`, `field.json`, `gantry.json`, `cpu.json` and more). A modpack may have changed them.
+Rates, slot counts, speeds and travel times live in datapack JSON under `data/<namespace>/shuttles/` (`warehouse.json`, `shuttle.json`, `rack.json`, `fluid_rack.json`, `field.json`, `cpu.json` and more). See the [datapack reference](/servus_mc_mods/reference/datapack/warehouse/). A modpack may have changed them.
 
 ## Mod info
 
-<ModInfo curseforge="servus-shuttles" version="0.5.0" modId="servus_shuttles" requires={[{ name: 'Servus: Foundation', version: '0.5.0 or newer', href: '/mods/foundation/' }]} />
+<ModInfo curseforge="servus-shuttles" version="%shuttles_version%" modId="servus_shuttles" requires={[{ name: 'Servus: Foundation', version: '%foundation_min_version% or newer', href: '/mods/foundation/' }]} />

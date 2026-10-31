@@ -5,7 +5,7 @@ sidebar:
   order: 11
 ---
 
-Servus Shuttles reads the numbers of its fields from one stats file. This page covers the fields that Shuttles 0.5.0 added for tree fields, the Lumber shuttle and the Field Head's To storage buffer. Values are the shipped ones; they live in datapack JSON and modpacks can change them.
+Servus Shuttles reads the numbers of its fields from one stats file. This page covers the fields for tree fields, the Lumber shuttle and the Field Head's To storage buffer, added in Shuttles 0.5.0. Values are the shipped ones; they live in datapack JSON and modpacks can change them.
 
 ## File location
 
@@ -35,4 +35,4 @@ The Field Head shows a warning for a tree that is too large, and does not count 
 
 ## Packing Station
 
-The Packing Station's own file, `data/servus_shuttles/shuttles/packing_station.json`, ships `items_per_second` 10 in Shuttles 0.5.0 (8 before) with `upgrade_slots` 2.
+The Packing Station's own file, `data/servus_shuttles/shuttles/packing_station.json`, ships `items_per_second` 10 (8 before Shuttles 0.5.0) with `upgrade_slots` 2.

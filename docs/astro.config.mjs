@@ -1,10 +1,13 @@
 // @ts-check
 import starlight from '@astrojs/starlight';
+import { unified } from '@astrojs/markdown-remark';
 import { defineConfig } from 'astro/config';
+import { remarkVersions } from './src/versions.mjs';
 
 export default defineConfig({
 	site: 'https://dirnei.github.io',
 	base: '/servus_mc_mods',
+	markdown: { processor: unified({ remarkPlugins: [remarkVersions] }) },
 	integrations: [
 		starlight({
 			title: 'Servus',

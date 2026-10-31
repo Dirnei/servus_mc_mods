@@ -1,11 +1,11 @@
 ---
 title: Recipes
-description: The calcination, purification, coagulation and pressing recipe formats of Servus Alchemy and the milling recipe format of Servus Foundation.
+description: The calcination, purification, coagulation, pressing and putrefaction recipe formats of Servus Alchemy and the milling and mixing recipe formats of Servus Foundation.
 sidebar:
   order: 4
 ---
 
-Servus Alchemy 0.4.0-alpha adds `servus_alchemy:calcination` for the Calciner, `servus_alchemy:purification` for the Purifier, `servus_alchemy:coagulation` for the Coagulator and `servus_alchemy:pressing` for the Prelum. The Athanor's `servus_alchemy:athanor` recipes are on the [Athanor](/servus_mc_mods/reference/datapack/athanor/) page. Servus Foundation 0.5.0 adds `servus_foundation:milling` for the Mill. Times and amounts on this page are the shipped values; they live in datapack JSON and modpacks can change them.
+Servus Alchemy %alchemy_version% adds `servus_alchemy:calcination` for the Calciner, `servus_alchemy:purification` for the Purifier, `servus_alchemy:coagulation` for the Coagulator, `servus_alchemy:pressing` for the Prelum and `servus_alchemy:putrefaction` for the Venter Equinus. The Athanor's `servus_alchemy:athanor` recipes are on the [Athanor](/servus_mc_mods/reference/datapack/athanor/) page. Servus Foundation %foundation_version% adds `servus_foundation:milling` for the Mill and `servus_foundation:mixing` for the Mixer. Times and amounts on this page are the shipped values; they live in datapack JSON and modpacks can change them.
 
 ## File location
 
@@ -149,6 +149,50 @@ Built in pressing recipe:
 |---|---|---|---|
 | `netherite_scrap` | 16 `servus_alchemy:caput_mortuum` | 1 Netherite Scrap | 600 |
 
+## Putrefaction
+
+The Venter Equinus runs `servus_alchemy:putrefaction` recipes in its Cucurbit. It needs no power and no fuel, but the straw in its bed makes it faster.
+
+| Field | Type | Default | Meaning |
+|---|---|---|---|
+| `type` | string | required | `servus_alchemy:putrefaction` |
+| `input` | sized ingredient | required | One `item` or `tag` with a `count` (default 1): the rot one batch takes. |
+| `result` | item stack | required | `id` and `count` (default 1). It lands in the Bed Hatch. |
+| `time` | int | required | Ticks per batch in a bed full of fresh straw. At least 1. |
+| `cold_time` | int | 4 x `time` | Ticks per batch in a bed without straw. It may not be below `time`. |
+
+The speed lies between the two times, in step with the straw left in the bed. When the Cucurbit holds rot for several recipes, the recipe whose id sorts first among those with enough rot runs. What counts as straw is the [bedding data map](#bedding).
+
+Built in putrefaction recipe:
+
+| Recipe | Input | Result | Time | Cold time |
+|---|---|---|---|---|
+| `humus` | 8 `#servus_alchemy:putrefiable` | 1 Humus | 1200 | 4800 |
+
+The tag `servus_alchemy:putrefiable` holds Rotten Flesh, Spider Eye, Poisonous Potato, Brown and Red Mushroom, the leaves (`#minecraft:leaves`) and the crops Beetroot, Cactus, Carrot, Cocoa Beans, Melon, Nether Wart, Potato, Pumpkin and Sugar Cane (their `c:crops/<crop>` tags). The Cucurbit takes only items in this tag.
+
+### Bedding
+
+The data map `servus_alchemy:bedding` names the items that warm the bed:
+
+```
+data/<namespace>/data_maps/item/bedding.json
+```
+
+```json
+{
+  "values": {
+    "minecraft:hay_block": {"warmth": 6000}
+  }
+}
+```
+
+| Field | Type | Default | Meaning |
+|---|---|---|---|
+| `warmth` | int | required | Work ticks one item keeps the bed warm. At least 1. |
+
+The bed holds up to eight bedding items, one per Dung Bed. While a batch runs, the oldest one rots down by one work tick per tick. Items without an entry are not bedding. Alchemy ships the Hay Bale with 6,000.
+
 ## Milling
 
 The Mill runs `servus_foundation:milling` recipes. It has no power of its own: a Hand Crank or an Electric Motor gives it work, and a milling is done once it has collected the recipe's `work`.
@@ -169,6 +213,7 @@ Built in milling recipes (ids `servus_foundation:milling/<recipe>`):
 | `amethyst_shard` | `minecraft:amethyst_block` | 4 amethyst shard | 200 |
 | `blaze_powder` | `#c:rods/blaze` | 3 blaze powder | 200 |
 | `bone_meal` | `#c:bones` | 4 bone meal | 100 |
+| `charcoal_powder` | `minecraft:charcoal` | 2 charcoal powder | 100 |
 | `clay_ball` | `minecraft:clay` | 4 clay ball | 100 |
 | `cobbled_deepslate` | `minecraft:deepslate` | 1 cobbled deepslate | 100 |
 | `cobblestone` | `minecraft:stone` | 1 cobblestone | 100 |
@@ -183,3 +228,46 @@ Built in milling recipes (ids `servus_foundation:milling/<recipe>`):
 | `sugar` | `#c:crops/sugar_cane` | 2 sugar | 100 |
 
 Flowers mill into their dye for 100 work: a small flower gives 2 dye, a tall flower and the pitcher plant 4. These recipes are named `<colour>_dye_from_<flower>`, such as `red_dye_from_poppy`.
+
+## Mixing
+
+The Mixer runs `servus_foundation:mixing` recipes. Like the Mill it has no power of its own: a Hand Crank or an Electric Motor gives it work.
+
+| Field | Type | Default | Meaning |
+|---|---|---|---|
+| `type` | string | required | `servus_foundation:mixing` |
+| `ingredients` | list | required | 1 to 4 sized ingredients, each an `ingredient` (an item id or `#tag`) with a `count`. Shapeless. |
+| `fluid` | sized fluid ingredient | none | An `ingredient` (a fluid id) with an `amount` in mB, drained from the Mixer's tank. |
+| `result` | item stack | required | `id` and `count` (default 1). |
+| `work` | int | required | Work units one mixing takes, as for milling. |
+
+```json
+{
+  "type": "servus_foundation:mixing",
+  "ingredients": [
+    {"ingredient": "minecraft:dirt", "count": 1}
+  ],
+  "fluid": {"ingredient": "minecraft:water", "amount": 250},
+  "result": {"id": "minecraft:mud"},
+  "work": 100
+}
+```
+
+A recipe matches only when every ingredient has an input slot of its own holding at least its count, and no input slot holds anything else. A recipe with a fluid needs that fluid in the tank in at least its amount; a recipe without one ignores the tank. When several recipes match, one with a fluid wins. The Mixer's input slots take only items some mixing recipe uses, and its tank only fluids some mixing recipe uses.
+
+Built in mixing recipes of Foundation (ids `servus_foundation:mixing/<recipe>`):
+
+| Recipe | Items | Fluid | Result | Work |
+|---|---|---|---|---|
+| `mud` | 1 `minecraft:dirt` | 250 mB water | 1 mud | 100 |
+| `coarse_dirt` | 2 `minecraft:dirt`, 2 `minecraft:gravel` | none | 4 coarse dirt | 100 |
+| `<colour>_concrete_powder` | 4 `minecraft:sand`, 4 `minecraft:gravel`, 1 dye of the colour | none | 8 concrete powder of the colour | 200 |
+
+There is one concrete powder recipe for each of the 16 colours, such as `red_concrete_powder`.
+
+Servus Alchemy ships two more (ids `servus_alchemy:mixing/<recipe>`):
+
+| Recipe | Items | Fluid | Result | Work |
+|---|---|---|---|---|
+| `dirt_from_humus` | 4 `#c:sands`, 1 `minecraft:clay_ball`, 1 `servus_alchemy:humus` | 250 mB water | 8 dirt | 100 |
+| `dirt_from_bone_meal` | 2 `#c:sands`, 1 `minecraft:clay_ball`, 1 `minecraft:bone_meal` | 250 mB water | 2 dirt | 100 |

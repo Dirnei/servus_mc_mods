@@ -5,7 +5,7 @@ sidebar:
   order: 3
 ---
 
-Paracelsus' Journal is Alchemy's tech tree. A chapter lists tasks; when a team has done all of them, the chapter is finished for the team, every member gets the chapter's advancement and the next chapter opens. Counts on this page are the shipped values of Alchemy 0.4.0-alpha; they live in datapack JSON and modpacks can change them.
+Paracelsus' Journal is Alchemy's tech tree. A chapter lists tasks; when a team has done all of them, the chapter is finished for the team, every member gets the chapter's advancement and the next chapter opens. Counts on this page are the shipped values of Alchemy %alchemy_version%; they live in datapack JSON and modpacks can change them.
 
 ## File location
 
@@ -28,8 +28,8 @@ Each task:
 | Field | Type | Default | Meaning |
 |---|---|---|---|
 | `id` | string | required | Unique within the chapter, shown in `/servus_alchemy journal`. |
-| `event` | string | required | `calcine` (items calcined), `principle` (mB of a principle made at the Calciner), `purify` (mB of Salt washed out at the Purifier), `coagulate` (items coagulated), `athanor` (Athanor crafts), `sight` (Elixirs of Sight drunk), `bind` (gnomes bound), `ripen` (items a ripe vein yields, by item), `press` (items pressed at the Prelum, by result item) or `find` (a trace picked up, by item; the old gnome found, filter `servus_alchemy:old_gnome`). |
-| `filter` | string | any | An item id or `#tag` for item events (`calcine`, `coagulate`, `ripen`, `press`, `find`), a principle (`salt`, `sulfur`, `mercury`) for `principle`, `tier:<name>` or an item for `athanor`, or the name for `find`. `bind`, `purify` and `sight` take no filter. |
+| `event` | string | required | `calcine` (items calcined), `principle` (mB of a principle made at the Calciner), `purify` (mB of Salt washed out at the Purifier), `coagulate` (items coagulated), `athanor` (Athanor crafts), `sight` (Elixirs of Sight drunk), `bind` (gnomes bound), `ripen` (items a ripe vein yields, by item), `press` (items pressed at the Prelum, by result item), `putrefy` (items the Venter Equinus makes) or `find` (a trace picked up, by item; the old gnome found, filter `servus_alchemy:old_gnome`). |
+| `filter` | string | any | An item id or `#tag` for item events (`calcine`, `coagulate`, `ripen`, `press`, `find`), a principle (`salt`, `sulfur`, `mercury`) for `principle`, `tier:<name>` or an item for `athanor`, or the name for `find`. `bind`, `purify`, `putrefy` and `sight` take no filter. |
 | `count` | int | 1 | How much the task needs. 1 makes it a first time task. |
 
 Only machines placed by a player count, for that player's team at the time of placing.

@@ -3,7 +3,7 @@ title: Deliveries
 description: How items move over the Servus data line, the handshake that reserves room before items are sent, the item doors and gates of a member, and how to start a delivery from your own code.
 ---
 
-The data line moves items only when something asks it to: a Crafting CPU feeding a producer, a warehouse answering an upkeep request, a terminal request. Each such move is a **delivery**. The types on this page are in `io.github.dirnei.mc.servus.foundation.data.packet` unless named otherwise. This is Foundation 0.5.0.
+The data line moves items only when something asks it to: a Crafting CPU feeding a producer, a warehouse answering an upkeep request, a terminal request. Each such move is a **delivery**. The types on this page are in `io.github.dirnei.mc.servus.foundation.data.packet` unless named otherwise. This is Foundation %foundation_version%.
 
 ## How a delivery moves
 
@@ -121,7 +121,7 @@ Each method returns `Optional<Delivery>`. It is empty only for an empty stack or
 - `reason()`: why it failed, a `DeliveryReason`, or `null`:
   - `NO_ROUTE`: no route links the two members,
   - `ROUTE_BROKEN`: the route broke while it ran,
-  - `NO_TARGET`: the target takes no items on that face, or its grant was used up or closed,
+  - `NO_TARGET`: the target takes no items on that face, or its grant was used up or closed; a loaded target whose block was broken or replaced while the delivery waited fails this way at once,
   - `REFUSED`: the target's endpoint refused; `refusal()` gives its reason,
   - `STALLED`: a target without an endpoint took nothing for `stall_ticks`,
 - `onEnd(Consumer<Delivery>)`: runs once when it ends, or at once if it already has.
@@ -142,9 +142,13 @@ Deliveries are **not saved**. When the server stops, Foundation settles every ru
 
 A member that can send items on request exposes `ServusFoundationCapabilities.SUPPLIER` with an `ItemSupplier`:
 
-- `int supply(BlockPos target, ItemStack like, int amount)`: send up to `amount` items like `like` to the data member at `target`, by your own means, and answer how many will come, `0` when none.
+- `Supply supply(BlockPos target, ItemStack like, int amount)`: send up to `amount` items like `like` to the data member at `target`, by your own means. Answer with a `Supply(amount, ticket)`: how many will come and a ticket that names this request, or `Supply.NONE` when none will.
+- `boolean open(long ticket)`: whether the request is still on its way. A ticket you do not know is not open. Once you have sent everything, or given up, answer `false`.
+- `void cancel(long ticket)`: give up the request and take back what you had not sent yet. Do nothing for a ticket you do not know.
 
-The upkeep check asks suppliers only among the members of the network, so a supplier must also be a member (for example through `STOCK_PROVIDER` or `DATA_LINK`). In Shuttles 0.5.0 the Warehouse Controller and the Packing Station are suppliers.
+The upkeep holder saves the ticket with its block, and after a restart the network asks `open` about it again. So a ticket should stay valid across a restart: the Shuttles warehouse uses the id of its saved shipment. A supplier that no longer knows a ticket answers `false`, and the request ends without a cancel.
+
+The upkeep check asks suppliers only among the members of the network, so a supplier must also be a member (for example through `STOCK_PROVIDER` or `DATA_LINK`). In Shuttles %shuttles_version% the Warehouse Controller and the Packing Station are suppliers.
 
 ## Data
 

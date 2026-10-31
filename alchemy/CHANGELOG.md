@@ -1,6 +1,6 @@
 # Servus: Alchemy changelog
 
-## Unreleased
+## 0.5.0-alpha
 
 ### Added
 - The Venter Equinus: a warm straw bed whose Cucurbit putrefies rot into Humus. Form it with the Journal and fill it by clicking any of its blocks.

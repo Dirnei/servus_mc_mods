@@ -35,6 +35,8 @@ Use the Configuration Carrot on a duct to open its screen. It has a tab for ever
 - A **channel**. Things only move between sides on the same channel. Channels have names, colours and icons, and your team shares them.
 - **Filters** and a **priority** on the Item Pipe and the Fluid Pipe. Right click a set item filter slot to give it an amount: keep 64 saplings in a chest, or fill a furnace up to 16 coal.
 
+The item picker of a filter slot searches by name. Type `#` to list item tags with their item count: Tab completes the top hit, and hovering a tag shows some of its items. The fluid picker lists every fluid, also those without a bucket.
+
 A trash can on the tab removes that line from the side.
 
 Ducts can stand in water. **Facades** hide a duct behind the look of any full block: craft a block with a nugget to get six. A facade closes its face. A **Hollow Facade** (eight facades in a ring) covers the face but lets the duct through.
@@ -65,19 +67,26 @@ All machines face you when placed, open a screen on right click and keep their s
 - **Chimney**: also works alone as decoration. The carrot picks how much it smokes.
 - **Ender Anchor**: keeps chunks loaded while it has FE. Anchor Upgrades make the area bigger, and each team has a cap on loaded chunks.
 - **Mill**: grinds stone into cobblestone, cobblestone into gravel, gravel into sand, and blocks such as glowstone, quartz, amethyst, clay and sandstone back into their pieces. It also mills sugar cane into sugar, bones into bone meal, blaze rods into powder, wool into string and flowers into dye. It has no power of its own: hold right click on a **Hand Crank**, or put an **Electric Motor** against it. Datapacks can add more milling recipes.
+- **Mixer**: an open tub that stirs up to four items, and maybe one fluid, into one result. It makes Mud, Coarse Dirt and Concrete Powder in all 16 colours. Like the Mill it needs a Hand Crank or an Electric Motor on its back or sides. Pour the fluid in with a bucket or pipe it into the back or sides; the result leaves through the chute in front. JEI shows its recipes.
 - **Machine Adapter**: puts a furnace, smoker or blast furnace on the data line, so a Crafting CPU can smelt with it. See [Machine Adapter](/servus_mc_mods/developers/machine-adapter/).
 
 Machines a Shuttles warehouse works with over the data line get a number from it, such as "Furnace (Adapter #1)". The pencil in the title row of their screen gives them a name as well.
 
+On a data line with a Shuttles warehouse, the Coal Generator and the Burner Pump keep their fuel slot stocked. They ask for the fuel already in the slot, so a slot of Coal Blocks gets Coal Blocks, and for coal when it is empty. They top up once a batch is missing (8 by default), not after every coal.
+
+## Carbon Filter
+
+Mill Charcoal into **Charcoal Powder**, smelt it into **Activated Charcoal** in a Blast Furnace, and craft two of it with wheat (or flour) and Paper into a **Carbon Filter**. Machines of other mods can wear it down; its bar shows what is left. A worn out filter becomes a **Spent Filter**, which composts.
+
 ## Upgrades
 
 - **Speed Upgrade**: doubles the rate of a block with upgrade slots, such as the Packing Station or the Electric Motor.
-- **Capacity Upgrade**: gives a block more room, such as the Incinerator or the Fluid Gantry.
+- **Capacity Upgrade**: gives a block more room, such as the Incinerator.
 - **Anchor Upgrade**: makes the Ender Anchor's area bigger and lets a Shuttles warehouse site wake up.
 
 ## Side settings
 
-Every Servus machine has the same side panel in its screen. Each side can be Auto, Input, Output, Both, Pull, Push or Off, relative to the block's front, so the settings survive turning it. Blocks with several tanks also have a Fluids layer, where a side can be tied to one tank. Right click the air with the carrot to switch it between the Items and Fluids layer.
+Every Servus machine has the same side panel in its screen. Each side can be Auto, Input, Output, Both, Pull, Push or Off, relative to the block's front, so the settings survive turning it. Blocks with tanks also have a **Fluids** layer. A fluid side takes fluid in (Input, Pull or Off) or gives it out (Push, Output or Off), as the block allows, and reaches all tanks or one picked tank: right click a side cell to pick the tank. A block with one tank offers no tank choice. Right click the air with the carrot to switch between the Items and Fluids layer.
 
 ## Config
 
@@ -85,4 +94,4 @@ Every Servus machine has the same side panel in its screen. Each side can be Aut
 
 ## Mod info
 
-<ModInfo curseforge="servus-foundation" version="0.5.0" modId="servus_foundation" requires={[]} />
+<ModInfo curseforge="servus-foundation" version="%foundation_version%" modId="servus_foundation" requires={[]} />

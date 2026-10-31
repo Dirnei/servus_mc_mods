@@ -5,7 +5,7 @@ sidebar:
   order: 5
 ---
 
-The Athanor crafts with the item lying on it and the principles in its tanks, as far as its stage allows. Its stage comes from blocks around its build, and rituals turn those blocks into the next stage. Numbers on this page are the shipped values of Alchemy 0.4.0-alpha; they live in datapack JSON and modpacks can change them.
+The Athanor crafts with the item lying on it and the principles in its tanks, as far as its stage allows. Its stage comes from blocks around its build, and rituals turn those blocks into the next stage. Numbers on this page are the shipped values of Alchemy %alchemy_version%; they live in datapack JSON and modpacks can change them.
 
 ## Crafts
 
@@ -25,6 +25,7 @@ Built in crafts:
 |---|---|---|---|---|---|
 | `athanor/blaze_powder` | gunpowder | 200 Sulfur | 0 (Nigredo) | Blaze Powder | 100 |
 | `athanor/salt_crystal_block` | Salt Crystal | 1,000 Salt | 0 (Nigredo) | Salt Crystal Block | 100 |
+| `athanor/grass_seed` | wheat seeds | 20 Sulfur, 20 Mercury | 0 (Nigredo) | Grass Seed | 100 |
 | `athanor/experience_bottle` | glass bottle | 50 Salt, 100 Mercury | 1 (Albedo) | Bottle o' Enchanting | 100 |
 | `athanor/elixir_of_sight` | Quicksilver | 100 Salt, 100 Sulfur, 250 Mercury | 1 (Albedo) | Elixir of Sight | 200 |
 | `athanor/gnome_hollow` | cracked stone bricks | 500 Salt, 250 Mercury | 1 (Albedo) | Gnome Hollow | 200 |

@@ -3,7 +3,7 @@ title: Machine Adapter
 description: Put a machine of vanilla or another mod on the Servus data line with a Machine Adapter and a datapack machine profile.
 ---
 
-Some machines come from mods that do nothing for the data line. The **Machine Adapter** of Servus: Foundation 0.5.0 makes them producers anyway. A player places the adapter against the machine, and a datapack **machine profile** tells the adapter how the machine works. No code is needed.
+Some machines come from mods that do nothing for the data line. The **Machine Adapter** of Servus: Foundation %foundation_version% makes them producers anyway. A player places the adapter against the machine, and a datapack **machine profile** tells the adapter how the machine works. No code is needed.
 
 ## In game
 
@@ -47,7 +47,7 @@ Profiles reload with `/reload`. Foundation ships `furnace.json`, `smoker.json` a
 | `blocks` | list of block ids or `#tags` | required | The blocks this profile covers. |
 | `recipe_type` | recipe type id | required | The recipe type the machine runs, for example `minecraft:smelting`. |
 | `sides` | object | all `off` | The role of each side of the machine: `ingredients`, `output`, `upkeep` or `off`. Keys are `front`, `back`, `left`, `right`, `top` and `bottom`, relative to the machine's facing. |
-| `upkeep` | object | no upkeep | The default upkeep `item` and `level` (16 when left out). Players can change both on the adapter. |
+| `upkeep` | object | no upkeep | The default upkeep `item` and `level` (16 when left out), and the `batch` (8 when left out): how many must be missing before the adapter asks again. Players can change item and level on the adapter. |
 
 The adapter talks to the machine through its standard item capability on the side the profile names. When several sides share a role, the first of top, bottom, back, left, right and front is used. The machine's facing comes from its `facing` block state property; a machine without one counts as facing north.
 

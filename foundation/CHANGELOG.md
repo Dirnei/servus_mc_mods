@@ -1,6 +1,6 @@
 # Servus: Foundation changelog
 
-## Unreleased
+## 0.6.0
 
 ### Added
 - The Mixer: a driven open tub that stirs several items with one fluid. It mixes Mud, Coarse Dirt and Concrete Powder, takes its fluid from a bucket or a pipe on the back, and shows its recipes in JEI.

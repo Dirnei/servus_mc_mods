@@ -1,4 +1,6 @@
 ---
+import { fillVersions } from '../versions.mjs';
+
 /** The facts of one released mod: version, ids and what it needs, shown at the end of its page. */
 interface Requirement {
 	name: string;
@@ -7,6 +9,7 @@ interface Requirement {
 }
 
 interface Props {
+	/** The version; may hold tokens such as %foundation_version%. */
 	version: string;
 	modId: string;
 	/** Project slug on CurseForge, as in curseforge.com/minecraft/mc-mods/<slug>. */
@@ -14,7 +17,9 @@ interface Props {
 	requires: Requirement[];
 }
 
-const { version, modId, curseforge, requires } = Astro.props;
+const { modId, curseforge } = Astro.props;
+const version = fillVersions(Astro.props.version);
+const requires = Astro.props.requires.map((r) => ({ ...r, version: fillVersions(r.version) }));
 const base = import.meta.env.BASE_URL.replace(/\/$/, '');
 const releases = 'https://github.com/Dirnei/servus_mc_mods/releases/';
 const project = `https://www.curseforge.com/minecraft/mc-mods/${curseforge}`;

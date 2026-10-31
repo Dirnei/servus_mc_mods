@@ -1,6 +1,6 @@
 # Servus: Shuttles changelog
 
-## Unreleased
+## 0.6.0
 
 ### Added
 - Parcel Locker: a yellow pickup station of six S, three M and one L box beside a shuttle dock, placed as one piece facing a rail. Scan its screen with the Handheld and the doors of your parcels swing open; right click an open box to take what is inside. An empty hand opens a map of the boxes with who ordered each, where you can also rename it. Parcels nobody collects go back to the racks after an in-game day, and breaking the locker drops everything in it.
@@ -18,7 +18,7 @@
 - STOCK mode: scan a Warehouse Controller to bind the Handheld, and its GUI lists the whole warehouse. Right click an item there, or in a scanned shelf's list, and every shelf holding it is tinted and outlined through walls for a few seconds while the Handheld is in hand. Scanning a shelf in STOCK switches to INFO.
 - The Handheld scans shelves up to 16 blocks away and sees through rails and elevator shafts to the shelf behind them.
 - INFO mode: scan a shelf and the GUI opens on it: its code, zone, filter, slots in use and everything it holds over all its bays. The panel keeps showing the shelf until the next scan.
-- Handheld baskets: left click items in INFO or STOCK to put them into a basket, at most as many as are there. RELOCATE in INFO stashes the shelf's basket; scan another shelf and shuttles carry those items from the first shelf to it, refusing what its zone does not take and nothing at all when it has no room. The STOCK basket is kept for requests to come.
+- Handheld baskets: left click items in INFO or STOCK to put them into a basket, at most as many as are there. RELOCATE in INFO stashes the shelf's basket; scan another shelf and shuttles carry those items from the first shelf to it, refusing what its zone does not take and nothing at all when it has no room.
 - Location codes: every shelf of Heavy Duty Racks or Fluid Racks in a warehouse with a controller has one code from the controller, such as N12.E5+2, taken from its bay closest to the controller and shown on a barcode sticker on that bay's top beam. Zoned shelves show a stripe in the zone's colour along the shelf and the zone name once.
 
 ### Changed

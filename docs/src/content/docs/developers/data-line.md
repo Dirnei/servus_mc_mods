@@ -3,7 +3,7 @@ title: Data line concepts
 description: Nodes, members, roles, upkeep, network events and bandwidth of the Servus Foundation data line.
 ---
 
-The data line is one of the four lines of the Foundation Utility Duct. This page explains its parts as they are in Foundation 0.5.0. Unless a package is named, the types are in `io.github.dirnei.mc.servus.foundation.data`.
+The data line is one of the four lines of the Foundation Utility Duct. This page explains its parts as they are in Foundation %foundation_version%. Unless a package is named, the types are in `io.github.dirnei.mc.servus.foundation.data`.
 
 ## Nodes and the network
 
@@ -56,16 +56,24 @@ The Crafting CPU of Shuttles plans with these recipes and the stock of the wareh
 
 Upkeep is a consumable a machine keeps stocked, such as fuel. It is never part of an order. `UpkeepHolder` names:
 
-- `ItemStack upkeepItem()`: the item, empty for none,
+- `ItemStack upkeepItem()`: the item, empty for none. It may follow what the slot holds: our burner machines name the fuel in their fuel slot, so a slot of Coal Blocks asks for Coal Blocks, and the default item only while the slot is empty,
 - `int upkeepLevel()`: how many to keep,
-- `int upkeepCount()`: how many the block holds right now; count other items doing the same job too, such as any fuel in a fuel slot, so a slot of charcoal does not read as empty,
+- `int upkeepBatch()`: how many must be missing before the network asks again (default 1; the network never waits for more than the level),
+- `int upkeepCount()`: how many of `upkeepItem()` the block holds right now,
+- `UpkeepRequest upkeepRequest()` and `void upkeepRequest(UpkeepRequest)`: the open request, `null` for none. The network reads and sets it; your block keeps it and saves it with its data, so a request survives a restart. `UpkeepRequestCodec.save(output, request)` and `UpkeepRequestCodec.load(input)` in the `production` package do the saving,
 - `void upkeepRequested(int amount, long until)`: an optional callback, told that a supplier will send `amount` items until game time `until`.
 
-Every `DataNetwork.UPKEEP_INTERVAL` ticks (40), the network checks its upkeep members. When one holds less than its level and has no open request, the network asks the members that expose `SUPPLIER` (lowest position first) for the difference. A supplier answers with how many it will send. The request ends when the count has risen by that much, or after `DataNetwork.UPKEEP_TIMEOUT` ticks (1200). A holder with an empty item or a level of 0 is skipped.
+Every `DataNetwork.UPKEEP_INTERVAL` ticks (40), the network checks its upkeep members. When one has no open request and is missing at least its batch, or holds none at all, the network asks the members that expose `SUPPLIER` (lowest position first) for everything missing up to its level. A supplier answers with how many it will send and a ticket, and the network stores both as the member's `UpkeepRequest`. Every rise of `upkeepCount()` counts as an arrival. The request ends:
 
-In Shuttles 0.5.0 the Warehouse Controller and the Packing Station are suppliers. They send the items as a delivery into the face of your block that touches the duct.
+- when the count has risen by the amount asked,
+- when the supplier says the ticket is no longer open,
+- after `DataNetwork.UPKEEP_TIMEOUT` ticks (1200). The network then cancels the ticket at the supplier before it asks again. While the supplier's block is not loaded, the request stays open.
 
-In Shuttles 0.5.0 a data line belongs to one warehouse. A line that reaches the Warehouse Controllers or Packing Stations of two warehouses is in conflict: its CPUs start no step that needs warehouse stock, and suppliers answer 0 to upkeep, until the line reaches one warehouse again.
+A holder with an empty item or a level of 0 is skipped.
+
+In Shuttles %shuttles_version% the Warehouse Controller and the Packing Station are suppliers. They send the items as a delivery into the face of your block that touches the duct.
+
+In Shuttles %shuttles_version% a data line belongs to one warehouse. A line that reaches the Warehouse Controllers or Packing Stations of two warehouses is in conflict: its CPUs start no step that needs warehouse stock, and suppliers answer 0 to upkeep, until the line reaches one warehouse again.
 
 ## Network events
 

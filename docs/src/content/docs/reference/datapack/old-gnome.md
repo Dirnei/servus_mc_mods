@@ -5,7 +5,7 @@ sidebar:
   order: 10
 ---
 
-Paracelsus' old gnome wakes while a team mines deep. Nothing is generated with the world: each Deepslate block a player breaks may wake him, and the mod then turns a nearby wall block into his Ancient Hollow. Numbers on this page are the shipped values of Alchemy 0.4.0-alpha; they live in datapack JSON and modpacks can change them.
+Paracelsus' old gnome wakes while a team mines deep. Nothing is generated with the world: each Deepslate block a player breaks may wake him, and the mod then turns a nearby wall block into his Ancient Hollow. Numbers on this page are the shipped values of Alchemy %alchemy_version%; they live in datapack JSON and modpacks can change them.
 
 ```
 data/<namespace>/servus_alchemy/old_gnome/old_gnome.json

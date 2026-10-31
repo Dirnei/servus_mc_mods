@@ -3,7 +3,7 @@ title: Join the data line
 description: What a machine of another mod implements to become a producer and an upkeep member of the Servus data line, with a worked Java example.
 ---
 
-This page shows how a machine of your mod joins the data line of **Servus: Foundation 0.5.0**, so a Shuttles Crafting CPU can order from it and a warehouse keeps its fuel stocked. The example follows how our own machines do it, for example the Prelum of Servus: Alchemy.
+This page shows how a machine of your mod joins the data line of **Servus: Foundation %foundation_version%**, so a Shuttles Crafting CPU can order from it and a warehouse keeps its fuel stocked. The example follows how our own machines do it, for example the Prelum of Servus: Alchemy.
 
 ## What happens at run time
 
@@ -13,7 +13,7 @@ This page shows how a machine of your mod joins the data line of **Servus: Found
 4. For a step on your machine, the warehouse sends the inputs as a delivery into the face of your machine that touches the duct. If your machine is a packet endpoint, it is asked for room first.
 5. Your machine works as it always does. The CPU sees it through `active()` while it runs.
 6. The CPU takes the outputs out of your machine, through the same face, and sends them to a Packing Station, which puts them away.
-7. Every 40 ticks the line checks your upkeep and asks a warehouse to send fuel when you are below your level.
+7. Every 40 ticks the line checks your upkeep and asks a warehouse to send fuel once at least your batch is missing. Your block keeps the open request and saves it.
 8. The warehouse gives your machine a number, and players can name it (see [Machine names](#machine-names)).
 
 Each producer runs one step at a time.
@@ -46,7 +46,9 @@ package com.example.yourmod.grinder;
 import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
 import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
+import io.github.dirnei.mc.servus.foundation.data.UpkeepRequest;
 import io.github.dirnei.mc.servus.foundation.production.UpkeepHolder;
+import io.github.dirnei.mc.servus.foundation.production.UpkeepRequestCodec;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
@@ -56,6 +58,8 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 public class GrinderBlockEntity extends BlockEntity {
 
@@ -78,7 +82,10 @@ public class GrinderBlockEntity extends BlockEntity {
         }
     };
 
-    /** Keeps 16 coal in the fuel slot, independent of any order. */
+    /** The upkeep request on its way, saved with the block. */
+    private UpkeepRequest upkeepRequest;
+
+    /** Keeps 16 coal in the fuel slot, independent of any order, and asks again once 8 are missing. */
     private final UpkeepHolder upkeep = new UpkeepHolder() {
         @Override
         public ItemStack upkeepItem() {
@@ -91,8 +98,24 @@ public class GrinderBlockEntity extends BlockEntity {
         }
 
         @Override
+        public int upkeepBatch() {
+            return 8;
+        }
+
+        @Override
         public int upkeepCount() {
             return fuelCount();
+        }
+
+        @Override
+        public UpkeepRequest upkeepRequest() {
+            return upkeepRequest;
+        }
+
+        @Override
+        public void upkeepRequest(UpkeepRequest request) {
+            upkeepRequest = request;
+            setChanged();
         }
     };
 
@@ -116,8 +139,21 @@ public class GrinderBlockEntity extends BlockEntity {
         return upkeep;
     }
 
+    @Override
+    protected void saveAdditional(ValueOutput output) {
+        super.saveAdditional(output);
+        UpkeepRequestCodec.save(output, upkeepRequest);
+    }
+
+    @Override
+    protected void loadAdditional(ValueInput input) {
+        super.loadAdditional(input);
+        upkeepRequest = UpkeepRequestCodec.load(input);
+    }
+
     // Your machine's own code, unchanged: the recipe that runs, the coal in the
-    // fuel slot, and items(), the item handler that pipes already use.
+    // fuel slot, and items(), the item handler that pipes already use. Save your
+    // own data in saveAdditional and loadAdditional as well.
 }
 ```
 
@@ -160,7 +196,9 @@ The providers ignore `side` on purpose. The CPU and the upkeep check call `getCa
 - `recipes()` lists only what the machine can run **right now**. It is called often, so cache it if building the list is expensive. `SingleInputRecipes` in the same package does this for one-input recipe types.
 - `active()` returns the id of a recipe from `recipes()` while one runs, else empty.
 - The item door on the duct face accepts the inputs and the upkeep item and gives out the outputs.
-- Arriving upkeep ends up where `upkeepCount()` counts it. The request is closed when that count rises.
+- Arriving upkeep ends up where `upkeepCount()` counts it. The request is closed when that count has risen by the amount asked.
+- `upkeepCount()` counts only `upkeepItem()`. If your slot may hold another fuel, name that fuel as `upkeepItem()` while it is there, as the Foundation burners do.
+- The open `UpkeepRequest` is saved with your block and loaded again, so a restart does not ask twice.
 - When your block starts or stops offering a capability, call `level.invalidateCapabilities(pos)`.
 - Everything runs on the server thread.
 
@@ -171,11 +209,11 @@ The same pattern works for the other roles:
 - **A block on the line that neither makes nor holds items**, such as a terminal, exposes `DATA_LINK`. `DataLink` is an empty marker interface, so the block entity itself can be the provider.
 - **A block that passes the line on to its neighbours**, like a cable, uses a `DataCarrier` (see [Data line concepts](/servus_mc_mods/developers/data-line/#nodes-and-the-network)).
 - **A block that limits how fast items enter or leave it** exposes `TRANSFER_GATE` (see [Deliveries](/servus_mc_mods/developers/deliveries/#transfer-gates)).
-- **Storage** can expose `STOCK_PROVIDER` and `STOCK_SINK` and becomes a `STOCK` member. Note that Shuttles 0.5.0 plans only with the stock of its own warehouses, so a foreign storage member is not counted as stock by the CPU or the terminal.
+- **Storage** can expose `STOCK_PROVIDER` and `STOCK_SINK` and becomes a `STOCK` member. Note that Shuttles %shuttles_version% plans only with the stock of its own warehouses, so a foreign storage member is not counted as stock by the CPU or the terminal.
 
 ## Machine names
 
-In Shuttles 0.5.0 a warehouse numbers every machine on its data line that implements `io.github.dirnei.mc.servus.foundation.naming.NamedMachine`, and the Production Terminal, CPU messages and the Data Potato show its label: "Grinder #2", or with a name "Ore Grinder (Grinder #2)". The number is per kind and per warehouse. A machine without `NamedMachine` is shown by its block name.
+In Shuttles %shuttles_version% a warehouse numbers every machine on its data line that implements `io.github.dirnei.mc.servus.foundation.naming.NamedMachine`, and the Production Terminal, CPU messages and the Data Potato show its label: "Grinder #2", or with a name "Ore Grinder (Grinder #2)". The number is per kind and per warehouse. A machine without `NamedMachine` is shown by its block name.
 
 1. Register a `MachineKind` once while your mod is constructed. Its id names the lang key of the numbered label, `machine.<namespace>.<path>`, which takes the number as `%s`:
 
