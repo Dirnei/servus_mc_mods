@@ -8,6 +8,12 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesMenus;
 import io.github.dirnei.mc.servus.foundation.client.SideMarkerRenderer;
 import java.util.Map;
+import io.github.dirnei.mc.servus.foundation.material.Material;
+import io.github.dirnei.mc.servus.foundation.material.MaterialKind;
+import io.github.dirnei.mc.servus.shuttles.field.FieldCorrosion;
+import io.github.dirnei.mc.servus.shuttles.rail.RailCorrosion;
+import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesComponents;
+import net.minecraft.world.item.ItemStack;
 import io.github.dirnei.mc.servus.foundation.material.client.MaterialModel;
 import io.github.dirnei.mc.servus.foundation.material.client.MaterialSkin;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlockEntity;
@@ -74,10 +80,26 @@ public final class ServusShuttlesClient {
             Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "block/heavy_rack_board"), HeavyRackBlockEntity.WOOD,
             HeavyRackBlockEntity.DEFAULT_WOOD, HeavyRackBlockEntity::woodOf, false);
 
-    /** The rack item and the shuttle items have their own item model types. */
+    private static final Identifier FARM_RAIL_HEAD = Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "block/farm_rail_head");
+
+    /** The farm rail item shows the wood of its sleepers and the copper heads of its corrosion stage. */
+    public static final MaterialSkin FARM_RAIL_SKIN = new MaterialSkin(Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "farm_rail"),
+            MaterialKind.WOOD.placeholder(), Material.PROPERTY, MaterialKind.WOOD.defaultBlock(), Material::of, true,
+            ServusShuttlesClient::farmRailSwaps);
+
+    private static Map<Identifier, Identifier> farmRailSwaps(ItemStack stack) {
+        RailCorrosion corrosion = stack.get(ServusShuttlesComponents.RAIL_CORROSION.get());
+        if (corrosion == null || corrosion.stage() <= FieldCorrosion.COPPER) {
+            return Map.of();
+        }
+        return Map.of(FARM_RAIL_HEAD, FARM_RAIL_HEAD.withSuffix("_" + FieldCorrosion.name(corrosion.stage())));
+    }
+
+    /** The rack item, the farm rail item and the shuttle items have their own item model types. */
     @SubscribeEvent
     public static void onRegisterItemModels(RegisterItemModelsEvent event) {
         event.register(RACK_SKIN.itemModelType(), RACK_SKIN.itemCodec());
+        event.register(FARM_RAIL_SKIN.itemModelType(), FARM_RAIL_SKIN.itemCodec());
         event.register(ShuttleItemModel.TYPE, ShuttleItemModel.Unbaked.MAP_CODEC);
     }
 

@@ -46,6 +46,7 @@ public final class MaterialSkin {
     private final Identifier fallback;
     private final Function<ItemStack, Identifier> itemMaterial;
     private final boolean swaps;
+    private final Function<ItemStack, Map<Identifier, Identifier>> itemSwaps;
     private final @Nullable MaterialKind kind;
     private final MapCodec<MaterialItemModel.Unbaked> itemCodec;
 
@@ -56,6 +57,7 @@ public final class MaterialSkin {
         this.fallback = kind.defaultBlock();
         this.itemMaterial = Material::of;
         this.swaps = true;
+        this.itemSwaps = stack -> Map.of();
         this.kind = kind;
         this.itemCodec = KIND_ITEM_CODEC;
     }
@@ -68,12 +70,24 @@ public final class MaterialSkin {
      */
     public MaterialSkin(Identifier itemModelType, Identifier placeholder, ModelProperty<Identifier> property, Identifier fallback,
                         Function<ItemStack, Identifier> itemMaterial, boolean swaps) {
+        this(itemModelType, placeholder, property, fallback, itemMaterial, swaps, stack -> Map.of());
+    }
+
+    /**
+     * A skin with its own item model type whose item also swaps textures per
+     * stack, the way {@link Material#SWAPS} does for a placed block.
+     *
+     * @param itemSwaps the texture swaps of a stack, from texture to texture; empty for none
+     */
+    public MaterialSkin(Identifier itemModelType, Identifier placeholder, ModelProperty<Identifier> property, Identifier fallback,
+                        Function<ItemStack, Identifier> itemMaterial, boolean swaps, Function<ItemStack, Map<Identifier, Identifier>> itemSwaps) {
         this.itemModelType = itemModelType;
         this.placeholder = placeholder;
         this.property = property;
         this.fallback = fallback;
         this.itemMaterial = itemMaterial;
         this.swaps = swaps;
+        this.itemSwaps = itemSwaps;
         this.kind = null;
         this.itemCodec = RecordCodecBuilder.mapCodec(i -> i.group(
                         Identifier.CODEC.fieldOf("model").forGetter(MaterialItemModel.Unbaked::model))
@@ -107,6 +121,11 @@ public final class MaterialSkin {
 
     public boolean swaps() {
         return swaps;
+    }
+
+    /** The texture swaps the stack's item model applies, empty for none. */
+    public Map<Identifier, Identifier> itemSwaps(ItemStack stack) {
+        return itemSwaps.apply(stack);
     }
 
     /** The kind of a Foundation skin, null for a skin of its own. */

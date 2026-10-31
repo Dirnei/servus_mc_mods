@@ -4,7 +4,8 @@
     {
       "function": "minecraft:copy_components",
       "include": [
-        "servus_foundation:material"
+        "servus_foundation:material",
+        "servus_shuttles:rail_corrosion"
       ],
       "source": "block_entity"
     }

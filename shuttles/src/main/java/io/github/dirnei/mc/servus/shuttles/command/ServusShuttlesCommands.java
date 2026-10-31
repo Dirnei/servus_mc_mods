@@ -224,9 +224,9 @@ public final class ServusShuttlesCommands {
                 "Produce: " + (head.produce().isEmpty() ? "unknown" : name(head.produce()) + ", " + head.produceStock() + " in stock")
                         + ", stop harvesting at " + level(head.harvestLimit()) + ", fertilize below " + level(head.fertilizeBelow())
                         + (head.harvestPaused() ? ", harvest paused" : "") + (head.fertilizeAllowed() ? "" : ", fertilizing not needed"),
-                "Corrosion: " + (head.corrosion() == FieldCorrosion.LOOSE ? "none" : FieldCorrosion.name(head.corrosion())
-                        + ", " + head.agedWater() + " / " + ShuttlesStatsManager.INSTANCE.fieldCorrosionWater() + " mB to the next step, "
-                        + head.supplyCount(SupplyBuffer.Part.ANTI_CORROSION) + " anti-corrosion")
+                "Corrosion: " + stageCountsLine(head) + ", " + head.dryRails() + " dry, "
+                        + head.agedWater() + " / " + ShuttlesStatsManager.INSTANCE.fieldCorrosionWater() + " mB to the next step, "
+                        + head.supplyCount(SupplyBuffer.Part.ANTI_CORROSION) + " anti-corrosion"
                         + ", keep " + head.antiCorrosionReserve());
         for (String line : lines) {
             say(source, line);
@@ -257,8 +257,20 @@ public final class ServusShuttlesCommands {
         }
         FieldHeadBlockEntity head = found.get();
         head.age(IntegerArgumentType.getInteger(context, "water"));
-        say(source, "Field is " + FieldCorrosion.name(head.corrosion()) + ", " + head.agedWater() + " mB toward the next step");
-        return head.corrosion();
+        say(source, "Rails " + stageCountsLine(head) + ", " + head.dryRails() + " dry, " + head.agedWater() + " mB toward the next step");
+        return head.wetRails().size();
+    }
+
+    /** The rails per corrosion stage, only stages that have rails; "none" for an empty field. */
+    private static String stageCountsLine(FieldHeadBlockEntity head) {
+        int[] counts = head.stageCounts();
+        List<String> parts = new ArrayList<>();
+        for (int stage = FieldCorrosion.COPPER; stage <= FieldCorrosion.CORRODED; stage++) {
+            if (counts[stage] > 0) {
+                parts.add(FieldCorrosion.name(stage) + " " + counts[stage]);
+            }
+        }
+        return parts.isEmpty() ? "none" : String.join(", ", parts);
     }
 
     private static int take(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {

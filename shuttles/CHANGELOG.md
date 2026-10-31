@@ -5,6 +5,9 @@
 ### Added
 - Buffer Stop: a steel stop with a yellow and black beam for the end of a rail. Craft it from three iron ingots over a Warehouse Rail or a Farm Rail; it keeps that rail's wood and steel or copper heads. It turns to the rail when placed, the Configuration Carrot turns it, and shuttles ignore it.
 
+### Changed
+- Farm Rails now corrode one by one: each rail keeps its own copper stage, also as an item, with a matching look and tooltip. Water reaches the rails from the Field Head and stops at a corroded rail, so the rails behind it dry out; the Water tab lists the rails per stage. An axe scrapes the field one stage per rail for 4 durability each, and a worn axe scrapes as far as it lasts.
+
 ## 0.6.0
 
 ### Added

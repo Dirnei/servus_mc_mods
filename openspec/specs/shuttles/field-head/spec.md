@@ -72,7 +72,7 @@ Using an item that holds or takes fluid on a Field Head SHALL try to fill the he
 - **THEN** the head's GUI opens
 
 ### Requirement: Hydration
-While its field is hydrated, the head SHALL keep wet every farmland block within the field radius of each farm rail of the field, one block below the rail: the square of radius blocks to each side of every rail. Farmland in that square SHALL behave as if water were near it: it does not dry out and crops on it grow at the moistened rate. Hydration SHALL end when the buffer runs dry, when the head is removed or unloaded, or for the part of the field a removed rail or a smaller radius took away. It SHALL resume after a world reload without any action from the player.
+While its field is hydrated, the head SHALL keep wet every farmland block within the field radius of each wet farm rail of the field (see the rail corrosion spec), one block below the rail: the square of radius blocks to each side of every wet rail. Farmland in that square SHALL behave as if water were near it: it does not dry out and crops on it grow at the moistened rate. Hydration SHALL end when the buffer runs dry, when the head is removed or unloaded, or for the part of the field a removed rail, a smaller radius or a corroded rail took away. It SHALL resume after a world reload without any action from the player.
 
 #### Scenario: Farmland stays wet
 - **WHEN** a head with water and radius 2 serves a straight field and farmland lies two blocks beside a rail, one block below it
@@ -84,6 +84,10 @@ While its field is hydrated, the head SHALL keep wet every farmland block within
 
 #### Scenario: Rail removed
 - **WHEN** the only rail beside a patch of farmland is broken
+- **THEN** that farmland no longer counts as near water
+
+#### Scenario: Behind a corroded rail
+- **WHEN** a patch of farmland lies only beside rails behind a corroded rail of the field
 - **THEN** that farmland no longer counts as near water
 
 ### Requirement: Ripeness tracking
@@ -126,7 +130,7 @@ Each crop entry SHALL show how many of that item the warehouse of the served fie
 
 The Field tab SHALL show the planted and ripe plot counts with the ripe share bar, the harvest threshold with its buttons, and the ripe share bar SHALL also be a slider: clicking or dragging on it SHALL set the harvest threshold to the step under the mouse, its mark following while dragged. It SHALL show whether a harvest is due through the work status line (naming the harvester working the field), or why the head serves no field.
 
-The **Water** tab SHALL have an anti-corrosion picker like the fertilizer picker, across the width of the page: "Off" first, then every item of the anti-corrosion tag, each with its warehouse stock, greyed without stock; choosing an entry sets the head's anti-corrosion item. Below it the tab SHALL show the water level and capacity and the water the served field uses per minute while watered, or that it is dry. It SHALL show the corrosion stage of the served field with the progress toward the next aging step; its tooltip SHALL say roughly how much watering time is left until that step, and whether an anti-corrosion item in the buffer will hold the stage then, or, for a corroded field, that the rails are corroded and the field is not watered.
+The **Water** tab SHALL have an anti-corrosion picker like the fertilizer picker, across the width of the page: "Off" first, then every item of the anti-corrosion tag, each with its warehouse stock, greyed without stock; choosing an entry sets the head's anti-corrosion item. Below it the tab SHALL show the water level and capacity and the water the served field uses per minute while watered, or that it is dry. It SHALL show how many rails of the served field are in each corrosion stage, listing only stages that have rails, and the progress toward the next aging step; the tooltip of the progress SHALL say roughly how much watering time is left until that step and whether an anti-corrosion item in the buffer will hold the stages then. While a corroded rail blocks water, the tab SHALL say that water is blocked and how many rails are dry.
 
 The **Fertilizer** tab SHALL have a fertilizer picker like the crop picker, across the width of the page: "Off" first, then every item of the fertilizer tag, each with its warehouse stock, greyed without stock; choosing an entry sets the head's fertilizer, "Off" clears it. It SHALL have mode buttons Off, After planting and Until ripe share, the fertilize threshold with - and + buttons, and a status line: fertilizing off, Spreader at work (naming the Spreader when it has a name plate), waiting, no Spreader shuttle, no Spreader that reaches the field without a lift, no shuttle that can bring supplies, no fertilizer in stock, stock at or below the reserve, or the buffer empty while a supply run is on its way. The server SHALL refuse an item outside the tag and a player who can no longer use the head.
 
@@ -136,7 +140,7 @@ The **Upgrades** tab SHALL have the Range Upgrade slot of the field radius and S
 
 Shift clicking a Range Upgrade in the player inventory SHALL move it into its slot whatever tab is open, and shift clicking it in its slot SHALL move it back to the inventory. The head's buffer SHALL take no items from the player and give none back.
 
-A tab SHALL carry a red marker while its page holds a problem, so it is seen from every tab: the Field tab while the head serves no field or the work status is a warning, the Water tab while the served field is dry or corroded, the Fertilizer tab while fertilizing is on and the status says there is no Spreader, no Spreader that reaches the field or no shuttle that can bring supplies. No fertilizer in stock, or stock at or below the reserve, is not a problem: the status line says so without a red marker. The Stock tab and the Upgrades tab SHALL carry no marker.
+A tab SHALL carry a red marker while its page holds a problem, so it is seen from every tab: the Field tab while the head serves no field or the work status is a warning, the Water tab while the served field is dry or a corroded rail blocks water, the Fertilizer tab while fertilizing is on and the status says there is no Spreader, no Spreader that reaches the field or no shuttle that can bring supplies. No fertilizer in stock, or stock at or below the reserve, is not a problem: the status line says so without a red marker. The Stock tab and the Upgrades tab SHALL carry no marker.
 
 #### Scenario: Opens on the Field tab
 - **WHEN** a player opens a Field Head
@@ -196,11 +200,15 @@ A tab SHALL carry a red marker while its page holds a problem, so it is seen fro
 
 #### Scenario: Water use and aging estimate
 - **WHEN** a player opens the Water tab of a watered field of five rails with `water_per_rail` 1, `water_interval` 100 and `corrosion_water` 6000, half way to its next aging step
-- **THEN** the tab says the field uses 60 mB per minute, and the tooltip of the corrosion stage says the next stage comes in about 50m of watering
+- **THEN** the tab says the field uses 60 mB per minute, and the tooltip of the aging progress says the next stage comes in about 50m of watering
+
+#### Scenario: Rail counts shown
+- **WHEN** a player opens the Water tab of a head whose field has twelve copper, five exposed and three oxidized rails
+- **THEN** the tab lists Copper 12, Exposed 5 and Oxidized 3 and no other stage
 
 #### Scenario: Corroded field shown
-- **WHEN** a player opens the GUI of a head whose field is corroded
-- **THEN** the Water tab has a red marker and its page says the rails are corroded and the field is not watered
+- **WHEN** a player opens the GUI of a head whose field of twenty rails has its thirteenth rail from the head corroded
+- **THEN** the Water tab has a red marker, lists Corroded 1, and its page says water is blocked and eight rails are dry
 
 #### Scenario: Honeycomb by hand
 - **WHEN** a player shift clicks honeycomb in the head's GUI while the Field tab is open
@@ -227,15 +235,15 @@ A tab SHALL carry a red marker while its page holds a problem, so it is seen fro
 - **THEN** the Water tab has a red marker and the Stock tab has none
 
 ### Requirement: Field diagnostics
-`/servus_warehouse field <pos>` SHALL print, for the Field Head at that position, its status, its field kind, rails, plots, planted and ripe counts, water level, crop, sapling or mode (2x2 included), whether a harvest is due, the corrosion stage and the water counted toward the next aging step. `/servus_warehouse field <pos> recheck` SHALL run the pass over all plots again. `/servus_warehouse field <pos> age <mB>` SHALL count that much water as used for aging, with the same upkeep and stage rules as water used by hydration, so a stage can be reached quickly for testing.
+`/servus_warehouse field <pos>` SHALL print, for the Field Head at that position, its status, its field kind, rails, plots, planted and ripe counts, water level, crop, sapling or mode (2x2 included), whether a harvest is due, the number of rails in each corrosion stage, the number of dry rails and the water counted toward the next aging step. `/servus_warehouse field <pos> recheck` SHALL run the pass over all plots again. `/servus_warehouse field <pos> age <mB>` SHALL count that much water as used for aging, with the same upkeep and aging rules as water used by hydration, so a stage can be reached quickly for testing.
 
 #### Scenario: Print a field
 - **WHEN** an operator runs the field command on a head serving four rails
-- **THEN** the output names four rails, the head's water level and the corrosion stage
+- **THEN** the output names four rails, the head's water level and how many rails are in each corrosion stage
 
 #### Scenario: Age by command
-- **WHEN** an operator runs the age command with `corrosion_water` mB on a head of a copper field without anti-corrosion items
-- **THEN** the field becomes exposed
+- **WHEN** an operator runs the age command with `corrosion_water` mB on a head of a field of copper rails without anti-corrosion items
+- **THEN** every wet rail becomes exposed
 
 #### Scenario: Print a Trees field
 - **WHEN** an operator runs the field command on a head of a 2x2 spruce field

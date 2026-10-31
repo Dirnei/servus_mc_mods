@@ -43,6 +43,7 @@ final class ServusShuttlesBlockStateProvider extends BlockStateProvider {
         RailModels.rail(this, ServusShuttlesBlocks.RAIL.get(), "rail");
         RailModels.rail(this, ServusShuttlesBlocks.FARM_RAIL.get(), "farm_rail");
         BufferStopModels.bufferStop(this, ServusShuttlesBlocks.BUFFER_STOP.get(), "buffer_stop");
+        itemModels().itemModelType(modLoc("farm_rail"), ServusShuttlesIds.MOD_ID + ":farm_rail");
         fieldHead(ServusShuttlesBlocks.FIELD_HEAD.get(), "field_head");
         ElevatorModels.elevator(this, ServusShuttlesBlocks.ELEVATOR.get(), "elevator");
         HeavyRackModels.rack(this, ServusShuttlesBlocks.HEAVY_RACK.get(), "heavy_rack");

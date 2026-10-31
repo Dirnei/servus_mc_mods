@@ -425,7 +425,8 @@ public final class LumberGameTests {
             helper.runAfterDelay(150, () -> {
                 helper.assertTrue(farm.head().water() == water, "the water stays, " + farm.head().water() + " of " + water);
                 helper.assertTrue(!farm.head().hydrated() && farm.head().waterPerMinute() == 0, "trees are never watered");
-                helper.assertTrue(farm.head().corrosion() == FieldCorrosion.COPPER && farm.head().agedWater() == 0, "the rails do not age");
+                helper.assertTrue(farm.head().stageCounts()[FieldCorrosion.COPPER] == farm.head().rails().size() && farm.head().agedWater() == 0,
+                        "the rails do not age");
                 helper.succeed();
             });
         });

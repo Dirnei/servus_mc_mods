@@ -13,6 +13,7 @@ import io.github.dirnei.mc.servus.shuttles.field.FieldCorrosion;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseConnectionRule.NodeKind;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlockEntities;
+import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesComponents;
 import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -28,17 +29,19 @@ import net.neoforged.neoforge.model.data.ModelData;
 
 /**
  * Connector node: joins the warehouse graph but holds no stock. Remembers the
- * wood of its sleepers and, on a farm rail, the corrosion stage of its field
- * (see {@link FieldCorrosion}); the stage is never on the item.
+ * wood of its sleepers and, on a farm rail, its corrosion stage and scrape
+ * progress (see {@link FieldCorrosion}), both carried by its dropped item.
  */
 public class RailBlockEntity extends StorageNodeBlockEntity implements MaterialHolder {
 
     private static final String CORROSION = "Corrosion";
+    private static final String SCRAPE_PROGRESS = "ScrapeProgress";
     private static final Identifier FRESH_HEAD = Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "block/farm_rail_head");
 
     private final MaterialSlot materialSlot = new MaterialSlot(this);
-    /** The corrosion stage of a farm rail, {@link FieldCorrosion#LOOSE} until it joins a field. */
-    private int corrosion = FieldCorrosion.LOOSE;
+    private int corrosion = FieldCorrosion.COPPER;
+    /** Durability points a scrape already put into the next stage back. */
+    private int scrapeProgress;
 
     public RailBlockEntity(BlockPos pos, BlockState state) {
         super(ServusShuttlesBlockEntities.RAIL.get(), pos, state);
@@ -54,6 +57,7 @@ public class RailBlockEntity extends StorageNodeBlockEntity implements MaterialH
         super.saveAdditional(output);
         materialSlot.save(output);
         output.putInt(CORROSION, corrosion);
+        output.putInt(SCRAPE_PROGRESS, scrapeProgress);
     }
 
     @Override
@@ -61,8 +65,8 @@ public class RailBlockEntity extends StorageNodeBlockEntity implements MaterialH
         super.loadAdditional(input);
         CompoundTag tag = ValueIo.whole(input);
         materialSlot.load(input);
-        int loaded = tag.contains(CORROSION) ? Math.max(FieldCorrosion.LOOSE, Math.min(FieldCorrosion.CORRODED, input.getIntOr(CORROSION, 0)))
-                : FieldCorrosion.LOOSE;
+        int loaded = FieldCorrosion.clamp(tag.contains(CORROSION) ? input.getIntOr(CORROSION, 0) : FieldCorrosion.COPPER);
+        scrapeProgress = Math.max(0, input.getIntOr(SCRAPE_PROGRESS, 0));
         boolean changed = loaded != corrosion;
         corrosion = loaded;
         if (changed && level != null && level.isClientSide()) {
@@ -71,18 +75,35 @@ public class RailBlockEntity extends StorageNodeBlockEntity implements MaterialH
         }
     }
 
-    /** The corrosion stage, {@link FieldCorrosion#LOOSE} for a rail in no field yet. */
+    /** The corrosion stage. */
     public int corrosion() {
         return corrosion;
     }
 
-    /** Sets the stage of the rail's field and sends it to watching clients when it changed. Server side. */
+    /** The durability points a scrape put toward the next stage back. */
+    public int scrapeProgress() {
+        return scrapeProgress;
+    }
+
+    /** Sets the stage and clears the scrape progress; sends the stage to watching clients when it changed. Server side. */
     public void setCorrosion(int stage) {
-        if (stage == corrosion) {
+        setCorrosion(stage, 0);
+    }
+
+    /** Sets the stage and scrape progress; sends them to watching clients when the stage changed. Server side. */
+    public void setCorrosion(int stage, int progress) {
+        int clamped = FieldCorrosion.clamp(stage);
+        int held = Math.max(0, progress);
+        if (clamped == corrosion && held == scrapeProgress) {
             return;
         }
-        corrosion = stage;
+        boolean stageChanged = clamped != corrosion;
+        corrosion = clamped;
+        scrapeProgress = held;
         setChanged();
+        if (!stageChanged) {
+            return;
+        }
         if (level != null && !level.isClientSide()) {
             level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
         }
@@ -98,6 +119,7 @@ public class RailBlockEntity extends StorageNodeBlockEntity implements MaterialH
         CompoundTag tag = super.getUpdateTag(registries);
         materialSlot.save(tag);
         tag.putInt(CORROSION, corrosion);
+        tag.putInt(SCRAPE_PROGRESS, scrapeProgress);
         return tag;
     }
 
@@ -110,12 +132,20 @@ public class RailBlockEntity extends StorageNodeBlockEntity implements MaterialH
     protected void applyImplicitComponents(DataComponentGetter input) {
         super.applyImplicitComponents(input);
         materialSlot.apply(input.get(MaterialContent.MATERIAL.get()));
+        RailCorrosion carried = input.get(ServusShuttlesComponents.RAIL_CORROSION.get());
+        if (carried != null) {
+            corrosion = FieldCorrosion.clamp(carried.stage());
+            scrapeProgress = Math.max(0, carried.progress());
+        }
     }
 
     @Override
     protected void collectImplicitComponents(DataComponentMap.Builder builder) {
         super.collectImplicitComponents(builder);
         materialSlot.collect(builder);
+        if (corrosion > FieldCorrosion.COPPER || scrapeProgress > 0) {
+            builder.set(ServusShuttlesComponents.RAIL_CORROSION.get(), new RailCorrosion(corrosion, scrapeProgress));
+        }
     }
 
     @Override
@@ -123,6 +153,8 @@ public class RailBlockEntity extends StorageNodeBlockEntity implements MaterialH
     public void removeComponentsFromTag(ValueOutput output) {
         super.removeComponentsFromTag(output);
         MaterialSlot.removeFromTag(output);
+        output.discard(CORROSION);
+        output.discard(SCRAPE_PROGRESS);
     }
 
     /** The wood, and from exposed on the head texture of the stage in place of the fresh copper. */

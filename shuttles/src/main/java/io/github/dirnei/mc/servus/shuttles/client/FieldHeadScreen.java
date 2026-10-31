@@ -40,6 +40,7 @@ import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Inventory;
@@ -98,6 +99,8 @@ public class FieldHeadScreen extends NamedMachineScreen<FieldHeadMenu> {
     private static final int BAR_H = 8;
     private static final int WATER_RATE_Y = 70;
     private static final int CORROSION_Y = 84;
+    private static final int RAIL_STAGES_Y = 96;
+    private static final int BLOCKED_Y = 116;
     /** Rows above and below the ripe bar that still take a slider click. */
     private static final int SLIDER_GRACE = 3;
     private static final int RADIUS_TEXT_X = 30;
@@ -402,8 +405,8 @@ public class FieldHeadScreen extends NamedMachineScreen<FieldHeadMenu> {
                 return work != null && work.problem() ? workLine(work) : null;
             }
             case WATER -> {
-                if (menu.corrosion() == FieldCorrosion.CORRODED) {
-                    return Component.translatable("gui.servus_shuttles.field_head.corroded");
+                if (serving() && menu.dryRails() > 0) {
+                    return blockedLine();
                 }
                 return serving() && !menu.hydrated() && !menu.kind().trees() ? Component.translatable("gui.servus_shuttles.field_head.dry") : null;
             }
@@ -900,36 +903,51 @@ public class FieldHeadScreen extends NamedMachineScreen<FieldHeadMenu> {
                     : Component.translatable("gui.servus_shuttles.field_head.dry");
             graphics.text(font, water, MARGIN, WATER_RATE_Y, menu.hydrated() ? COLOUR_TEXT : COLOUR_WARN, false);
         }
-        int stage = menu.corrosion();
-        if (stage >= FieldCorrosion.COPPER) {
-            Component corrosion = stage == FieldCorrosion.CORRODED
-                    ? Component.translatable("gui.servus_shuttles.field_head.corroded")
-                    : Component.translatable("gui.servus_shuttles.field_head.corrosion",
-                            Component.translatable("gui.servus_shuttles.field_head.stage." + FieldCorrosion.name(stage)), menu.corrosionProgress());
-            graphics.text(font, corrosion, MARGIN, CORROSION_Y,
-                    stage == FieldCorrosion.CORRODED ? COLOUR_WARN : COLOUR_TEXT, false);
+        if (!serving()) {
+            return;
+        }
+        graphics.text(font, Component.translatable("gui.servus_shuttles.field_head.aging_progress", menu.corrosionProgress()),
+                MARGIN, CORROSION_Y, COLOUR_TEXT, false);
+        wrapped(graphics, railStagesLine(), RAIL_STAGES_Y, COLOUR_TEXT);
+        if (menu.dryRails() > 0) {
+            graphics.text(font, blockedLine(), MARGIN, BLOCKED_Y, COLOUR_WARN, false);
         }
     }
 
-    /** The copper stage and when its next aging step is due; empty while the head serves no field. */
+    /** The rails of the served field per stage, only stages that have rails. */
+    private Component railStagesLine() {
+        MutableComponent stages = Component.empty();
+        for (int stage = FieldCorrosion.COPPER; stage <= FieldCorrosion.CORRODED; stage++) {
+            int count = menu.railsInStage(stage);
+            if (count <= 0) {
+                continue;
+            }
+            if (!stages.getSiblings().isEmpty()) {
+                stages.append(", ");
+            }
+            stages.append(Component.translatable("gui.servus_shuttles.field_head.stage_count",
+                    Component.translatable("gui.servus_shuttles.field_head.stage." + FieldCorrosion.name(stage)), count));
+        }
+        return Component.translatable("gui.servus_shuttles.field_head.rail_stages", stages);
+    }
+
+    private Component blockedLine() {
+        return Component.translatable("gui.servus_shuttles.field_head.water_blocked", menu.dryRails());
+    }
+
+    /** When the next aging step is due; empty while the head serves no field. */
     private List<Component> corrosionTooltip() {
-        int stage = menu.corrosion();
-        if (stage < FieldCorrosion.COPPER) {
+        if (!serving()) {
             return List.of();
         }
-        List<Component> lines = new ArrayList<>();
-        lines.add(Component.translatable("gui.servus_shuttles.field_head.stage." + FieldCorrosion.name(stage)));
-        Component aging = agingLine(stage);
-        if (aging != null) {
-            lines.add(aging);
-        }
-        return lines;
+        Component aging = agingLine();
+        return aging == null ? List.of() : List.of(aging);
     }
 
     /** When the next aging step is due while the field is watered, and whether an anti-corrosion item will hold it; null when unknown. */
-    private Component agingLine(int stage) {
+    private Component agingLine() {
         long seconds = menu.secondsToAging();
-        if (stage == FieldCorrosion.CORRODED || seconds < 0) {
+        if (seconds < 0) {
             return null;
         }
         String in = FieldDuration.of(seconds);

@@ -29,6 +29,7 @@ import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.JobNeeds;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleItem;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -156,10 +157,10 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
     private boolean antiCorrosionChosen;
     /** The chosen anti-corrosion item, null for Off; meaningful while {@link #antiCorrosionChosen}. */
     private Item antiCorrosion;
-    /** The corrosion stage of the served field; meaningful while {@link #stageKnown}. */
-    private int stage = FieldCorrosion.COPPER;
-    /** Whether the head decides its field's stage: it served the field before this refresh. */
-    private boolean stageKnown;
+    /** The rails of the served field the water reaches, see {@link FieldCorrosion#wet}. */
+    private Set<BlockPos> wet = Set.of();
+    /** How many rails of the served field are in each corrosion stage. */
+    private final int[] stageCounts = new int[FieldCorrosion.STAGES];
     /** Hydration water counted toward the next aging step. */
     private long agedWater;
     /** Crop items from the registry, filled on first use; registries are frozen by then. */
@@ -204,6 +205,8 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
     /** What every loaded candidate holds, blocked ones included. */
     private final Map<BlockPos, PlotState> ground = new HashMap<>();
     private List<FieldStrip.Box> boxes = List.of();
+    /** The hydration boxes around the wet rails; one water ticket each while hydrated. */
+    private List<FieldStrip.Box> wetBoxes = List.of();
     private int minX;
     private int maxX;
     private int minZ;
@@ -384,28 +387,49 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
         }
         rechecks.clear();
         recheckAll();
-        joinStage(members);
-        if (hydrated) {
-            dropTickets();
-            addTickets();
-        }
+        recomputeWet();
     }
 
     /**
-     * The field takes the head's stage when the head served it before, else the
-     * youngest stage its rails already have (copper when none); every rail
-     * that differs is set.
+     * The stage or scrape progress of rails of the served field changed: the
+     * water reach, the stage counts, the tickets and the look follow. Server side.
      */
-    private void joinStage(Set<BlockPos> members) {
-        List<Integer> stages = new ArrayList<>(members.size());
-        for (BlockPos rail : members) {
-            if (level.getBlockEntity(rail) instanceof RailBlockEntity railEntity) {
-                stages.add(railEntity.corrosion());
+    public void railsChanged() {
+        if (status == FieldStatus.SERVING && level != null && !level.isClientSide()) {
+            recomputeWet();
+            setChanged();
+        }
+    }
+
+    /** Works out which rails the water reaches and counts the rails per stage; hydration follows the wet rails. */
+    private void recomputeWet() {
+        Arrays.fill(stageCounts, 0);
+        for (BlockPos rail : rails) {
+            stageCounts[railStage(rail)]++;
+        }
+        Set<BlockPos> members = rails;
+        Set<BlockPos> reached = FieldCorrosion.wet(startRail(),
+                rail -> FieldHeads.farmNeighbours(level, rail).stream().filter(members::contains).toList(),
+                rail -> railStage(rail) == FieldCorrosion.CORRODED);
+        reached.retainAll(members);
+        List<FieldStrip.Box> newBoxes = FieldStrip.boxes(FieldPositions.of(reached), radius());
+        boolean boxesChanged = !newBoxes.equals(wetBoxes);
+        wet = Collections.unmodifiableSet(reached);
+        wetBoxes = newBoxes;
+        if (hydrated && (wet.isEmpty() || boxesChanged)) {
+            dropTickets();
+            if (wet.isEmpty()) {
+                hydrated = false;
+            } else {
+                addTickets();
             }
         }
-        int joined = FieldCorrosion.join(stageKnown ? stage : FieldCorrosion.LOOSE, stages);
-        stageKnown = true;
-        setStage(joined == FieldCorrosion.LOOSE ? FieldCorrosion.COPPER : joined);
+        applyCorrodedLook();
+        lookDirty = true;
+    }
+
+    private int railStage(BlockPos rail) {
+        return level.isLoaded(rail) && level.getBlockEntity(rail) instanceof RailBlockEntity entity ? entity.corrosion() : FieldCorrosion.COPPER;
     }
 
     private void unserve(FieldStatus why, Set<BlockPos> members) {
@@ -415,25 +439,28 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
         plots = Set.of();
         ground.clear();
         boxes = List.of();
+        wetBoxes = List.of();
+        wet = Set.of();
+        Arrays.fill(stageCounts, 0);
         ripeness.clear();
         rechecks.clear();
         dropTickets();
         hydrated = false;
         lookDirty = true;
-        stageKnown = false;
         agedWater = 0;
+        applyCorrodedLook();
     }
 
     private void useWater() {
-        if (kind.trees() || stage == FieldCorrosion.CORRODED) {
-            // Trees need no water, and corroded rails water nothing: neither uses water or ages.
+        if (kind.trees() || wet.isEmpty()) {
+            // Trees need no water, and a field the water does not reach uses none and does not age.
             if (hydrated) {
                 hydrated = false;
                 dropTickets();
             }
             return;
         }
-        int need = FieldWater.use(rails.size(), ShuttlesStatsManager.INSTANCE.fieldWaterPerRail());
+        int need = FieldWater.use(wet.size(), ShuttlesStatsManager.INSTANCE.fieldWaterPerRail());
         if (!hydrated) {
             if (tank.getFluidAmount() >= need) {
                 tank.drain(need, false);
@@ -459,7 +486,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
     }
 
     private void addTickets() {
-        for (FieldStrip.Box box : boxes) {
+        for (FieldStrip.Box box : wetBoxes) {
             tickets.add(ticket(box));
         }
     }
@@ -471,9 +498,9 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
 
     /** NeoForge drops a ticket with its chunk; the ones it dropped while the head stayed loaded come back. */
     private void renewTickets() {
-        for (int i = 0; i < tickets.size() && i < boxes.size(); i++) {
+        for (int i = 0; i < tickets.size() && i < wetBoxes.size(); i++) {
             if (!tickets.get(i).isValid()) {
-                tickets.set(i, ticket(boxes.get(i)));
+                tickets.set(i, ticket(wetBoxes.get(i)));
             }
         }
     }
@@ -485,43 +512,44 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
 
     /**
      * Counts water as used by hydration: every {@code corrosion_water} mB one
-     * aging step is due, held by one anti-corrosion item or else moving the
-     * field's copper one stage older. Server side; does nothing while the head
+     * aging step is due, held by one anti-corrosion item or else moving every
+     * wet rail one stage older. Server side; does nothing while the head
      * serves no field.
      */
     public void age(int water) {
         if (status != FieldStatus.SERVING || water <= 0) {
             return;
         }
-        FieldCorrosion.Aged aged = FieldCorrosion.age(stage, agedWater, water, ShuttlesStatsManager.INSTANCE.fieldCorrosionWater(),
+        FieldCorrosion.Aged aged = FieldCorrosion.age(agedWater, water, ShuttlesStatsManager.INSTANCE.fieldCorrosionWater(),
                 supplyCount(SupplyBuffer.Part.ANTI_CORROSION));
         agedWater = aged.counted();
         if (aged.itemsUsed() > 0) {
             buffer.take(SupplyBuffer.Part.ANTI_CORROSION, aged.itemsUsed());
         }
-        if (aged.stage() != stage) {
-            setStage(aged.stage());
-        }
-        setChanged();
-    }
-
-    /** Sets the stage of the served field on the head and on every rail of the field. */
-    public void setStage(int newStage) {
-        stage = FieldCorrosion.clamp(newStage);
-        if (status == FieldStatus.SERVING && level != null && !level.isClientSide()) {
-            for (BlockPos rail : rails) {
-                if (level.isLoaded(rail) && level.getBlockEntity(rail) instanceof RailBlockEntity railEntity) {
-                    railEntity.setCorrosion(stage);
+        for (int step = 0; step < aged.steps() && !wet.isEmpty(); step++) {
+            for (BlockPos rail : wet) {
+                if (level.getBlockEntity(rail) instanceof RailBlockEntity entity) {
+                    entity.setCorrosion(FieldCorrosion.next(entity.corrosion()));
                 }
             }
+            recomputeWet();
         }
-        applyCorrodedLook();
         setChanged();
     }
 
-    /** The corrosion stage of the served field, {@link FieldCorrosion#LOOSE} while the head serves none. */
-    public int corrosion() {
-        return status == FieldStatus.SERVING ? stage : FieldCorrosion.LOOSE;
+    /** How many rails of the served field are in each stage, copper to corroded; all zero while it serves none. */
+    public int[] stageCounts() {
+        return stageCounts.clone();
+    }
+
+    /** The rails of the served field the water does not reach, because a corroded rail blocks it. */
+    public int dryRails() {
+        return status == FieldStatus.SERVING ? rails.size() - wet.size() : 0;
+    }
+
+    /** The rails of the served field the water reaches. */
+    public Set<BlockPos> wetRails() {
+        return wet;
     }
 
     /** Hydration water counted toward the next aging step. */
@@ -531,10 +559,10 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
 
     /** The mB per minute the served field uses while watered; 0 while it serves none or its rails are corroded. */
     public int waterPerMinute() {
-        if (status != FieldStatus.SERVING || kind.trees() || stage == FieldCorrosion.CORRODED) {
+        if (status != FieldStatus.SERVING || kind.trees() || wet.isEmpty()) {
             return 0;
         }
-        return FieldWater.perMinute(rails.size(), ShuttlesStatsManager.INSTANCE.fieldWaterPerRail(),
+        return FieldWater.perMinute(wet.size(), ShuttlesStatsManager.INSTANCE.fieldWaterPerRail(),
                 ShuttlesStatsManager.INSTANCE.fieldWaterInterval());
     }
 
@@ -546,7 +574,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
         if (waterPerMinute() <= 0) {
             return -1;
         }
-        long ticks = FieldWater.ticksToUse(ShuttlesStatsManager.INSTANCE.fieldCorrosionWater() - agedWater, rails.size(),
+        long ticks = FieldWater.ticksToUse(ShuttlesStatsManager.INSTANCE.fieldCorrosionWater() - agedWater, wet.size(),
                 ShuttlesStatsManager.INSTANCE.fieldWaterPerRail(), ShuttlesStatsManager.INSTANCE.fieldWaterInterval());
         return ticks < 0 ? -1 : ticks / 20;
     }
@@ -819,12 +847,12 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
         return held;
     }
 
-    /** Shows the rust rim on top while the served field is corroded. */
+    /** Shows the rust rim on top while any rail of the served field is corroded. */
     private void applyCorrodedLook() {
         if (level == null || level.isClientSide()) {
             return;
         }
-        boolean corroded = status == FieldStatus.SERVING && stage == FieldCorrosion.CORRODED;
+        boolean corroded = status == FieldStatus.SERVING && stageCounts[FieldCorrosion.CORRODED] > 0;
         show(level.getBlockState(worldPosition), FieldHeadBlock.CORRODED, corroded);
     }
 
@@ -1705,7 +1733,7 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
      */
     public boolean problem() {
         boolean serving = servesRails();
-        return FieldHeadLook.problem(serving, serving ? work() : null, corrosion() == FieldCorrosion.CORRODED, hydrated || kind.trees(),
+        return FieldHeadLook.problem(serving, serving ? work() : null, dryRails() > 0, hydrated || kind.trees(),
                 serving ? fertilizeStatus() : null);
     }
 
@@ -1783,9 +1811,6 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
         tag.put("Buffer", buffer.save(registries));
         tag.put("ToStorage", toStorage.serializeNBT(registries));
         tag.put("ToStorageLocks", toStorage.saveLocks(registries));
-        if (stageKnown) {
-            output.putInt("Corrosion", stage);
-        }
         output.putLong("CorrosionWater", agedWater);
         if (fertilizer != null) {
             output.putString("Fertilizer", BuiltInRegistries.ITEM.getKey(fertilizer).toString());
@@ -1852,8 +1877,6 @@ public class FieldHeadBlockEntity extends BlockEntity implements MenuProvider, M
         }
         antiCorrosion = readItem(tag, "AntiCorrosion");
         antiCorrosionChosen = tag.contains("AntiCorrosion") && (antiCorrosion == null || isAntiCorrosion(new ItemStack(antiCorrosion)));
-        stageKnown = tag.contains("Corrosion");
-        stage = stageKnown ? FieldCorrosion.clamp(input.getIntOr("Corrosion", 0)) : FieldCorrosion.COPPER;
         agedWater = Math.max(0, input.getLongOr("CorrosionWater", 0L));
         fertilizer = readFertilizer(tag);
         fertilizeMode = FertilizeMode.byId(input.getIntOr("FertilizeMode", 0));

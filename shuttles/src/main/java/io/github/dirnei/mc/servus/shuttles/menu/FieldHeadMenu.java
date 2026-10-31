@@ -109,8 +109,10 @@ public class FieldHeadMenu extends AbstractContainerMenu implements LockedMenu, 
     private final DataSlot work = DataSlot.standalone();
     private final DataSlot threshold = DataSlot.standalone();
     private final DataSlot radius = DataSlot.standalone();
-    /** The served field's corrosion stage plus one; zero while the head serves no field. */
-    private final DataSlot corrosion = DataSlot.standalone();
+    /** Rails of the served field per corrosion stage, copper to corroded. */
+    private final DataSlot[] stageCounts = standalone(FieldCorrosion.STAGES);
+    /** Rails of the served field the water does not reach. */
+    private final DataSlot dryRails = DataSlot.standalone();
     private final DataSlot corrosionProgress = DataSlot.standalone();
     private final DataSlot waterRateLow = DataSlot.standalone();
     private final DataSlot waterRateHigh = DataSlot.standalone();
@@ -181,13 +183,16 @@ public class FieldHeadMenu extends AbstractContainerMenu implements LockedMenu, 
             });
         }
         for (DataSlot slot : new DataSlot[] {waterLow, waterHigh, capacityLow, capacityHigh, rails, plots, planted, ripe, status, flags,
-                work, threshold, radius, corrosion, corrosionProgress, waterRateLow, waterRateHigh, agingLow, agingHigh, fertilizeMode, fertilizePercent, reserve, antiCorrosionReserve, fertilizeStatus,
+                work, threshold, radius, dryRails, corrosionProgress, waterRateLow, waterRateHigh, agingLow, agingHigh, fertilizeMode, fertilizePercent, reserve, antiCorrosionReserve, fertilizeStatus,
                 harvestLimitLow, harvestLimitHigh, fertilizeBelowLow, fertilizeBelowHigh, produceStockLow, produceStockHigh}) {
             addDataSlot(slot);
         }
         for (int i = 0; i < SupplyBuffer.Part.VALUES.length; i++) {
             addDataSlot(supplyCounts[i]);
             addDataSlot(supplyLevels[i]);
+        }
+        for (DataSlot slot : stageCounts) {
+            addDataSlot(slot);
         }
         locks = MenuLocks.ofInventory(head.buffer().slots());
         update();
@@ -232,7 +237,11 @@ public class FieldHeadMenu extends AbstractContainerMenu implements LockedMenu, 
         work.set(reason == null ? 0 : reason.ordinal() + 1);
         threshold.set(head.harvestPercent());
         radius.set(head.radius());
-        corrosion.set(head.corrosion() + 1);
+        int[] counts = head.stageCounts();
+        for (int i = 0; i < stageCounts.length; i++) {
+            stageCounts[i].set(clamp(counts[i]));
+        }
+        dryRails.set(clamp(head.dryRails()));
         corrosionProgress.set(head.corrosionProgress());
         split(head.waterPerMinute(), waterRateLow, waterRateHigh);
         split((int) Math.min(Integer.MAX_VALUE, head.secondsToAging() + 1), agingLow, agingHigh);
@@ -554,9 +563,14 @@ public class FieldHeadMenu extends AbstractContainerMenu implements LockedMenu, 
         return radius.get();
     }
 
-    /** The served field's corrosion stage, {@link FieldCorrosion#LOOSE} while the head serves none. */
-    public int corrosion() {
-        return corrosion.get() - 1;
+    /** How many rails of the served field are in that corrosion stage. */
+    public int railsInStage(int stage) {
+        return stageCounts[FieldCorrosion.clamp(stage)].get();
+    }
+
+    /** How many rails of the served field the water does not reach because a corroded rail blocks it. */
+    public int dryRails() {
+        return dryRails.get();
     }
 
     /** Percent of the way to the next aging step. */

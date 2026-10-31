@@ -9,7 +9,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.WeakHashMap;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
-import io.github.dirnei.mc.servus.shuttles.rail.RailBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.ChunkPos;
@@ -97,35 +96,6 @@ public final class FieldHeads {
     /** The farm rails of the field that holds this rail, walked over loaded farm rails up to {@code max_rails}. */
     public static FieldGraph.Result<BlockPos> field(Level level, BlockPos rail) {
         return FieldGraph.collect(rail.immutable(), current -> farmNeighbours(level, current), ShuttlesStatsManager.INSTANCE.fieldMaxRails());
-    }
-
-    /**
-     * A loose farm rail (in no field yet) was placed beside farm rails that
-     * have a stage. When a head looks after that field, its refresh sets the
-     * stage; else the joined field takes the youngest stage of its rails.
-     */
-    static void loosePlaced(Level level, BlockPos pos) {
-        for (FieldHeadBlockEntity head : heads(level)) {
-            if (concerns(head, pos)) {
-                return;
-            }
-        }
-        FieldGraph.Result<BlockPos> field = field(level, pos);
-        if (field.tooLarge()) {
-            return;
-        }
-        List<RailBlockEntity> members = new ArrayList<>(field.members().size());
-        List<Integer> stages = new ArrayList<>(field.members().size());
-        for (BlockPos rail : field.members()) {
-            if (level.getBlockEntity(rail) instanceof RailBlockEntity entity) {
-                members.add(entity);
-                stages.add(entity.corrosion());
-            }
-        }
-        int joined = FieldCorrosion.join(FieldCorrosion.LOOSE, stages);
-        if (joined != FieldCorrosion.LOOSE) {
-            members.forEach(entity -> entity.setCorrosion(joined));
-        }
     }
 
     /** A head was removed: the heads that share a rail with its field look again, one of them may serve it now. */

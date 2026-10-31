@@ -39,7 +39,7 @@ public final class MaterialItemModel implements ItemModel {
     private final ModelRenderProperties properties;
     private final Matrix4fc transformation;
     private final Vector3fc[] extents;
-    private final Map<Identifier, List<BakedQuad>> byMaterial = new ConcurrentHashMap<>();
+    private final Map<Look, List<BakedQuad>> byLook = new ConcurrentHashMap<>();
     private final MaterialSkin skin;
 
     private MaterialItemModel(QuadCollection quads, ModelRenderProperties properties, Matrix4fc transformation, MaterialSkin skin) {
@@ -50,12 +50,16 @@ public final class MaterialItemModel implements ItemModel {
         this.extents = CuboidItemModelWrapper.computeExtents(quads.getAll());
     }
 
-    private List<BakedQuad> quadsFor(Identifier material) {
-        return byMaterial.computeIfAbsent(material, key -> {
-            TextureAtlasSprite sprite = MaterialTextures.spriteOf(key);
+    /** A material with the texture swaps of a stack. */
+    private record Look(Identifier material, Map<Identifier, Identifier> swaps) {
+    }
+
+    private List<BakedQuad> quadsFor(Look look) {
+        return byLook.computeIfAbsent(look, key -> {
+            TextureAtlasSprite sprite = MaterialTextures.spriteOf(key.material());
             List<BakedQuad> result = new ArrayList<>();
             for (BakedQuad quad : quads.getAll()) {
-                result.add(MaterialTextures.apply(quad, skin.placeholder(), sprite, Map.of()));
+                result.add(MaterialTextures.apply(quad, skin.placeholder(), sprite, key.swaps()));
             }
             return List.copyOf(result);
         });
@@ -64,14 +68,14 @@ public final class MaterialItemModel implements ItemModel {
     @Override
     public void update(ItemStackRenderState output, ItemStack item, ItemModelResolver resolver, ItemDisplayContext displayContext,
                        @Nullable ClientLevel level, @Nullable ItemOwner owner, int seed) {
-        Identifier material = skin.itemMaterial(item);
+        Look look = new Look(skin.itemMaterial(item), skin.itemSwaps(item));
         output.appendModelIdentityElement(this);
-        output.appendModelIdentityElement(material);
+        output.appendModelIdentityElement(look);
         ItemStackRenderState.LayerRenderState layer = output.newLayer();
         layer.setExtents(() -> extents);
         layer.setLocalTransform(transformation);
         properties.applyToLayer(layer, displayContext);
-        layer.prepareQuadList().addAll(quadsFor(material));
+        layer.prepareQuadList().addAll(quadsFor(look));
     }
 
     /** Read by the skin's item codec, see {@link MaterialSkin#itemCodec()}. */

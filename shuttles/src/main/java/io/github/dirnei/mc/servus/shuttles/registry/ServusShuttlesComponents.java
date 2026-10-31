@@ -7,6 +7,7 @@ import io.github.dirnei.mc.servus.shuttles.handheld.BasketEntry;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldBinding;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldMode;
 import io.github.dirnei.mc.servus.shuttles.handheld.ShelfBasket;
+import io.github.dirnei.mc.servus.shuttles.rail.RailCorrosion;
 import net.minecraft.core.BlockPos;
 import com.mojang.serialization.Codec;
 import io.netty.buffer.ByteBuf;
@@ -81,6 +82,12 @@ public final class ServusShuttlesComponents {
             COMPONENTS.registerComponentType("rack_wood", builder -> builder
                     .persistent(Identifier.CODEC)
                     .networkSynchronized(Identifier.STREAM_CODEC));
+
+    /** The corrosion stage and scrape progress a farm rail item keeps; missing means fresh copper. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<RailCorrosion>> RAIL_CORROSION =
+            COMPONENTS.registerComponentType("rail_corrosion", builder -> builder
+                    .persistent(RailCorrosion.CODEC)
+                    .networkSynchronized(RailCorrosion.STREAM_CODEC));
 
     /** The share of its shelf's fluid a Fluid Rack bay held, carried by its dropped item. */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<SimpleFluidContent>> RACK_FLUID =

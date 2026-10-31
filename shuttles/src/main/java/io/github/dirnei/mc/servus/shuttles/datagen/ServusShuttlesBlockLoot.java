@@ -24,7 +24,7 @@ final class ServusShuttlesBlockLoot extends BlockLootSubProvider {
             ServusShuttlesBlocks.STORAGE_TERMINAL.get(), ServusShuttlesBlocks.INBOUND_STATION.get(), ServusShuttlesBlocks.PACKING_STATION.get(),
             ServusShuttlesBlocks.SHUTTLE_GARAGE.get(), ServusShuttlesBlocks.OUTBOUND_STATION.get(), ServusShuttlesBlocks.CRAFTING_STATION.get(),
             ServusShuttlesBlocks.CRAFTING_CPU.get(), ServusShuttlesBlocks.CPU_BUFFER.get(), ServusShuttlesBlocks.PRODUCTION_TERMINAL.get(),
-            ServusShuttlesBlocks.FIELD_HEAD.get(), ServusShuttlesBlocks.RAIL.get(), ServusShuttlesBlocks.FARM_RAIL.get(),
+            ServusShuttlesBlocks.FIELD_HEAD.get(), ServusShuttlesBlocks.RAIL.get(),
             ServusShuttlesBlocks.SHUTTLE_WORKSHOP.get(), ServusShuttlesBlocks.ELEVATOR.get());
 
     ServusShuttlesBlockLoot(HolderLookup.Provider registries) {
@@ -55,6 +55,11 @@ final class ServusShuttlesBlockLoot extends BlockLootSubProvider {
         add(ServusShuttlesBlocks.HEAVY_RACK.get(), createSingleItemTable(ServusShuttlesBlocks.HEAVY_RACK.get())
                 .apply(CopyComponentsFunction.copyComponentsFromBlockEntity(LootContextParams.BLOCK_ENTITY)
                         .include(ServusShuttlesComponents.RACK_WOOD.get())));
+        // The farm rail keeps its corrosion stage and scrape progress.
+        add(ServusShuttlesBlocks.FARM_RAIL.get(), createSingleItemTable(ServusShuttlesBlocks.FARM_RAIL.get())
+                .apply(CopyComponentsFunction.copyComponentsFromBlockEntity(LootContextParams.BLOCK_ENTITY)
+                        .include(MaterialContent.MATERIAL.get())
+                        .include(ServusShuttlesComponents.RAIL_CORROSION.get())));
         // Pattern Storage keeps its patterns.
         add(ServusShuttlesBlocks.PATTERN_STORAGE.get(), createSingleItemTable(ServusShuttlesBlocks.PATTERN_STORAGE.get())
                 .apply(CopyComponentsFunction.copyComponentsFromBlockEntity(LootContextParams.BLOCK_ENTITY)
@@ -68,6 +73,7 @@ final class ServusShuttlesBlockLoot extends BlockLootSubProvider {
         known.add(ServusShuttlesBlocks.WAREHOUSE_CONTROLLER.get());
         known.add(ServusShuttlesBlocks.HEAVY_RACK.get());
         known.add(ServusShuttlesBlocks.PATTERN_STORAGE.get());
+        known.add(ServusShuttlesBlocks.FARM_RAIL.get());
         known.add(ServusShuttlesBlocks.BUFFER_STOP.get());
         return known;
     }

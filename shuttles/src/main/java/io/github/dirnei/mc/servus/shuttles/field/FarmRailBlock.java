@@ -5,8 +5,8 @@ import net.minecraft.world.InteractionResult;
 import com.mojang.serialization.MapCodec;
 import io.github.dirnei.mc.servus.shuttles.rail.RailBlock;
 import io.github.dirnei.mc.servus.shuttles.rail.RailBlockEntity;
-import java.util.Collection;
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
@@ -18,7 +18,6 @@ import net.minecraft.world.level.block.LevelEvent;
 import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.neoforge.common.ItemAbilities;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -26,8 +25,8 @@ import net.minecraft.world.level.block.state.BlockState;
 /**
  * A Warehouse Rail for fields: it is a rail in every way, and a connected run
  * of farm rails is one field that a Field Head waters and watches. Placing or
- * removing one tells the Field Heads around it. Its copper corrodes with the
- * field (see {@link FieldCorrosion}); an axe scrapes the field back.
+ * removing one tells the Field Heads around it. Each rail's copper corrodes
+ * while it is watered (see {@link FieldCorrosion}); an axe scrapes the field back.
  */
 public class FarmRailBlock extends RailBlock {
 
@@ -51,9 +50,10 @@ public class FarmRailBlock extends RailBlock {
     }
 
     /**
-     * An axe scrapes the whole field back one stage, {@code axe_damage_per_rail} durability per rail;
-     * an axe with too little durability left does nothing and says what the
-     * field needs. Fresh copper passes the click on.
+     * An axe scrapes the rails of the field outward from the clicked rail, each
+     * one stage back for {@code axe_damage_per_rail} durability; a worn axe
+     * spends what it has left and the rest stays on the next rail as progress.
+     * A field of fresh copper passes the click on.
      */
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
@@ -61,76 +61,44 @@ public class FarmRailBlock extends RailBlock {
         if (!stack.canPerformAction(ItemAbilities.AXE_SCRAPE)) {
             return super.useItemOn(stack, state, level, pos, player, hand, hitResult);
         }
-        if (!(level.getBlockEntity(pos) instanceof RailBlockEntity clicked)) {
+        FieldGraph.Result<BlockPos> field = FieldHeads.field(level, pos);
+        if (field.tooLarge()) {
+            if (!level.isClientSide()) {
+                player.sendOverlayMessage(Component.translatable("message.servus_shuttles.farm_rail.too_large"));
+            }
+            return InteractionResult.CONSUME;
+        }
+        List<RailBlockEntity> rails = new ArrayList<>(field.members().size());
+        for (BlockPos rail : field.members()) {
+            if (level.getBlockEntity(rail) instanceof RailBlockEntity entity) {
+                rails.add(entity);
+            }
+        }
+        if (rails.stream().noneMatch(rail -> rail.corrosion() > FieldCorrosion.COPPER)) {
             return InteractionResult.TRY_WITH_EMPTY_HAND;
         }
         if (level.isClientSide()) {
-            return clicked.corrosion() > FieldCorrosion.COPPER
-                    ? InteractionResult.SUCCESS : InteractionResult.TRY_WITH_EMPTY_HAND;
+            return InteractionResult.SUCCESS;
         }
-        Optional<FieldHeadBlockEntity> head = FieldHeads.servingAt(level, pos);
-        Collection<BlockPos> rails;
-        int stage;
-        if (head.isPresent()) {
-            rails = head.get().rails();
-            stage = head.get().corrosion();
-        } else {
-            FieldGraph.Result<BlockPos> field = FieldHeads.field(level, pos);
-            if (field.tooLarge()) {
-                player.sendOverlayMessage(Component.translatable("message.servus_shuttles.farm_rail.too_large"));
-                return InteractionResult.CONSUME;
+        int budget = stack.isDamageableItem() ? stack.getMaxDamage() - stack.getDamageValue() : -1;
+        FieldCorrosion.Scrape plan = FieldCorrosion.scrape(rails.stream().map(RailBlockEntity::corrosion).toList(),
+                rails.stream().map(RailBlockEntity::scrapeProgress).toList(), ShuttlesStatsManager.INSTANCE.axeDamagePerRail(), budget);
+        for (int i = 0; i < rails.size(); i++) {
+            RailBlockEntity rail = rails.get(i);
+            if (plan.stages()[i] != rail.corrosion()) {
+                level.levelEvent(null, LevelEvent.PARTICLES_SCRAPE, rail.getBlockPos(), 0);
             }
-            rails = field.members();
-            stage = clicked.corrosion();
-        }
-        if (stage <= FieldCorrosion.COPPER) {
-            return InteractionResult.TRY_WITH_EMPTY_HAND;
-        }
-        int count = rails.size();
-        int damage = FieldCorrosion.axeDamage(count, ShuttlesStatsManager.INSTANCE.axeDamagePerRail());
-        if (!FieldCorrosion.axeCanScrape(stack.isDamageableItem(), stack.getMaxDamage() - stack.getDamageValue(), damage)) {
-            player.sendOverlayMessage(Component.translatable("message.servus_shuttles.farm_rail.axe_worn", count, damage));
-            return InteractionResult.CONSUME;
-        }
-        int younger = FieldCorrosion.previous(stage);
-        if (head.isPresent()) {
-            head.get().setStage(younger);
-        } else {
-            for (BlockPos rail : rails) {
-                if (level.getBlockEntity(rail) instanceof RailBlockEntity entity) {
-                    entity.setCorrosion(younger);
-                }
-            }
+            rail.setCorrosion(plan.stages()[i], plan.progress()[i]);
         }
         level.playSound(null, pos, SoundEvents.AXE_SCRAPE, SoundSource.BLOCKS, 1.0F, 1.0F);
-        for (BlockPos rail : rails) {
-            level.levelEvent(null, LevelEvent.PARTICLES_SCRAPE, rail, 0);
+        player.sendOverlayMessage(plan.left() > 0
+                ? Component.translatable("message.servus_shuttles.farm_rail.scraped_left", plan.scraped(), plan.left())
+                : Component.translatable("message.servus_shuttles.farm_rail.scraped", plan.scraped()));
+        FieldHeads.servingAt(level, pos).ifPresent(FieldHeadBlockEntity::railsChanged);
+        if (plan.spent() > 0) {
+            stack.hurtAndBreak(plan.spent(), player, hand.asEquipmentSlot());
         }
-        stack.hurtAndBreak(damage, player, hand.asEquipmentSlot());
         return InteractionResult.SUCCESS;
-    }
-
-    /**
-     * The rail's tick after a change (see {@link RailBlock}): a loose rail, one
-     * placed since it last was in a field, joins the stage of the farm rails
-     * beside it. Placement itself cannot do this, the block entity comes after.
-     */
-    @Override
-    protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-        super.tick(state, level, pos, random);
-        if (level.getBlockEntity(pos) instanceof RailBlockEntity rail && rail.corrosion() == FieldCorrosion.LOOSE
-                && besideStagedRail(level, pos)) {
-            FieldHeads.loosePlaced(level, pos);
-        }
-    }
-
-    private static boolean besideStagedRail(Level level, BlockPos pos) {
-        for (BlockPos next : FieldHeads.farmNeighbours(level, pos)) {
-            if (level.getBlockEntity(next) instanceof RailBlockEntity rail && rail.corrosion() != FieldCorrosion.LOOSE) {
-                return true;
-            }
-        }
-        return false;
     }
 
     @Override

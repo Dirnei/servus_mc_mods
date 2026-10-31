@@ -1,7 +1,6 @@
 {
   "model": {
-    "type": "servus_foundation:material",
-    "kind": "wood",
+    "type": "servus_shuttles:farm_rail",
     "model": "servus_shuttles:item/farm_rail"
   }
 }

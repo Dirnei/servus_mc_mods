@@ -9,6 +9,8 @@ import io.github.dirnei.mc.servus.foundation.material.MaterialContent;
 import io.github.dirnei.mc.servus.foundation.material.MaterialHolder;
 import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.field.FieldCorrosion;
+import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesComponents;
+import io.github.dirnei.mc.servus.shuttles.rail.RailCorrosion;
 import io.github.dirnei.mc.servus.shuttles.field.FieldHeadBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.field.FieldStatus;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseNetwork;
@@ -251,7 +253,8 @@ public final class BufferStopGameTests {
         BlockState before = helper.getBlockState(FIELD_STOP);
         helper.runAfterDelay(3, () -> {
             head.age(ShuttlesStatsManager.INSTANCE.fieldCorrosionWater());
-            helper.assertTrue(head.corrosion() == FieldCorrosion.EXPOSED, "the field ages, got " + head.corrosion());
+            int exposed = head.stageCounts()[FieldCorrosion.EXPOSED];
+            helper.assertTrue(exposed > 0, "the field ages, got " + exposed + " exposed rails");
             helper.assertTrue(helper.getBlockState(FIELD_STOP) == before, "the stop is unchanged, got " + helper.getBlockState(FIELD_STOP));
             helper.assertTrue(helper.getBlockEntity(FIELD_STOP, BufferStopBlockEntity.class) != null, "the stop keeps its block entity");
             assertServesFiveRails(helper, head);
@@ -284,6 +287,22 @@ public final class BufferStopGameTests {
         helper.assertTrue(result.is(ServusShuttlesItems.BUFFER_STOP.get()) && result.getCount() == 1, "one Buffer Stop, got " + result);
         helper.assertTrue(OAK.equals(result.get(MaterialContent.MATERIAL.get())), "the stop is oak, got " + result.get(MaterialContent.MATERIAL.get()));
         helper.assertTrue(BufferStopBlock.railOf(result) == BufferStopBlock.Rail.FARM, "the stop remembers the Farm Rail, got " + BufferStopBlock.railOf(result));
+        helper.succeed();
+    }
+
+    /** A weathered oak Farm Rail still crafts an oak Buffer Stop with fresh copper heads. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void corrodedFarmRailCraftsAFreshStop(GameTestHelper helper) {
+        ItemStack rail = new ItemStack(ServusShuttlesItems.FARM_RAIL.get());
+        rail.set(MaterialContent.MATERIAL.get(), OAK);
+        rail.set(ServusShuttlesComponents.RAIL_CORROSION.get(), new RailCorrosion(FieldCorrosion.WEATHERED, 0));
+        ItemStack iron = new ItemStack(Items.IRON_INGOT);
+        ItemStack result = BlockStyleGameTests.craft(helper, "buffer_stop_from_farm_rail", 3, 2,
+                List.of(iron, iron.copy(), iron.copy(), ItemStack.EMPTY, rail, ItemStack.EMPTY));
+        helper.assertTrue(result.is(ServusShuttlesItems.BUFFER_STOP.get()) && result.getCount() == 1, "one Buffer Stop, got " + result);
+        helper.assertTrue(BufferStopBlock.railOf(result) == BufferStopBlock.Rail.FARM, "the stop remembers the Farm Rail, got " + BufferStopBlock.railOf(result));
+        helper.assertTrue(OAK.equals(result.get(MaterialContent.MATERIAL.get())), "the stop is oak, got " + result.get(MaterialContent.MATERIAL.get()));
+        helper.assertTrue(!result.has(ServusShuttlesComponents.RAIL_CORROSION.get()), "the stop carries no corrosion, got " + result.get(ServusShuttlesComponents.RAIL_CORROSION.get()));
         helper.succeed();
     }
 
