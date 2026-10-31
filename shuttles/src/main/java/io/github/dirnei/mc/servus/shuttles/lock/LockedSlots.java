@@ -110,6 +110,11 @@ public class LockedSlots extends ItemSlots {
     protected void onLocksChanged() {
     }
 
+    /** The job acting through its own locks right now, 0 while none is. */
+    protected int actingJob() {
+        return acting;
+    }
+
     /** The locks of a slot, growing the table to the slot count first. */
     private List<SlotLock> at(int slot) {
         while (locks.size() < getSlots()) {

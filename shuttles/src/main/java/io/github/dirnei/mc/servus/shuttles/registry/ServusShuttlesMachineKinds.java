@@ -19,6 +19,7 @@ public final class ServusShuttlesMachineKinds {
             ChatFormatting.AQUA);
     public static final MachineKind CRAFTING_STATION = kind(ServusShuttlesBlocks.CRAFTING_STATION);
     public static final MachineKind CRAFTING_CPU = kind(ServusShuttlesBlocks.CRAFTING_CPU);
+    public static final MachineKind PARCEL_LOCKER = kind(ServusShuttlesBlocks.PARCEL_LOCKER);
 
     private ServusShuttlesMachineKinds() {
     }
@@ -28,7 +29,7 @@ public final class ServusShuttlesMachineKinds {
     }
 
     public static void register() {
-        List.of(INBOUND_STATION, OUTBOUND_STATION, PACKING_STATION, FIELD_HEAD, SHUTTLE_GARAGE, ELEVATOR, CRAFTING_STATION, CRAFTING_CPU)
+        List.of(INBOUND_STATION, OUTBOUND_STATION, PACKING_STATION, FIELD_HEAD, SHUTTLE_GARAGE, ELEVATOR, CRAFTING_STATION, CRAFTING_CPU, PARCEL_LOCKER)
                 .forEach(MachineKinds::register);
     }
 }

@@ -12,6 +12,9 @@ import io.github.dirnei.mc.servus.shuttles.handheld.HandheldBasketPayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldBinding;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldFindPayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldInfoPayload;
+import io.github.dirnei.mc.servus.shuttles.handheld.HandheldLockersPayload;
+import io.github.dirnei.mc.servus.shuttles.handheld.HandheldPickerPayload;
+import io.github.dirnei.mc.servus.shuttles.handheld.HandheldRequestPayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldMode;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldModePayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldRelocatePayload;
@@ -59,7 +62,9 @@ import org.lwjgl.glfw.GLFW;
  * scanned shelf above its items and the shelf basket, with Clear and
  * Relocate, which waits for the target shelf; a Fluid Rack shelf shows only
  * its readout. STOCK lists the bound warehouse's stock above the warehouse
- * basket, with Clear. In both lists a click on an item adds it to the basket
+ * basket, with Clear and Request, which opens the locker picker: the
+ * warehouse's Parcel Lockers nearest first, the nearest that takes the order
+ * selected, with Send and Cancel. In both lists a click on an item adds it to the basket
  * through an amount popup (shift click adds a stack), a right click lights up
  * its shelves; a click on a basket cell edits its amount, a right click
  * removes it.
@@ -90,6 +95,8 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
     private static final int BUTTON_Y = SCREEN_Y + SCREEN_H - 14;
     private static final int ROW = 11;
     private static final int ZONE_ROWS = 10;
+    /** Locker rows the picker shows, leaving room for the reason line and the buttons. */
+    private static final int PICKER_ROWS = 9;
     private static final int LIST_Y = TOP + 12;
     private static final int CELL = 19;
     private static final float COUNT_SCALE = 0.75F;
@@ -120,7 +127,8 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
         ZONES,
         FORM,
         INFO,
-        STOCK
+        STOCK,
+        PICKER
     }
 
     /** An item grid on the screen: its top, how many rows show, and its items with their counts. */
@@ -156,6 +164,8 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
     private final BasketAmountPopup amountPopup;
     /** Until when the basket full note shows, in milliseconds. */
     private long basketFullUntil;
+    /** The locker picker REQUEST opened, null while it is closed. */
+    private LockerPicker lockerPicker;
 
     public HandheldScreen(HandheldMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title, WIDTH, HEIGHT);
@@ -178,7 +188,7 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
         return switch (view) {
             case ZONES, FORM -> HandheldMode.ZONE;
             case INFO -> HandheldMode.INFO;
-            case STOCK -> HandheldMode.STOCK;
+            case STOCK, PICKER -> HandheldMode.STOCK;
         };
     }
 
@@ -228,6 +238,9 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
     private void show(View next) {
         view = next;
         scroll = 0;
+        if (view != View.PICKER) {
+            lockerPicker = null;
+        }
         confirmDelete = ZoneList.NONE;
         search.visible = view == View.ZONES || view == View.STOCK && menu.bound();
         search.setValue("");
@@ -249,7 +262,15 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
                 addButton(relocateX, "relocate", this::basketShown, () -> !basket().isEmpty() && menu.bound(),
                         () -> ClientPacketDistributor.sendToServer(HandheldRelocatePayload.INSTANCE));
             }
-            case STOCK -> addClearButton();
+            case STOCK -> {
+                addClearButton();
+                int requestX = LEFT + font.width(Component.translatable(KEY + "basket_clear")) + 10;
+                addButton(requestX, "request", this::basketShown, () -> !basket().isEmpty(), this::openPicker);
+            }
+            case PICKER -> {
+                addButton(LEFT, "send", () -> lockerPicker != null && lockerPicker.chosen().isPresent(), this::send);
+                addButton(LEFT + font.width(Component.translatable(KEY + "send")) + 10, "cancel", () -> true, () -> show(View.STOCK));
+            }
         }
         setFocused(view == View.FORM ? name : search.visible ? search : null);
     }
@@ -392,6 +413,7 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
             case FORM -> drawForm(graphics, mouseX, mouseY);
             case INFO -> drawInfo(graphics, mouseX, mouseY);
             case STOCK -> drawStock(graphics, mouseX, mouseY);
+            case PICKER -> drawPicker(graphics, mouseX, mouseY);
         }
         for (CrtButton button : buttons) {
             if (button.shown().getAsBoolean()) {
@@ -585,6 +607,67 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
             drawGrid(graphics, grid, mouseX, mouseY);
         });
         drawBasket(graphics, mouseX, mouseY);
+    }
+
+    /** REQUEST: asks the server for the lockers and shows the picker while it waits. */
+    private void openPicker() {
+        ClientHandheld.takeLockers();
+        ClientPacketDistributor.sendToServer(HandheldPickerPayload.INSTANCE);
+        show(View.PICKER);
+        lockerPicker = new LockerPicker();
+    }
+
+    /** SEND: orders the basket to the chosen locker; the server empties the basket. */
+    private void send() {
+        if (lockerPicker == null) {
+            return;
+        }
+        lockerPicker.chosen().ifPresent(dock -> {
+            ClientPacketDistributor.sendToServer(new HandheldRequestPayload(dock));
+            ClientHandheld.forgetParcel();
+            onClose();
+        });
+    }
+
+    /** The locker picker: the lockers nearest first, with distance and free boxes, greyed when they cannot take the order. */
+    private void drawPicker(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        drawBar(graphics, Component.translatable(KEY + "view.picker"), "");
+        if (lockerPicker == null) {
+            return;
+        }
+        List<LockerPicker.Entry> entries = lockerPicker.entries();
+        for (int row = 0; row < Math.min(PICKER_ROWS, entries.size() - scroll); row++) {
+            int index = scroll + row;
+            LockerPicker.Entry entry = entries.get(index);
+            int top = y(TOP + 1 + row * ROW);
+            boolean selected = index == lockerPicker.selected();
+            boolean fits = entry.row().fits();
+            if (selected) {
+                graphics.fill(x(LEFT), top - 1, x(RIGHT), top + ROW - 1, LCD_TEXT);
+            } else if (fits && inside(mouseX, mouseY, x(LEFT), top - 1, CONTENT_W, ROW)) {
+                graphics.fill(x(LEFT), top - 1, x(RIGHT), top + ROW - 1, LCD_HOVER);
+            }
+            int colour = selected ? LCD : fits ? LCD_TEXT : LCD_LINE;
+            List<Integer> free = entry.row().free();
+            String right = Component.translatable(KEY + "picker.row", entry.distance(), free.get(0), free.get(1), free.get(2)).getString();
+            graphics.text(font, right, x(RIGHT) - 1 - font.width(right), top + 1, colour, false);
+            String label = font.plainSubstrByWidth(entry.row().label().getString(), CONTENT_W - font.width(right) - 8);
+            graphics.text(font, label, x(LEFT) + 2, top + 1, colour, false);
+        }
+        String reason = lockerPicker.reason();
+        if (!reason.isEmpty()) {
+            graphics.text(font, font.plainSubstrByWidth(Component.translatable(KEY + reason).getString(), CONTENT_W), x(LEFT),
+                    y(BUTTON_Y - ROW - 2), LCD_TEXT, false);
+        }
+    }
+
+    /** A click on a picker row selects that locker when it takes the order. */
+    private boolean clickPicker(double mouseX, double mouseY) {
+        if (lockerPicker == null || !inside(mouseX, mouseY, x(LEFT), y(TOP), CONTENT_W, PICKER_ROWS * ROW)) {
+            return false;
+        }
+        lockerPicker.select(scroll + (int) ((mouseY - y(TOP)) / ROW));
+        return true;
     }
 
     /** The readout of the last scanned shelf: zone and slots, the zone's filter, then its items and the shelf basket. */
@@ -898,6 +981,9 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
             case FORM -> {
                 return clickForm(mouseX, mouseY);
             }
+            case PICKER -> {
+                return clickPicker(mouseX, mouseY);
+            }
             case INFO, STOCK -> {
                 Optional<ItemStack> item = hoveredGridItem(mouseX, mouseY);
                 if (item.isPresent()) {
@@ -971,6 +1057,7 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
         int lines = switch (view) {
             case ZONES -> zoneRows().size() + 1 - ZONE_ROWS;
             case INFO, STOCK -> grid().map(Grid::scrollLines).orElse(0);
+            case PICKER -> lockerPicker == null ? 0 : lockerPicker.entries().size() - PICKER_ROWS;
             case FORM -> 0;
         };
         if (lines > 0 && inside(mouseX, mouseY, x(SCREEN_X), y(SCREEN_Y), SCREEN_W, SCREEN_H)) {
@@ -986,6 +1073,10 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
             return true;
         }
         if (event.key() == GLFW.GLFW_KEY_ESCAPE) {
+            if (view == View.PICKER) {
+                show(View.STOCK);
+                return true;
+            }
             return super.keyPressed(event);
         }
         EditBox focused = getFocused() instanceof EditBox box && box.visible ? box : null;
@@ -1004,5 +1095,11 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
     protected void containerTick() {
         super.containerTick();
         amountPopup.tick();
+        if (lockerPicker != null && lockerPicker.waiting() && minecraft != null && minecraft.player != null) {
+            HandheldLockersPayload lockers = ClientHandheld.takeLockers();
+            if (lockers != null) {
+                lockerPicker.accept(lockers, minecraft.player.position());
+            }
+        }
     }
 }

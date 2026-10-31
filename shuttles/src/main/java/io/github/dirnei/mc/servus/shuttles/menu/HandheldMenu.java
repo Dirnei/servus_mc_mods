@@ -6,6 +6,7 @@ import io.github.dirnei.mc.servus.shuttles.handheld.HandheldBasketPayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldItem;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldMenuStatePayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldMode;
+import io.github.dirnei.mc.servus.shuttles.handheld.HandheldOrders;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldRelocation;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseNetwork;
@@ -205,6 +206,20 @@ public class HandheldMenu extends AbstractContainerMenu {
         }
         player.closeContainer();
         return true;
+    }
+
+    /** Server: REQUEST on STOCK, sends the lockers for the picker. */
+    public void openPicker(ServerPlayer player) {
+        if (HandheldActions.mode(handheld()) == HandheldMode.STOCK) {
+            PacketDistributor.sendToPlayer(player, HandheldOrders.lockers(player, handheld()));
+        }
+    }
+
+    /** Server: SEND in the locker picker, orders the STOCK basket to the locker at {@code dock}. */
+    public void request(ServerPlayer player, BlockPos dock) {
+        if (HandheldActions.mode(handheld()) == HandheldMode.STOCK) {
+            HandheldOrders.request(player, handheld(), dock);
+        }
     }
 
     private static boolean ownZone(ServerPlayer player, int id) {

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "C": "minecraft:chest",
+    "D": "servus_foundation:data_cable",
+    "I": "minecraft:iron_ingot",
+    "O": "servus_shuttles:outbound_station",
+    "Y": "minecraft:yellow_dye"
+  },
+  "pattern": [
+    "YIY",
+    "CDC",
+    "IOI"
+  ],
+  "result": {
+    "id": "servus_shuttles:parcel_locker"
+  }
+}

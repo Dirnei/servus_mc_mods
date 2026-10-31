@@ -16,6 +16,7 @@
     "servus_shuttles:farm_rail",
     "servus_shuttles:field_head",
     "servus_shuttles:fluid_inbound",
-    "servus_shuttles:fluid_outbound"
+    "servus_shuttles:fluid_outbound",
+    "servus_shuttles:parcel_locker"
   ]
 }

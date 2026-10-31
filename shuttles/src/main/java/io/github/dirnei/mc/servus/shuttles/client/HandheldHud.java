@@ -6,6 +6,7 @@ import io.github.dirnei.mc.servus.shuttles.handheld.HandheldBinding;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldFindResultPayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldInfoPayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldMode;
+import io.github.dirnei.mc.servus.shuttles.handheld.HandheldParcelPayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldRelocation;
 import io.github.dirnei.mc.servus.shuttles.handheld.ShelfBasket;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlockEntity;
@@ -36,7 +37,8 @@ import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
  * aimed at; the lines below show what the mode describes. INFO shows the
  * last scanned shelf, never the one only aimed at; STOCK shows the binding
  * and the last find. In pick target mode INFO says to scan the target shelf
- * and shows the relocation's size and the shelf aimed at.
+ * and shows the relocation's size and the shelf aimed at. A ready parcel
+ * names its locker and boxes.
  */
 @EventBusSubscriber(modid = ServusShuttlesIds.MOD_ID, value = Dist.CLIENT)
 public final class HandheldHud {
@@ -91,12 +93,27 @@ public final class HandheldHud {
         }
         HandheldMode mode = handheld.getOrDefault(ServusShuttlesComponents.HANDHELD_MODE.get(), HandheldMode.ZONE);
         StorageNodeBlockEntity aimed = ClientHandheld.aimedBay();
-        List<Line> lines = switch (mode) {
+        List<Line> lines = new ArrayList<>(switch (mode) {
             case ZONE -> zoneLines(handheld, aimed);
             case INFO -> HandheldRelocation.pickingTarget(handheld) ? pickTargetLines(handheld, aimed) : infoLines();
             case STOCK -> stockLines(handheld);
-        };
+        });
+        addParcelLines(lines, mode);
         draw(graphics, minecraft.font, mode, aimed, lines);
+    }
+
+    /** A ready parcel: right below the binding in STOCK, at the end in the other modes while there is room. */
+    private static void addParcelLines(List<Line> lines, HandheldMode mode) {
+        HandheldParcelPayload parcel = ClientHandheld.readyParcel();
+        if (parcel == null) {
+            return;
+        }
+        List<Line> parcelLines = List.of(Line.of(tr("parcel_ready")), Line.dim(parcel.locker().getString() + " " + parcel.boxes()));
+        if (mode == HandheldMode.STOCK) {
+            lines.addAll(Math.min(1, lines.size()), parcelLines);
+        } else if (lines.size() + parcelLines.size() <= LINES) {
+            lines.addAll(parcelLines);
+        }
     }
 
     private static void draw(GuiGraphicsExtractor graphics, Font font, HandheldMode mode, StorageNodeBlockEntity aimed, List<Line> lines) {

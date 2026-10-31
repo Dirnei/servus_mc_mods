@@ -1,0 +1,1813 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_s_column_low"
+      },
+      "when": {
+        "facing": "north",
+        "part": "s_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s03_off"
+      },
+      "when": {
+        "facing": "north",
+        "lamp_top": "off",
+        "part": "s_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s03_reserved"
+      },
+      "when": {
+        "facing": "north",
+        "lamp_top": "reserved",
+        "part": "s_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s03_ready"
+      },
+      "when": {
+        "facing": "north",
+        "lamp_top": "ready",
+        "part": "s_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s04_off"
+      },
+      "when": {
+        "facing": "north",
+        "lamp_bottom": "off",
+        "part": "s_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s04_reserved"
+      },
+      "when": {
+        "facing": "north",
+        "lamp_bottom": "reserved",
+        "part": "s_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s04_ready"
+      },
+      "when": {
+        "facing": "north",
+        "lamp_bottom": "ready",
+        "part": "s_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_s_column_high"
+      },
+      "when": {
+        "facing": "north",
+        "part": "s_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s01_off"
+      },
+      "when": {
+        "facing": "north",
+        "lamp_top": "off",
+        "part": "s_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s01_reserved"
+      },
+      "when": {
+        "facing": "north",
+        "lamp_top": "reserved",
+        "part": "s_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s01_ready"
+      },
+      "when": {
+        "facing": "north",
+        "lamp_top": "ready",
+        "part": "s_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s02_off"
+      },
+      "when": {
+        "facing": "north",
+        "lamp_bottom": "off",
+        "part": "s_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s02_reserved"
+      },
+      "when": {
+        "facing": "north",
+        "lamp_bottom": "reserved",
+        "part": "s_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s02_ready"
+      },
+      "when": {
+        "facing": "north",
+        "lamp_bottom": "ready",
+        "part": "s_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_mixed_low"
+      },
+      "when": {
+        "facing": "north",
+        "part": "mixed_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_m01_off"
+      },
+      "when": {
+        "facing": "north",
+        "lamp_top": "off",
+        "part": "mixed_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_m01_reserved"
+      },
+      "when": {
+        "facing": "north",
+        "lamp_top": "reserved",
+        "part": "mixed_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_m01_ready"
+      },
+      "when": {
+        "facing": "north",
+        "lamp_top": "ready",
+        "part": "mixed_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_mixed_high"
+      },
+      "when": {
+        "facing": "north",
+        "part": "mixed_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s05_off"
+      },
+      "when": {
+        "facing": "north",
+        "lamp_top": "off",
+        "part": "mixed_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s05_reserved"
+      },
+      "when": {
+        "facing": "north",
+        "lamp_top": "reserved",
+        "part": "mixed_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s05_ready"
+      },
+      "when": {
+        "facing": "north",
+        "lamp_top": "ready",
+        "part": "mixed_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s06_off"
+      },
+      "when": {
+        "facing": "north",
+        "lamp_bottom": "off",
+        "part": "mixed_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s06_reserved"
+      },
+      "when": {
+        "facing": "north",
+        "lamp_bottom": "reserved",
+        "part": "mixed_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s06_ready"
+      },
+      "when": {
+        "facing": "north",
+        "lamp_bottom": "ready",
+        "part": "mixed_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_head_dock"
+      },
+      "when": {
+        "facing": "north",
+        "part": "head_dock"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_dock_off"
+      },
+      "when": {
+        "facing": "north",
+        "lamp_top": "off",
+        "part": "head_dock"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_dock_reserved"
+      },
+      "when": {
+        "facing": "north",
+        "lamp_top": "reserved",
+        "part": "head_dock"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_dock_ready"
+      },
+      "when": {
+        "facing": "north",
+        "lamp_top": "ready",
+        "part": "head_dock"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_head_screen"
+      },
+      "when": {
+        "facing": "north",
+        "part": "head_screen"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_m_column_low"
+      },
+      "when": {
+        "facing": "north",
+        "part": "m_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_m03_off"
+      },
+      "when": {
+        "facing": "north",
+        "lamp_top": "off",
+        "part": "m_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_m03_reserved"
+      },
+      "when": {
+        "facing": "north",
+        "lamp_top": "reserved",
+        "part": "m_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_m03_ready"
+      },
+      "when": {
+        "facing": "north",
+        "lamp_top": "ready",
+        "part": "m_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_m_column_high"
+      },
+      "when": {
+        "facing": "north",
+        "part": "m_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_m02_off"
+      },
+      "when": {
+        "facing": "north",
+        "lamp_top": "off",
+        "part": "m_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_m02_reserved"
+      },
+      "when": {
+        "facing": "north",
+        "lamp_top": "reserved",
+        "part": "m_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_m02_ready"
+      },
+      "when": {
+        "facing": "north",
+        "lamp_top": "ready",
+        "part": "m_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_l_low"
+      },
+      "when": {
+        "facing": "north",
+        "part": "l_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_l_high"
+      },
+      "when": {
+        "facing": "north",
+        "part": "l_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_l01_off"
+      },
+      "when": {
+        "facing": "north",
+        "lamp_top": "off",
+        "part": "l_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_l01_reserved"
+      },
+      "when": {
+        "facing": "north",
+        "lamp_top": "reserved",
+        "part": "l_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_l01_ready"
+      },
+      "when": {
+        "facing": "north",
+        "lamp_top": "ready",
+        "part": "l_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_s_column_low",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "part": "s_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s03_off",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "lamp_top": "off",
+        "part": "s_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s03_reserved",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "lamp_top": "reserved",
+        "part": "s_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s03_ready",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "lamp_top": "ready",
+        "part": "s_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s04_off",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "lamp_bottom": "off",
+        "part": "s_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s04_reserved",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "lamp_bottom": "reserved",
+        "part": "s_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s04_ready",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "lamp_bottom": "ready",
+        "part": "s_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_s_column_high",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "part": "s_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s01_off",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "lamp_top": "off",
+        "part": "s_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s01_reserved",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "lamp_top": "reserved",
+        "part": "s_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s01_ready",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "lamp_top": "ready",
+        "part": "s_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s02_off",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "lamp_bottom": "off",
+        "part": "s_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s02_reserved",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "lamp_bottom": "reserved",
+        "part": "s_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s02_ready",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "lamp_bottom": "ready",
+        "part": "s_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_mixed_low",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "part": "mixed_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_m01_off",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "lamp_top": "off",
+        "part": "mixed_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_m01_reserved",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "lamp_top": "reserved",
+        "part": "mixed_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_m01_ready",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "lamp_top": "ready",
+        "part": "mixed_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_mixed_high",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "part": "mixed_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s05_off",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "lamp_top": "off",
+        "part": "mixed_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s05_reserved",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "lamp_top": "reserved",
+        "part": "mixed_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s05_ready",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "lamp_top": "ready",
+        "part": "mixed_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s06_off",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "lamp_bottom": "off",
+        "part": "mixed_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s06_reserved",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "lamp_bottom": "reserved",
+        "part": "mixed_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s06_ready",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "lamp_bottom": "ready",
+        "part": "mixed_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_head_dock",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "part": "head_dock"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_dock_off",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "lamp_top": "off",
+        "part": "head_dock"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_dock_reserved",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "lamp_top": "reserved",
+        "part": "head_dock"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_dock_ready",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "lamp_top": "ready",
+        "part": "head_dock"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_head_screen",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "part": "head_screen"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_m_column_low",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "part": "m_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_m03_off",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "lamp_top": "off",
+        "part": "m_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_m03_reserved",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "lamp_top": "reserved",
+        "part": "m_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_m03_ready",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "lamp_top": "ready",
+        "part": "m_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_m_column_high",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "part": "m_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_m02_off",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "lamp_top": "off",
+        "part": "m_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_m02_reserved",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "lamp_top": "reserved",
+        "part": "m_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_m02_ready",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "lamp_top": "ready",
+        "part": "m_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_l_low",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "part": "l_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_l_high",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "part": "l_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_l01_off",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "lamp_top": "off",
+        "part": "l_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_l01_reserved",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "lamp_top": "reserved",
+        "part": "l_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_l01_ready",
+        "y": 90
+      },
+      "when": {
+        "facing": "east",
+        "lamp_top": "ready",
+        "part": "l_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_s_column_low",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "part": "s_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s03_off",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "lamp_top": "off",
+        "part": "s_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s03_reserved",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "lamp_top": "reserved",
+        "part": "s_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s03_ready",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "lamp_top": "ready",
+        "part": "s_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s04_off",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "lamp_bottom": "off",
+        "part": "s_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s04_reserved",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "lamp_bottom": "reserved",
+        "part": "s_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s04_ready",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "lamp_bottom": "ready",
+        "part": "s_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_s_column_high",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "part": "s_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s01_off",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "lamp_top": "off",
+        "part": "s_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s01_reserved",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "lamp_top": "reserved",
+        "part": "s_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s01_ready",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "lamp_top": "ready",
+        "part": "s_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s02_off",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "lamp_bottom": "off",
+        "part": "s_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s02_reserved",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "lamp_bottom": "reserved",
+        "part": "s_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s02_ready",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "lamp_bottom": "ready",
+        "part": "s_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_mixed_low",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "part": "mixed_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_m01_off",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "lamp_top": "off",
+        "part": "mixed_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_m01_reserved",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "lamp_top": "reserved",
+        "part": "mixed_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_m01_ready",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "lamp_top": "ready",
+        "part": "mixed_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_mixed_high",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "part": "mixed_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s05_off",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "lamp_top": "off",
+        "part": "mixed_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s05_reserved",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "lamp_top": "reserved",
+        "part": "mixed_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s05_ready",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "lamp_top": "ready",
+        "part": "mixed_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s06_off",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "lamp_bottom": "off",
+        "part": "mixed_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s06_reserved",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "lamp_bottom": "reserved",
+        "part": "mixed_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s06_ready",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "lamp_bottom": "ready",
+        "part": "mixed_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_head_dock",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "part": "head_dock"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_dock_off",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "lamp_top": "off",
+        "part": "head_dock"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_dock_reserved",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "lamp_top": "reserved",
+        "part": "head_dock"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_dock_ready",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "lamp_top": "ready",
+        "part": "head_dock"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_head_screen",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "part": "head_screen"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_m_column_low",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "part": "m_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_m03_off",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "lamp_top": "off",
+        "part": "m_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_m03_reserved",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "lamp_top": "reserved",
+        "part": "m_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_m03_ready",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "lamp_top": "ready",
+        "part": "m_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_m_column_high",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "part": "m_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_m02_off",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "lamp_top": "off",
+        "part": "m_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_m02_reserved",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "lamp_top": "reserved",
+        "part": "m_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_m02_ready",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "lamp_top": "ready",
+        "part": "m_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_l_low",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "part": "l_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_l_high",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "part": "l_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_l01_off",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "lamp_top": "off",
+        "part": "l_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_l01_reserved",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "lamp_top": "reserved",
+        "part": "l_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_l01_ready",
+        "y": 180
+      },
+      "when": {
+        "facing": "south",
+        "lamp_top": "ready",
+        "part": "l_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_s_column_low",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "part": "s_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s03_off",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "lamp_top": "off",
+        "part": "s_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s03_reserved",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "lamp_top": "reserved",
+        "part": "s_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s03_ready",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "lamp_top": "ready",
+        "part": "s_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s04_off",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "lamp_bottom": "off",
+        "part": "s_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s04_reserved",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "lamp_bottom": "reserved",
+        "part": "s_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s04_ready",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "lamp_bottom": "ready",
+        "part": "s_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_s_column_high",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "part": "s_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s01_off",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "lamp_top": "off",
+        "part": "s_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s01_reserved",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "lamp_top": "reserved",
+        "part": "s_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s01_ready",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "lamp_top": "ready",
+        "part": "s_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s02_off",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "lamp_bottom": "off",
+        "part": "s_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s02_reserved",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "lamp_bottom": "reserved",
+        "part": "s_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s02_ready",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "lamp_bottom": "ready",
+        "part": "s_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_mixed_low",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "part": "mixed_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_m01_off",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "lamp_top": "off",
+        "part": "mixed_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_m01_reserved",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "lamp_top": "reserved",
+        "part": "mixed_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_m01_ready",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "lamp_top": "ready",
+        "part": "mixed_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_mixed_high",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "part": "mixed_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s05_off",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "lamp_top": "off",
+        "part": "mixed_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s05_reserved",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "lamp_top": "reserved",
+        "part": "mixed_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s05_ready",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "lamp_top": "ready",
+        "part": "mixed_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s06_off",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "lamp_bottom": "off",
+        "part": "mixed_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s06_reserved",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "lamp_bottom": "reserved",
+        "part": "mixed_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_s06_ready",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "lamp_bottom": "ready",
+        "part": "mixed_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_head_dock",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "part": "head_dock"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_dock_off",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "lamp_top": "off",
+        "part": "head_dock"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_dock_reserved",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "lamp_top": "reserved",
+        "part": "head_dock"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_dock_ready",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "lamp_top": "ready",
+        "part": "head_dock"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_head_screen",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "part": "head_screen"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_m_column_low",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "part": "m_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_m03_off",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "lamp_top": "off",
+        "part": "m_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_m03_reserved",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "lamp_top": "reserved",
+        "part": "m_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_m03_ready",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "lamp_top": "ready",
+        "part": "m_column_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_m_column_high",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "part": "m_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_m02_off",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "lamp_top": "off",
+        "part": "m_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_m02_reserved",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "lamp_top": "reserved",
+        "part": "m_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_m02_ready",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "lamp_top": "ready",
+        "part": "m_column_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_l_low",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "part": "l_low"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_l_high",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "part": "l_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_l01_off",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "lamp_top": "off",
+        "part": "l_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_l01_reserved",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "lamp_top": "reserved",
+        "part": "l_high"
+      }
+    },
+    {
+      "apply": {
+        "model": "servus_shuttles:block/parcel_locker_lamp_l01_ready",
+        "y": 270
+      },
+      "when": {
+        "facing": "west",
+        "lamp_top": "ready",
+        "part": "l_high"
+      }
+    }
+  ]
+}

@@ -1,0 +1,194 @@
+package io.github.dirnei.mc.servus.shuttles.locker;
+
+import com.mojang.serialization.MapCodec;
+import io.github.dirnei.mc.servus.foundation.item.DataPotatoItem;
+import io.github.dirnei.mc.servus.foundation.item.PotatoInspectable;
+import io.github.dirnei.mc.servus.foundation.naming.NamedMachinePart;
+import io.github.dirnei.mc.servus.shuttles.handheld.HandheldItem;
+import io.github.dirnei.mc.servus.shuttles.rail.RailFacings;
+import java.util.List;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
+import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.HorizontalDirectionalBlock;
+import net.minecraft.world.level.block.RenderShape;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.material.PushReaction;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
+import org.jspecify.annotations.Nullable;
+
+/**
+ * One of the ten blocks of a Parcel Locker, five wide and two high, placed
+ * as one piece by {@link ParcelLockerItem}. The dock in the middle of the
+ * lower row keeps the block entity; every other part points at it. A part
+ * whose neighbour in the locker is gone turns into air, so breaking any part
+ * takes the whole locker down, and the dock drops the item and every box's
+ * items. The screen above the dock opens the locker for a Handheld or an
+ * empty hand. Two lamp properties show the boxes whose lamp sits on a part,
+ * or on the dock whether shuttles are bringing orders.
+ */
+public class ParcelLockerBlock extends BaseEntityBlock implements PotatoInspectable, NamedMachinePart {
+
+    public static final MapCodec<ParcelLockerBlock> CODEC = simpleCodec(ParcelLockerBlock::new);
+    public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
+    public static final EnumProperty<LockerPart> PART = EnumProperty.create("part", LockerPart.class);
+    public static final EnumProperty<LockerLamp> LAMP_TOP = EnumProperty.create("lamp_top", LockerLamp.class);
+    public static final EnumProperty<LockerLamp> LAMP_BOTTOM = EnumProperty.create("lamp_bottom", LockerLamp.class);
+
+    public ParcelLockerBlock(Properties properties) {
+        super(properties);
+        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(PART, LockerPart.HEAD_DOCK)
+                .setValue(LAMP_TOP, LockerLamp.OFF).setValue(LAMP_BOTTOM, LockerLamp.OFF));
+    }
+
+    @Override
+    protected MapCodec<? extends BaseEntityBlock> codec() {
+        return CODEC;
+    }
+
+    @Override
+    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
+        builder.add(FACING, PART, LAMP_TOP, LAMP_BOTTOM);
+    }
+
+    @Override
+    public @Nullable BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
+        return state.getValue(PART) == LockerPart.HEAD_DOCK ? new ParcelLockerBlockEntity(pos, state) : null;
+    }
+
+    @Override
+    protected RenderShape getRenderShape(BlockState state) {
+        return RenderShape.MODEL;
+    }
+
+    /** Where the dock of the locker the part at {@code pos} belongs to stands. */
+    public static BlockPos dockPos(BlockPos pos, BlockState state) {
+        return state.getValue(PART).dock(pos, state.getValue(FACING));
+    }
+
+    /** The locker any part at {@code pos} belongs to, or null when there is none or its dock is not loaded. */
+    public static @Nullable ParcelLockerBlockEntity locker(BlockGetter level, BlockPos pos) {
+        BlockState state = level.getBlockState(pos);
+        if (!(state.getBlock() instanceof ParcelLockerBlock)) {
+            return null;
+        }
+        BlockPos dock = dockPos(pos, state);
+        if (level instanceof Level world && !world.isLoaded(dock)) {
+            return null;
+        }
+        return level.getBlockEntity(dock) instanceof ParcelLockerBlockEntity locker ? locker : null;
+    }
+
+    @Override
+    public @Nullable BlockPos namedMachinePos(Level level, BlockPos pos, BlockState state) {
+        return state.getBlock() instanceof ParcelLockerBlock ? dockPos(pos, state) : null;
+    }
+
+    /** Null without room for all ten parts, so a plain placement places nothing; {@link ParcelLockerItem} says why. */
+    @Override
+    public @Nullable BlockState getStateForPlacement(BlockPlaceContext context) {
+        Direction facing = RailFacings.frontToRail(context, RailFacings.ANY_RAIL);
+        if (ParcelLockerItem.refusal(context, facing) != null) {
+            return null;
+        }
+        return defaultBlockState().setValue(FACING, facing);
+    }
+
+    /** Places the nine parts around the dock. */
+    @Override
+    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity by, ItemStack stack) {
+        super.setPlacedBy(level, pos, state, by, stack);
+        Direction facing = state.getValue(FACING);
+        for (LockerPart part : LockerPart.values()) {
+            if (part != LockerPart.HEAD_DOCK) {
+                level.setBlock(part.at(pos, facing), state.setValue(PART, part), Block.UPDATE_ALL);
+            }
+        }
+    }
+
+    /** A part whose neighbour in the locker is no longer that part turns into air, so a locker never stands half. */
+    @Override
+    protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos, Direction direction,
+                                     BlockPos neighborPos, BlockState neighborState, RandomSource random) {
+        LockerPart part = state.getValue(PART);
+        Direction facing = state.getValue(FACING);
+        BlockPos dock = part.dock(pos, facing);
+        for (LockerPart other : LockerPart.values()) {
+            if (other != part && other.at(dock, facing).equals(neighborPos)
+                    && !(neighborState.is(this) && neighborState.getValue(PART) == other && neighborState.getValue(FACING) == facing)) {
+                return Blocks.AIR.defaultBlockState();
+            }
+        }
+        return super.updateShape(state, level, ticks, pos, direction, neighborPos, neighborState, random);
+    }
+
+    /** A creative player breaking any part gets no locker item; the boxes still drop their items. */
+    @Override
+    public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
+        if (!level.isClientSide() && player.isCreative()) {
+            ParcelLockerBlockEntity locker = locker(level, pos);
+            if (locker != null) {
+                locker.dropNoItem();
+            }
+        }
+        return super.playerWillDestroy(level, pos, state, player);
+    }
+
+    @Override
+    public PushReaction getPistonPushReaction(BlockState state) {
+        return PushReaction.BLOCK;
+    }
+
+    /** The Handheld on the screen opens the player's boxes; the potato passes to its report, other items to their own use. */
+    @Override
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
+                                          InteractionHand hand, BlockHitResult hitResult) {
+        if (stack.getItem() instanceof DataPotatoItem || !(stack.getItem() instanceof HandheldItem)) {
+            return InteractionResult.PASS;
+        }
+        return open(state, level, pos, player);
+    }
+
+    @Override
+    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+        return open(state, level, pos, player);
+    }
+
+    private static InteractionResult open(BlockState state, Level level, BlockPos pos, Player player) {
+        if (state.getValue(PART) != LockerPart.HEAD_SCREEN) {
+            return InteractionResult.PASS;
+        }
+        if (player instanceof ServerPlayer serverPlayer) {
+            ParcelLockerBlockEntity locker = locker(level, pos);
+            if (locker != null) {
+                serverPlayer.openMenu(locker, buf -> locker.writeOpening(buf, serverPlayer.getUUID()));
+            }
+        }
+        return InteractionResult.SUCCESS;
+    }
+
+    @Override
+    public List<Component> potatoReport(Level level, BlockPos pos, BlockState state, Vec3 hit) {
+        ParcelLockerBlockEntity locker = locker(level, pos);
+        return locker == null ? List.of() : ParcelLockerReport.of(locker);
+    }
+}

@@ -47,6 +47,10 @@ import io.github.dirnei.mc.servus.shuttles.handheld.HandheldFindResultPayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldInfoPayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldMenuStatePayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldModePayload;
+import io.github.dirnei.mc.servus.shuttles.handheld.HandheldLockersPayload;
+import io.github.dirnei.mc.servus.shuttles.handheld.HandheldParcelPayload;
+import io.github.dirnei.mc.servus.shuttles.handheld.HandheldPickerPayload;
+import io.github.dirnei.mc.servus.shuttles.handheld.HandheldRequestPayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldScanPayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldZoneActionPayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldZonePayload;
@@ -208,6 +212,14 @@ public final class ServusShuttlesPayloads {
                 (player, menu, payload) -> menu.editBasket(player, payload));
         toMenu(registrar, HandheldRelocatePayload.TYPE, HandheldRelocatePayload.STREAM_CODEC, HandheldMenu.class,
                 (player, menu, payload) -> menu.relocate(player));
+        toMenu(registrar, HandheldPickerPayload.TYPE, HandheldPickerPayload.STREAM_CODEC, HandheldMenu.class,
+                (player, menu, payload) -> menu.openPicker(player));
+        toMenu(registrar, HandheldRequestPayload.TYPE, HandheldRequestPayload.STREAM_CODEC, HandheldMenu.class,
+                (player, menu, payload) -> menu.request(player, payload.locker()));
+        registrar.playToClient(HandheldLockersPayload.TYPE, HandheldLockersPayload.STREAM_CODEC,
+                (payload, context) -> ClientHandheld.lockers(payload));
+        registrar.playToClient(HandheldParcelPayload.TYPE, HandheldParcelPayload.STREAM_CODEC,
+                (payload, context) -> ClientHandheld.parcel(payload));
     }
 
     /** What the Storage Terminal screen sends: requests, crafts, rules, sites and the order grid. */

@@ -574,6 +574,12 @@ public final class ShuttleFleet {
         return sumRiding(job -> amountFor(job, destination, key));
     }
 
+    /** Whether a pick of the request is queued or on a shuttle. */
+    public boolean picksPending(int requestId) {
+        ToIntFunction<ShuttleJob> ofRequest = job -> job instanceof PickJob pick && pick.requestId() == requestId ? 1 : 0;
+        return sumQueued(ofRequest) > 0 || sumRiding(ofRequest) > 0;
+    }
+
     /** Drops the queued picks of a request and their locks; loads already on a shuttle still arrive. */
     public void removeQueued(int requestId) {
         jobs.removeIf(job -> {

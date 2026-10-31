@@ -27,5 +27,11 @@
   "follow_gap": 1.0,
   "handheld_find_glow_seconds": 8,
   "handheld_scan_range": 16,
+  "handheld_order_margin": 64,
+  "locker_box_s": 3,
+  "locker_box_m": 6,
+  "locker_box_l": 9,
+  "locker_return_ticks": 24000,
+  "locker_check_interval": 20,
   "travel_costs": { "rail_block": 7, "corner": 5, "lift_block": 10, "lift_handover": 20, "stop": 14, "lift_wait_per_job": 50, "traffic_per_shuttle": 4 }
 }

@@ -76,6 +76,7 @@ final class ServusShuttlesBlockStateProvider extends BlockStateProvider {
         FluidStationModels.tank(this);
         FluidStationModels.station(this, ServusShuttlesBlocks.FLUID_INBOUND.get(), "fluid_inbound", "inbound_station");
         FluidStationModels.station(this, ServusShuttlesBlocks.FLUID_OUTBOUND.get(), "fluid_outbound", "outbound_station");
+        ParcelLockerModels.locker(this);
     }
 
     /**

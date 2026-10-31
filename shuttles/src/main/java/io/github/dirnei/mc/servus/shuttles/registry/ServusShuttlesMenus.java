@@ -15,6 +15,7 @@ import io.github.dirnei.mc.servus.shuttles.menu.CraftingStationMenu;
 import io.github.dirnei.mc.servus.shuttles.menu.HeavyRackMenu;
 import io.github.dirnei.mc.servus.shuttles.menu.ShuttleWorkshopMenu;
 import io.github.dirnei.mc.servus.shuttles.menu.ElevatorMenu;
+import io.github.dirnei.mc.servus.shuttles.menu.ParcelLockerMenu;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.MenuType;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
@@ -70,6 +71,9 @@ public final class ServusShuttlesMenus {
             MENUS.register("fluid_inbound", () -> IMenuTypeExtension.create(FluidInboundMenu::fromNetwork));
     public static final DeferredHolder<MenuType<?>, MenuType<FluidOutboundMenu>> FLUID_OUTBOUND =
             MENUS.register("fluid_outbound", () -> IMenuTypeExtension.create(FluidOutboundMenu::fromNetwork));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<ParcelLockerMenu>> PARCEL_LOCKER =
+            MENUS.register("parcel_locker", () -> IMenuTypeExtension.create(ParcelLockerMenu::fromNetwork));
 
     private ServusShuttlesMenus() {
     }

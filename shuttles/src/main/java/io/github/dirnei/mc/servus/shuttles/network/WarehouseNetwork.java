@@ -47,6 +47,8 @@ import io.github.dirnei.mc.servus.shuttles.lock.LockedSlots;
 import io.github.dirnei.mc.servus.shuttles.lock.SlotFill;
 import io.github.dirnei.mc.servus.shuttles.lock.SlotLock;
 import io.github.dirnei.mc.servus.shuttles.lock.TopUp;
+import io.github.dirnei.mc.servus.shuttles.locker.LockerOrders;
+import io.github.dirnei.mc.servus.shuttles.locker.ParcelLockerBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.order.CapRoom;
 import io.github.dirnei.mc.servus.shuttles.order.ExportPlan;
 import io.github.dirnei.mc.servus.shuttles.order.StockRule;
@@ -219,6 +221,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     private int outboundTimer;
     private int fieldTimer;
     private int fluidTimer;
+    private int lockerTimer;
     /** The min load of tanker runs when a test set one for this warehouse, else -1 for the stats. */
     private int tankerMinLoadForTests = -1;
     private final ShuttleFleet fleet = new ShuttleFleet(this);
@@ -809,6 +812,13 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
         if (loaded(pos) instanceof FluidStationBlockEntity station) {
             NodePos rail = Conversions.toNodePos(station.railPos());
+            if (isTravelNode(rail)) {
+                result.add(rail);
+            }
+            return result;
+        }
+        if (loaded(pos) instanceof ParcelLockerBlockEntity locker) {
+            NodePos rail = Conversions.toNodePos(locker.railPos());
             if (isTravelNode(rail)) {
                 result.add(rail);
             }
@@ -1450,6 +1460,54 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         return fleet.hasShuttles() && !destinationReachable ? "no_rail" : "needs_shuttle";
     }
 
+    /**
+     * Why shuttles could not bring anything to the destination now, empty
+     * when they can: {@code offline}, {@code no_rail} or {@code needs_shuttle}.
+     */
+    public String reachRefusal(BlockPos destination) {
+        if (status() != Status.ONLINE) {
+            return "offline";
+        }
+        if (fleet.canReach(destination)) {
+            return "";
+        }
+        return fleet.hasShuttles() ? "no_rail" : "needs_shuttle";
+    }
+
+    /** Picks up to {@code amount} of the key from the racks for the destination, tagged with the request; how many are on their way. */
+    public int pickFor(BlockPos destination, ItemKey key, int amount, int requestId) {
+        return planAndStart(destination, key, amount, requestId).planned();
+    }
+
+    /** Whether a pick of the request is still queued or on a shuttle. */
+    public boolean picksPending(int requestId) {
+        return fleet.picksPending(requestId);
+    }
+
+    /** The loaded Parcel Lockers of this warehouse. */
+    public List<ParcelLockerBlockEntity> parcelLockers() {
+        List<ParcelLockerBlockEntity> lockers = new ArrayList<>();
+        for (BlockPos pos : stations) {
+            if (loaded(pos) instanceof ParcelLockerBlockEntity locker) {
+                lockers.add(locker);
+            }
+        }
+        lockers.sort(Comparator.comparingLong(locker -> locker.getBlockPos().asLong()));
+        return lockers;
+    }
+
+    /** Looks at every loaded Parcel Locker's orders; a parcel that turns back is put away on the next tick. */
+    private void tickLockers() {
+        if (status() != Status.ONLINE) {
+            return;
+        }
+        for (ParcelLockerBlockEntity locker : parcelLockers()) {
+            if (LockerOrders.check(this, locker, level.getGameTime())) {
+                pendingStations.add(locker.getBlockPos());
+            }
+        }
+    }
+
     /** The next job id of the world; also the lock id of a Packing Station's grant. */
     public int nextJobId() {
         return CounterData.get(level.getServer(), CounterData.Kind.JOB_IDS).take();
@@ -1586,7 +1644,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         if (target instanceof PackingStationBlockEntity station && !station.admits(job.key(), job.amount())) {
             return false;
         }
-        int locked = slots.lockIn(job.id(), job.key(), job.amount(), true);
+        int locked = target.lockDelivery(job.id(), job.requestId(), job.key(), job.amount());
         if (locked >= job.amount()) {
             return true;
         }
@@ -2019,6 +2077,10 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
             fluidTimer = 0;
             tickFluids();
         }
+        if (++lockerTimer >= ShuttlesStatsManager.INSTANCE.lockerCheckInterval()) {
+            lockerTimer = 0;
+            tickLockers();
+        }
         if (!sources.isEmpty()) {
             pollSources();
         }
@@ -2254,7 +2316,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
                 ? Suppliers.memoize(() -> fleet.costsFrom(dockRails(Conversions.toNodePos(pos)))) : () -> null;
         LockedSlots buffer = station.putAwayBuffer();
         for (int slot = 0; slot < buffer.getSlots(); slot++) {
-            ItemStack stack = unplanned(buffer, slot);
+            ItemStack stack = station.drains(slot) ? unplanned(buffer, slot) : ItemStack.EMPTY;
             if (stack.isEmpty()) {
                 continue;
             }

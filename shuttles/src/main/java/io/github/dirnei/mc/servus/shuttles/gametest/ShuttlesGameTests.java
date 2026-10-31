@@ -52,6 +52,7 @@ public final class ShuttlesGameTests {
             PacketInletGameTests.class,
             PackingStationGameTests.class,
             PacketEndpointGameTests.class,
+            ParcelLockerGameTests.class,
             PutAwayRankGameTests.class,
             PatternGameTests.class,
             PatternResultGameTests.class,

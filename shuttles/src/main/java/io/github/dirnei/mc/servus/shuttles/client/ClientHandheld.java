@@ -3,6 +3,8 @@ package io.github.dirnei.mc.servus.shuttles.client;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldFindResultPayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldInfoPayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldItem;
+import io.github.dirnei.mc.servus.shuttles.handheld.HandheldLockersPayload;
+import io.github.dirnei.mc.servus.shuttles.handheld.HandheldParcelPayload;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldScanPayload;
 import io.github.dirnei.mc.servus.shuttles.network.StorageNodeBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesSounds;
@@ -22,8 +24,9 @@ import net.minecraft.world.phys.AABB;
 
 /**
  * What the client knows for the handheld's panel and effects: shelves
- * flashing after a scan, shelves glowing after a find, and the last find and
- * INFO answers. A shelf is drawn as one box, the union of its bays.
+ * flashing after a scan, shelves glowing after a find, the last find and
+ * INFO answers, the lockers for the picker and the ready parcel. A shelf is
+ * drawn as one box, the union of its bays.
  */
 public final class ClientHandheld {
 
@@ -42,6 +45,8 @@ public final class ClientHandheld {
     private static List<AABB> glowing = List.of();
     private static long glowUntil;
     private static HandheldInfoPayload info;
+    private static HandheldLockersPayload lockers;
+    private static HandheldParcelPayload parcel;
 
     private ClientHandheld() {
     }
@@ -91,6 +96,34 @@ public final class ClientHandheld {
 
     public static void info(HandheldInfoPayload payload) {
         info = payload;
+    }
+
+    /** Keeps the lockers for the picker that waits for them. */
+    public static void lockers(HandheldLockersPayload payload) {
+        lockers = payload;
+    }
+
+    /** The lockers the server sent last, or null while the picker waits; taking them clears them. */
+    public static HandheldLockersPayload takeLockers() {
+        HandheldLockersPayload taken = lockers;
+        lockers = null;
+        return taken;
+    }
+
+    /** A parcel is ready: the panel shows it and the handheld beeps. */
+    public static void parcel(HandheldParcelPayload payload) {
+        parcel = payload;
+        play(ServusShuttlesSounds.HANDHELD_BEEP.get(), 1.5F);
+    }
+
+    /** The ready parcel the panel shows, or null. */
+    public static HandheldParcelPayload readyParcel() {
+        return parcel;
+    }
+
+    /** The parcel note ends: the player sent another order or opened a locker. */
+    public static void forgetParcel() {
+        parcel = null;
     }
 
     /** Plays the mode switch click. */

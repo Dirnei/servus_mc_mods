@@ -7,4 +7,14 @@ public interface DeliveryTarget {
 
     /** The buffer deliveries land in. */
     LockedSlots deliveries();
+
+    /**
+     * Locks room in {@link #deliveries()} for a pick of a request before a
+     * shuttle is sent: empty slots only by default.
+     *
+     * @return how many items it found room for
+     */
+    default int lockDelivery(int jobId, int requestId, ItemKey key, int amount) {
+        return deliveries().lockIn(jobId, key, amount, true);
+    }
 }

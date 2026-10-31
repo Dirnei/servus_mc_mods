@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.shuttles.field.FarmRailBlock;
 import io.github.dirnei.mc.servus.shuttles.field.FieldHeadBlock;
 import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidInboundBlock;
 import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidOutboundBlock;
+import io.github.dirnei.mc.servus.shuttles.locker.ParcelLockerBlock;
 import io.github.dirnei.mc.servus.shuttles.pattern.PatternStorageBlock;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerBlock;
@@ -183,6 +184,14 @@ public final class ServusShuttlesBlocks {
                             .strength(3.0F)
                             .sound(SoundType.METAL)
                             .noOcclusion()
+                            .noLootTable());
+
+    public static final DeferredBlock<ParcelLockerBlock> PARCEL_LOCKER =
+            BLOCKS.registerBlock("parcel_locker", ParcelLockerBlock::new,
+                    () -> BlockBehaviour.Properties.of()
+                            .mapColor(MapColor.COLOR_YELLOW)
+                            .strength(3.0F)
+                            .sound(SoundType.METAL)
                             .noLootTable());
 
     private ServusShuttlesBlocks() {

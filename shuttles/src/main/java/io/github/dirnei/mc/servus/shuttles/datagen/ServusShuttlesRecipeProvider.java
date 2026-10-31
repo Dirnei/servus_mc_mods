@@ -147,6 +147,18 @@ final class ServusShuttlesRecipeProvider extends RecipeProvider {
         fluidStation(ServusShuttlesItems.FLUID_INBOUND.get(), ServusShuttlesItems.INBOUND_STATION.get());
         fluidStation(ServusShuttlesItems.FLUID_OUTBOUND.get(), ServusShuttlesItems.OUTBOUND_STATION.get());
 
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusShuttlesItems.PARCEL_LOCKER.get())
+                .pattern("YIY")
+                .pattern("CDC")
+                .pattern("IOI")
+                .define('Y', Items.YELLOW_DYE)
+                .define('I', Items.IRON_INGOT)
+                .define('C', Items.CHEST)
+                .define('D', ServusLogisticsItems.DATA_CABLE.get())
+                .define('O', ServusShuttlesItems.OUTBOUND_STATION.get())
+                .unlockedBy("has_outbound_station", has(ServusShuttlesItems.OUTBOUND_STATION.get()))
+                .save(output);
+
         ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusShuttlesItems.HEAVY_RACK.get(), 3)
                 .pattern("I I")
                 .pattern("PPP")

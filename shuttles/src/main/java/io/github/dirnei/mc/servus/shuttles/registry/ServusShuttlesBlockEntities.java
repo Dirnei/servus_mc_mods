@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.shuttles.field.FieldHeadBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidInboundBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidOutboundBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.fluidstation.FluidStationTopBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.locker.ParcelLockerBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.pattern.PatternStorageBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerBlockEntity;
@@ -86,6 +87,9 @@ public final class ServusShuttlesBlockEntities {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FluidStationTopBlockEntity>> FLUID_STATION_TOP =
             BLOCK_ENTITIES.register("fluid_station_top", () -> new BlockEntityType<>(FluidStationTopBlockEntity::new,
                     ServusShuttlesBlocks.FLUID_INBOUND.get(), ServusShuttlesBlocks.FLUID_OUTBOUND.get()));
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ParcelLockerBlockEntity>> PARCEL_LOCKER =
+            BLOCK_ENTITIES.register("parcel_locker", () -> new BlockEntityType<>(ParcelLockerBlockEntity::new, ServusShuttlesBlocks.PARCEL_LOCKER.get()));
 
     private ServusShuttlesBlockEntities() {
     }

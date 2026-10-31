@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttles;
 import io.github.dirnei.mc.servus.shuttles.shuttle.TravelWeights;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
+import io.github.dirnei.mc.servus.shuttles.locker.LockerLayout;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleTiers;
 import java.util.Map;
 import net.minecraft.resources.FileToIdConverter;
@@ -96,6 +97,12 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
 
     public static final int DEFAULT_HANDHELD_FIND_GLOW_SECONDS = 8;
     public static final int DEFAULT_HANDHELD_SCAN_RANGE = 16;
+    public static final int DEFAULT_HANDHELD_ORDER_MARGIN = 64;
+    public static final int DEFAULT_LOCKER_BOX_S = 3;
+    public static final int DEFAULT_LOCKER_BOX_M = 6;
+    public static final int DEFAULT_LOCKER_BOX_L = 9;
+    public static final int DEFAULT_LOCKER_RETURN_TICKS = 24000;
+    public static final int DEFAULT_LOCKER_CHECK_INTERVAL = 20;
 
     private static final double DEFAULT_FREE_SLOT_BUCKET = 0.25;
     private static final double DEFAULT_FOLLOW_GAP = 1.0;
@@ -189,6 +196,11 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     private volatile TravelWeights travelWeights = TravelWeights.DEFAULT;
     private volatile int handheldFindGlowSeconds = DEFAULT_HANDHELD_FIND_GLOW_SECONDS;
     private volatile int handheldScanRange = DEFAULT_HANDHELD_SCAN_RANGE;
+    private volatile int handheldOrderMargin = DEFAULT_HANDHELD_ORDER_MARGIN;
+    private volatile LockerLayout.Capacities lockerCapacities =
+            new LockerLayout.Capacities(DEFAULT_LOCKER_BOX_S, DEFAULT_LOCKER_BOX_M, DEFAULT_LOCKER_BOX_L);
+    private volatile int lockerReturnTicks = DEFAULT_LOCKER_RETURN_TICKS;
+    private volatile int lockerCheckInterval = DEFAULT_LOCKER_CHECK_INTERVAL;
     private volatile double freeSlotBucket = DEFAULT_FREE_SLOT_BUCKET;
     private volatile double followGap = DEFAULT_FOLLOW_GAP;
     private volatile double trafficPerShuttle = DEFAULT_TRAFFIC_PER_SHUTTLE;
@@ -205,6 +217,12 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
         railMaxSpan = intField(files.get(WAREHOUSE), "rail_max_span", DEFAULT_RAIL_MAX_SPAN);
         handheldFindGlowSeconds = intField(files.get(WAREHOUSE), "handheld_find_glow_seconds", DEFAULT_HANDHELD_FIND_GLOW_SECONDS);
         handheldScanRange = Math.max(1, intField(files.get(WAREHOUSE), "handheld_scan_range", DEFAULT_HANDHELD_SCAN_RANGE));
+        handheldOrderMargin = countField(files.get(WAREHOUSE), "handheld_order_margin", DEFAULT_HANDHELD_ORDER_MARGIN);
+        lockerCapacities = new LockerLayout.Capacities(intField(files.get(WAREHOUSE), "locker_box_s", DEFAULT_LOCKER_BOX_S),
+                intField(files.get(WAREHOUSE), "locker_box_m", DEFAULT_LOCKER_BOX_M),
+                intField(files.get(WAREHOUSE), "locker_box_l", DEFAULT_LOCKER_BOX_L));
+        lockerReturnTicks = intField(files.get(WAREHOUSE), "locker_return_ticks", DEFAULT_LOCKER_RETURN_TICKS);
+        lockerCheckInterval = intField(files.get(WAREHOUSE), "locker_check_interval", DEFAULT_LOCKER_CHECK_INTERVAL);
         terminalOutputSlots = intField(files.get(WAREHOUSE), "terminal_output_slots", DEFAULT_TERMINAL_OUTPUT_SLOTS);
         pushInterval = intField(files.get(WAREHOUSE), "push_interval", DEFAULT_PUSH_INTERVAL);
         outboundCheckInterval = intField(files.get(WAREHOUSE), "outbound_check_interval", DEFAULT_OUTBOUND_CHECK_INTERVAL);
@@ -748,6 +766,26 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     /** Ticks between two looks of a warehouse at its fluid stations. */
     public int fluidCheckInterval() {
         return fluidCheckInterval;
+    }
+
+    /** Blocks around a site's chunks from which a Handheld HH-1 still orders. */
+    public int handheldOrderMargin() {
+        return handheldOrderMargin;
+    }
+
+    /** How many stacks each box size of a Parcel Locker holds. */
+    public LockerLayout.Capacities lockerCapacities() {
+        return lockerCapacities;
+    }
+
+    /** Ticks a ready parcel waits in its locker before it goes back to the racks. */
+    public int lockerReturnTicks() {
+        return lockerReturnTicks;
+    }
+
+    /** Ticks between two looks of a warehouse at its Parcel Lockers. */
+    public int lockerCheckInterval() {
+        return lockerCheckInterval;
     }
 
     /** mB a Fluid Inbound tank holds before a tanker run starts for it, unless it is full. */

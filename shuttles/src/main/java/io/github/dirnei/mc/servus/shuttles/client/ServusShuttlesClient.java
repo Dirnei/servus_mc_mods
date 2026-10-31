@@ -45,6 +45,7 @@ public final class ServusShuttlesClient {
         event.register(ServusShuttlesMenus.OUTBOUND_STATION.get(), OutboundStationScreen::new);
         event.register(ServusShuttlesMenus.CRAFTING_STATION.get(), CraftingStationScreen::new);
         event.register(ServusShuttlesMenus.PRODUCTION_TERMINAL.get(), ProductionTerminalScreen::new);
+        event.register(ServusShuttlesMenus.PARCEL_LOCKER.get(), ParcelLockerScreen::new);
     }
 
     @SubscribeEvent

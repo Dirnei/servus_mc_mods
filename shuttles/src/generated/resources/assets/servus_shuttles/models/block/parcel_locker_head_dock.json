@@ -1,0 +1,291 @@
+{
+  "parent": "minecraft:block/block",
+  "elements": [
+    {
+      "faces": {
+        "down": {
+          "cullface": "down",
+          "texture": "#steel",
+          "uv": [
+            0,
+            0,
+            16,
+            14
+          ]
+        },
+        "east": {
+          "cullface": "east",
+          "texture": "#steel",
+          "uv": [
+            0,
+            0,
+            14,
+            16
+          ]
+        },
+        "north": {
+          "texture": "#hatch",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "south": {
+          "cullface": "south",
+          "texture": "#steel",
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ]
+        },
+        "up": {
+          "cullface": "up",
+          "texture": "#steel",
+          "uv": [
+            0,
+            2,
+            16,
+            16
+          ]
+        },
+        "west": {
+          "cullface": "west",
+          "texture": "#steel",
+          "uv": [
+            2,
+            0,
+            16,
+            16
+          ]
+        }
+      },
+      "from": [
+        0,
+        0,
+        2
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "cullface": "down",
+          "texture": "#steel",
+          "uv": [
+            0,
+            14,
+            3,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#steel",
+          "uv": [
+            14,
+            0,
+            16,
+            16
+          ]
+        },
+        "north": {
+          "texture": "#steel",
+          "uv": [
+            13,
+            0,
+            16,
+            16
+          ]
+        },
+        "up": {
+          "cullface": "up",
+          "texture": "#steel",
+          "uv": [
+            0,
+            0,
+            3,
+            2
+          ]
+        },
+        "west": {
+          "texture": "#steel",
+          "uv": [
+            0,
+            0,
+            2,
+            16
+          ]
+        }
+      },
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        3,
+        16,
+        2
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "cullface": "down",
+          "texture": "#steel",
+          "uv": [
+            13,
+            14,
+            16,
+            16
+          ]
+        },
+        "east": {
+          "texture": "#steel",
+          "uv": [
+            14,
+            0,
+            16,
+            16
+          ]
+        },
+        "north": {
+          "texture": "#steel",
+          "uv": [
+            0,
+            0,
+            3,
+            16
+          ]
+        },
+        "up": {
+          "cullface": "up",
+          "texture": "#steel",
+          "uv": [
+            13,
+            0,
+            16,
+            2
+          ]
+        },
+        "west": {
+          "texture": "#steel",
+          "uv": [
+            0,
+            0,
+            2,
+            16
+          ]
+        }
+      },
+      "from": [
+        13,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        2
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "texture": "#steel",
+          "uv": [
+            3,
+            14,
+            13,
+            16
+          ]
+        },
+        "north": {
+          "texture": "#steel",
+          "uv": [
+            3,
+            0,
+            13,
+            4
+          ]
+        },
+        "up": {
+          "cullface": "up",
+          "texture": "#steel",
+          "uv": [
+            3,
+            0,
+            13,
+            2
+          ]
+        }
+      },
+      "from": [
+        3,
+        12,
+        0
+      ],
+      "to": [
+        13,
+        16,
+        2
+      ]
+    },
+    {
+      "faces": {
+        "down": {
+          "cullface": "down",
+          "texture": "#steel",
+          "uv": [
+            3,
+            14,
+            13,
+            16
+          ]
+        },
+        "north": {
+          "texture": "#steel",
+          "uv": [
+            3,
+            13,
+            13,
+            16
+          ]
+        },
+        "up": {
+          "texture": "#steel",
+          "uv": [
+            3,
+            0,
+            13,
+            2
+          ]
+        }
+      },
+      "from": [
+        3,
+        0,
+        0
+      ],
+      "to": [
+        13,
+        3,
+        2
+      ]
+    }
+  ],
+  "textures": {
+    "handle": "servus_shuttles:block/parcel_locker_handle",
+    "hatch": "servus_shuttles:block/parcel_locker_hatch",
+    "particle": "servus_shuttles:block/heavy_rack_iron",
+    "steel": "servus_shuttles:block/heavy_rack_iron",
+    "yellow": "servus_shuttles:block/parcel_locker_yellow"
+  }
+}

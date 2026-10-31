@@ -13,6 +13,7 @@ import io.github.dirnei.mc.servus.shuttles.shuttle.module.ModuleSpec;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleItem;
 import io.github.dirnei.mc.servus.shuttles.shuttle.module.ShuttleModuleItem;
 import io.github.dirnei.mc.servus.shuttles.handheld.HandheldItem;
+import io.github.dirnei.mc.servus.shuttles.locker.ParcelLockerItem;
 import java.util.List;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -105,10 +106,13 @@ public final class ServusShuttlesItems {
     public static final DeferredItem<FluidStationItem> FLUID_OUTBOUND = ITEMS.registerItem("fluid_outbound",
             properties -> new FluidStationItem(ServusShuttlesBlocks.FLUID_OUTBOUND.get(), properties),
             () -> new Item.Properties().useBlockDescriptionPrefix().stacksTo(16));
+    public static final DeferredItem<ParcelLockerItem> PARCEL_LOCKER = ITEMS.registerItem("parcel_locker",
+            properties -> new ParcelLockerItem(ServusShuttlesBlocks.PARCEL_LOCKER.get(), properties),
+            () -> new Item.Properties().useBlockDescriptionPrefix().stacksTo(16));
     public static final DeferredItem<HandheldItem> HANDHELD = ITEMS.registerItem("handheld", HandheldItem::new, () -> new Item.Properties().stacksTo(1));
 
     /** Items shown in the Servus creative tab, in order. */
-    public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(HEAVY_RACK, WAREHOUSE_CONTROLLER, WIRELESS_UPGRADE, STORAGE_TERMINAL, RAIL, ELEVATOR, INBOUND_STATION, PACKING_STATION, SHUTTLE_GARAGE, OUTBOUND_STATION, FLUID_INBOUND, FLUID_RACK, FLUID_OUTBOUND, CRAFTING_STATION, CRAFTING_CPU, CPU_BUFFER, PRODUCTION_TERMINAL, PATTERN_STORAGE, SHUTTLE_WORKSHOP, SHUTTLE_MK1, SHUTTLE_MK2, SHUTTLE_MK3, HANDLING_UPGRADE, MUFFLER, HARVESTER, SPREADER, LUMBER, TANKER, FARM_RAIL, FIELD_HEAD, RANGE_UPGRADE, HANDHELD);
+    public static final List<DeferredItem<? extends Item>> CREATIVE_TAB_ORDER = List.of(HEAVY_RACK, WAREHOUSE_CONTROLLER, WIRELESS_UPGRADE, STORAGE_TERMINAL, RAIL, ELEVATOR, INBOUND_STATION, PACKING_STATION, SHUTTLE_GARAGE, OUTBOUND_STATION, FLUID_INBOUND, FLUID_RACK, FLUID_OUTBOUND, CRAFTING_STATION, CRAFTING_CPU, CPU_BUFFER, PRODUCTION_TERMINAL, PATTERN_STORAGE, SHUTTLE_WORKSHOP, SHUTTLE_MK1, SHUTTLE_MK2, SHUTTLE_MK3, HANDLING_UPGRADE, MUFFLER, HARVESTER, SPREADER, LUMBER, TANKER, FARM_RAIL, FIELD_HEAD, RANGE_UPGRADE, HANDHELD, PARCEL_LOCKER);
 
     private ServusShuttlesItems() {
     }
