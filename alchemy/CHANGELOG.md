@@ -7,6 +7,9 @@
 - Grass Seed from the Athanor turns Dirt into Grass.
 - Dirt from Sand, Clay and Humus or Bone Meal in the Mixer.
 
+### Changed
+- The journal now sends surplus into the Incinerator, the new name of the Sink.
+
 ## 0.4.0-alpha
 
 ### Added

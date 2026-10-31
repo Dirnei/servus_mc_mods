@@ -31,7 +31,7 @@ Every Servus mod uses the same two tools from Foundation:
 1. **Power.** Craft a Coal Generator. It burns any furnace fuel into FE and feeds machines that touch it.
 2. **Pipes.** Craft Item Pipes, Power Cables or Fluid Pipes. Each one places a Utility Duct, or adds its line to a duct that is already there. One duct can carry all of them.
 3. **Water.** Put a Burner Pump on an infinite water source and pipe the water where you need it. Store fluids in Fluid Tanks.
-4. **Trash.** Build a Sink (eight Sink blocks in a cube) to void what you do not need.
+4. **Trash.** Build an Incinerator (eight Incinerator blocks in a cube) to void what you do not need.
 
 From here, pick where you want to go:
 

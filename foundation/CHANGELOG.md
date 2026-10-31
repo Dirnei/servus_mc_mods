@@ -9,6 +9,7 @@
 - Fluid sides of machines have modes (Input, Pull or Off, and Push, Output or Off) and reach all tanks or one picked tank; a right click on a side cell picks the tank, and a block with one tank offers no tank choice.
 
 ### Changed
+- The Sink is now called the Incinerator. Placed Sinks stay where they are.
 - The fluid picker lists every fluid, also those without a bucket.
 
 ## 0.5.0

@@ -8,4 +8,4 @@
 
 ## 2. Verify
 
-- [ ] 2.1 Full `gradlew build` and tests green, the game launches with all mods; in game the block, its GUI title and the carrot messages say Incinerator, and a Sink from an older world loads as an Incinerator.
+- [x] 2.1 Full `gradlew build` and tests green, the game launches with all mods; in game the block, its GUI title and the carrot messages say Incinerator, and a Sink from an older world loads as an Incinerator.
