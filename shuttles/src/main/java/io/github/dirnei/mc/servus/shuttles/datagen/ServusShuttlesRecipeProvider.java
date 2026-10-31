@@ -143,13 +143,8 @@ final class ServusShuttlesRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_rail", has(ServusShuttlesItems.RAIL.get()))
                 .save(MaterialRecipes.output(output, registries, MaterialKind.WOOD));
 
-        ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, ServusShuttlesItems.BUFFER_STOP.get())
-                .pattern("III")
-                .pattern(" R ")
-                .define('I', Items.IRON_INGOT)
-                .define('R', ServusShuttlesItems.RAIL.get())
-                .unlockedBy("has_rail", has(ServusShuttlesItems.RAIL.get()))
-                .save(MaterialRecipes.output(output, registries, MaterialKind.WOOD));
+        bufferStop(ServusShuttlesItems.BUFFER_STOP.get(), ServusShuttlesItems.RAIL.get(), "has_rail");
+        bufferStop(ServusShuttlesItems.FARM_BUFFER_STOP.get(), ServusShuttlesItems.FARM_RAIL.get(), "has_farm_rail");
 
         // The fluid stations: the item station on a Fluid Tank; the station's wood carries over.
         fluidStation(ServusShuttlesItems.FLUID_INBOUND.get(), ServusShuttlesItems.INBOUND_STATION.get());
@@ -390,6 +385,17 @@ final class ServusShuttlesRecipeProvider extends RecipeProvider {
 
     /** Saves a shaped recipe as a rack recipe, which remembers the planks' wood. */
     /** A fluid station: its item station on top of a Fluid Tank, as a wood material recipe that takes the station's wood. */
+    /** Three iron ingots over a rail make one stop with the rail's wood. */
+    private void bufferStop(Item stop, Item rail, String criterion) {
+        ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, stop)
+                .pattern("III")
+                .pattern(" R ")
+                .define('I', Items.IRON_INGOT)
+                .define('R', rail)
+                .unlockedBy(criterion, has(rail))
+                .save(MaterialRecipes.output(output, registries, MaterialKind.WOOD));
+    }
+
     private void fluidStation(Item fluidStation, Item itemStation) {
         ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, fluidStation)
                 .pattern("S")

@@ -19,8 +19,8 @@
 
 ## 5. Farm Buffer Stop
 
-- [ ] 5.1 `shuttles/.../registry`: second block `farm_buffer_stop` of `BufferStopBlock` (same properties), its item after `FARM_RAIL` in the creative tab, the buffer stop block entity type valid for both blocks; `ServusShuttles` registers it as a wood material block. `BufferStopModels`: a model per stop kind, heads `farm_rail_head` and beam `farm_rail_dock` for the farm stop. Loot (drop itself copying `MATERIAL`), pickaxe tag, recipe `III` over ` R ` with the Farm Rail, lang "Farm Buffer Stop". Run `gradlew :shuttles:runData`; verify `gradlew build`
-- [ ] 5.2 `BufferStopGameTests`: a Farm Buffer Stop faces and connects a Farm Rail and a Warehouse Rail; recipe from a Farm Rail carries its wood; aging a field that ends at a Farm Buffer Stop leaves the stop unchanged and the field's rail count the same. Verify `gradlew build` and the full GameTest run
+- [x] 5.1 `shuttles/.../registry`: second block `farm_buffer_stop` of `BufferStopBlock` (same properties), its item after `FARM_RAIL` in the creative tab, the buffer stop block entity type valid for both blocks; `ServusShuttles` registers it as a wood material block. `BufferStopModels`: a model per stop kind, heads `farm_rail_head` and beam `farm_rail_dock` for the farm stop. Loot (drop itself copying `MATERIAL`), pickaxe tag, recipe `III` over ` R ` with the Farm Rail, lang "Farm Buffer Stop". Run `gradlew :shuttles:runData`; verify `gradlew build`
+- [x] 5.2 `BufferStopGameTests`: a Farm Buffer Stop faces and connects a Farm Rail and a Warehouse Rail; recipe from a Farm Rail carries its wood; aging a field that ends at a Farm Buffer Stop leaves the stop unchanged and the field's rail count the same. Verify `gradlew build` and the full GameTest run
 - [ ] 5.3 On main once `m10-rail-corrosion-per-rail` is there: `BufferStopGameTests` case where a Farm Rail with a `RAIL_CORROSION` stage past copper still crafts a Farm Buffer Stop with no corrosion component. Verify `gradlew build` and the full GameTest run
 
 ## 6. Play check

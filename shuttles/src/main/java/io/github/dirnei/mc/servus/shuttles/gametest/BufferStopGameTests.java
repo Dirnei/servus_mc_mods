@@ -8,13 +8,16 @@ import io.github.dirnei.mc.servus.foundation.material.Material;
 import io.github.dirnei.mc.servus.foundation.material.MaterialContent;
 import io.github.dirnei.mc.servus.foundation.material.MaterialHolder;
 import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.field.FieldCorrosion;
 import io.github.dirnei.mc.servus.shuttles.field.FieldHeadBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.field.FieldStatus;
 import io.github.dirnei.mc.servus.shuttles.network.WarehouseNetwork;
 import io.github.dirnei.mc.servus.shuttles.rail.BufferStopBlock;
+import io.github.dirnei.mc.servus.shuttles.rail.BufferStopBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.rail.RailBlock;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
+import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import java.util.List;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
@@ -27,16 +30,22 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
-/** The Buffer Stop: facing, the rail running into it, carrot, standing, recipe, and that the network and fields ignore it. */
+/**
+ * The Buffer Stop and the Farm Buffer Stop: facing, the rail running into it, carrot, standing, recipe,
+ * and that the network, fields and field aging ignore it.
+ */
 public final class BufferStopGameTests {
 
     private static final BlockPos SPOT = new BlockPos(3, 1, 3);
     private static final Identifier OAK = BuiltInRegistries.BLOCK.getKey(Blocks.OAK_PLANKS);
     private static final Identifier BIRCH = BuiltInRegistries.BLOCK.getKey(Blocks.BIRCH_PLANKS);
     private static final Identifier SPRUCE = BuiltInRegistries.BLOCK.getKey(Blocks.SPRUCE_PLANKS);
+    private static final int FIELD_Z = 5;
+    private static final BlockPos FIELD_STOP = new BlockPos(8, 1, FIELD_Z);
 
     private BufferStopGameTests() {
     }
@@ -204,18 +213,47 @@ public final class BufferStopGameTests {
     /** A field of five Farm Rails ending at a stop still has five rails and is served. */
     @ServusGameTest(timeoutTicks = 40)
     public static void fieldIgnoresTheStop(GameTestHelper helper) {
-        int railZ = 5;
-        for (int x = 3; x <= 7; x++) {
-            FieldFixtures.farmRail(helper, new BlockPos(x, 1, railZ));
-        }
-        BlockPos stop = new BlockPos(8, 1, railZ);
-        WarehouseFixtures.stone(helper, stop.below());
-        helper.setBlock(stop, stop(Direction.WEST));
-        FieldHeadBlockEntity head = FieldFixtures.head(helper, new BlockPos(2, 1, railZ));
+        FieldHeadBlockEntity head = fieldEndingAt(helper, ServusShuttlesBlocks.BUFFER_STOP.get());
         helper.runAfterDelay(3, () -> {
-            helper.assertBlockProperty(stop.west(), ConnectableBlock.EAST, true);
-            helper.assertTrue(head.status() == FieldStatus.SERVING && head.rails().size() == 5,
-                    "the head serves the five rails, got " + head.status() + " with " + head.rails().size());
+            assertServesFiveRails(helper, head);
+            helper.succeed();
+        });
+    }
+
+    /** A Farm Buffer Stop placed beside a Farm Rail faces it, and the rail runs into it. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void farmStopFacesAndConnectsAFarmRail(GameTestHelper helper) {
+        floor(helper);
+        FieldFixtures.farmRail(helper, SPOT.north());
+        Placing.onTop(helper, farmItem(), SPOT.below(), Direction.EAST, false);
+        helper.assertBlockProperty(SPOT, BufferStopBlock.FACING, Direction.NORTH);
+        helper.assertBlockProperty(SPOT.north(), ConnectableBlock.SOUTH, true);
+        helper.succeed();
+    }
+
+    /** A Farm Buffer Stop placed beside a Warehouse Rail faces it, and the rail runs into it. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void farmStopFacesAndConnectsAWarehouseRail(GameTestHelper helper) {
+        floor(helper);
+        WarehouseFixtures.rail(helper, SPOT.south());
+        Placing.onTop(helper, farmItem(), SPOT.below(), Direction.NORTH, false);
+        helper.assertBlockProperty(SPOT, BufferStopBlock.FACING, Direction.SOUTH);
+        helper.assertBlockProperty(SPOT.south(), ConnectableBlock.NORTH, true);
+        helper.assertBlockProperty(SPOT.south(), RailBlock.DOCK_NORTH, false);
+        helper.succeed();
+    }
+
+    /** Aging a field that ends at a Farm Buffer Stop leaves the stop as it was and the field's rails the same. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void agingLeavesTheFarmStop(GameTestHelper helper) {
+        FieldHeadBlockEntity head = fieldEndingAt(helper, ServusShuttlesBlocks.FARM_BUFFER_STOP.get());
+        BlockState before = helper.getBlockState(FIELD_STOP);
+        helper.runAfterDelay(3, () -> {
+            head.age(ShuttlesStatsManager.INSTANCE.fieldCorrosionWater());
+            helper.assertTrue(head.corrosion() == FieldCorrosion.EXPOSED, "the field ages, got " + head.corrosion());
+            helper.assertTrue(helper.getBlockState(FIELD_STOP) == before, "the stop is unchanged, got " + helper.getBlockState(FIELD_STOP));
+            helper.assertTrue(helper.getBlockEntity(FIELD_STOP, BufferStopBlockEntity.class) != null, "the stop keeps its block entity");
+            assertServesFiveRails(helper, head);
             helper.succeed();
         });
     }
@@ -229,6 +267,19 @@ public final class BufferStopGameTests {
         ItemStack result = BlockStyleGameTests.craft(helper, "buffer_stop", 3, 2,
                 List.of(iron, iron.copy(), iron.copy(), ItemStack.EMPTY, rail, ItemStack.EMPTY));
         helper.assertTrue(result.is(ServusShuttlesItems.BUFFER_STOP.get()) && result.getCount() == 1, "one Buffer Stop, got " + result);
+        helper.assertTrue(OAK.equals(result.get(MaterialContent.MATERIAL.get())), "the stop is oak, got " + result.get(MaterialContent.MATERIAL.get()));
+        helper.succeed();
+    }
+
+    /** Three iron ingots over an oak Farm Rail give one oak Farm Buffer Stop. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void farmRecipeKeepsTheRailsWood(GameTestHelper helper) {
+        ItemStack rail = new ItemStack(ServusShuttlesItems.FARM_RAIL.get());
+        rail.set(MaterialContent.MATERIAL.get(), OAK);
+        ItemStack iron = new ItemStack(Items.IRON_INGOT);
+        ItemStack result = BlockStyleGameTests.craft(helper, "farm_buffer_stop", 3, 2,
+                List.of(iron, iron.copy(), iron.copy(), ItemStack.EMPTY, rail, ItemStack.EMPTY));
+        helper.assertTrue(result.is(ServusShuttlesItems.FARM_BUFFER_STOP.get()) && result.getCount() == 1, "one Farm Buffer Stop, got " + result);
         helper.assertTrue(OAK.equals(result.get(MaterialContent.MATERIAL.get())), "the stop is oak, got " + result.get(MaterialContent.MATERIAL.get()));
         helper.succeed();
     }
@@ -249,8 +300,32 @@ public final class BufferStopGameTests {
         return new ItemStack(ServusShuttlesItems.BUFFER_STOP.get());
     }
 
+    private static ItemStack farmItem() {
+        return new ItemStack(ServusShuttlesItems.FARM_BUFFER_STOP.get());
+    }
+
     private static BlockState stop(Direction facing) {
-        return ServusShuttlesBlocks.BUFFER_STOP.get().defaultBlockState().setValue(BufferStopBlock.FACING, facing);
+        return stop(ServusShuttlesBlocks.BUFFER_STOP.get(), facing);
+    }
+
+    private static BlockState stop(Block block, Direction facing) {
+        return block.defaultBlockState().setValue(BufferStopBlock.FACING, facing);
+    }
+
+    /** Five Farm Rails along x 3..7 with a Field Head west of them and that stop at {@link #FIELD_STOP} facing the last one. */
+    private static FieldHeadBlockEntity fieldEndingAt(GameTestHelper helper, Block stop) {
+        for (int x = 3; x <= 7; x++) {
+            FieldFixtures.farmRail(helper, new BlockPos(x, 1, FIELD_Z));
+        }
+        WarehouseFixtures.stone(helper, FIELD_STOP.below());
+        helper.setBlock(FIELD_STOP, stop(stop, Direction.WEST));
+        return FieldFixtures.head(helper, new BlockPos(2, 1, FIELD_Z));
+    }
+
+    private static void assertServesFiveRails(GameTestHelper helper, FieldHeadBlockEntity head) {
+        helper.assertBlockProperty(FIELD_STOP.west(), ConnectableBlock.EAST, true);
+        helper.assertTrue(head.status() == FieldStatus.SERVING && head.rails().size() == 5,
+                "the head serves the five rails, got " + head.status() + " with " + head.rails().size());
     }
 
     private static void wood(GameTestHelper helper, BlockPos pos, Identifier wood) {

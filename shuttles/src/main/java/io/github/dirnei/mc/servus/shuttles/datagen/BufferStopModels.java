@@ -12,22 +12,24 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.level.block.Block;
 
 /**
- * Datagen for the Buffer Stop: one model of the {@link BufferStopLook} boxes,
- * turned per facing. Sleepers use the wood board texture so
- * {@code MaterialModel} shows the stop's wood; the frame is steel on every
- * face, the beam carries the dock stripe and the stub the Warehouse Rail heads.
+ * Datagen for the Buffer Stop and the Farm Buffer Stop: one model of the
+ * {@link BufferStopLook} boxes per stop, turned per facing. Sleepers use the
+ * wood board texture so {@code MaterialModel} shows the stop's wood; the frame
+ * is steel on every face, the beam carries the dock stripe and the stub the
+ * heads of the stop's rail.
  */
 final class BufferStopModels {
 
     private BufferStopModels() {
     }
 
-    static void bufferStop(BlockStateProvider provider, Block block, String name) {
+    /** A stop with the head and dock stripe textures of {@code rail}: {@code rail} or {@code farm_rail}. */
+    static void bufferStop(BlockStateProvider provider, Block block, String name, String rail) {
         Identifier steel = provider.modLoc("block/heavy_rack_iron");
         BlockModelBuilder model = provider.models().withExistingParent(name, "minecraft:block/block")
                 .texture("particle", steel).texture("frame", steel)
-                .texture("head", provider.modLoc("block/rail_head"))
-                .texture("dock", provider.modLoc("block/rail_dock"))
+                .texture("head", provider.modLoc("block/" + rail + "_head"))
+                .texture("dock", provider.modLoc("block/" + rail + "_dock"))
                 .texture("wood", MaterialKind.WOOD.placeholder());
         RailModels.addBoxes(model, BufferStopLook.boxes());
 
