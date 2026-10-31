@@ -8,8 +8,10 @@ import io.github.dirnei.mc.servus.foundation.data.packet.Delivery;
 import io.github.dirnei.mc.servus.foundation.data.packet.DeliveryReason;
 import io.github.dirnei.mc.servus.foundation.data.packet.Grant;
 import io.github.dirnei.mc.servus.foundation.data.packet.PacketEndpoint;
+import io.github.dirnei.mc.servus.foundation.data.packet.PacketInlets;
 import io.github.dirnei.mc.servus.foundation.data.packet.RateBudget;
 import io.github.dirnei.mc.servus.foundation.production.DataLink;
+import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
 import io.github.dirnei.mc.servus.foundation.production.TransferGate;
 import io.github.dirnei.mc.servus.foundation.save.ValueIo;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
@@ -31,6 +33,7 @@ import io.github.dirnei.mc.servus.shuttles.site.WirelessCost;
 import io.github.dirnei.mc.servus.shuttles.station.InboundStationBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import io.github.dirnei.mc.servus.shuttles.terminal.LineWarehouse;
+import io.github.dirnei.mc.servus.shuttles.terminal.StorageTerminalBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.terminal.TerminalWarehouses;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -38,6 +41,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -85,6 +89,10 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         private final String site;
         private final BlockPos terminal;
         private final long feed;
+        /** The pick request id its queued picks are tagged with, 0 for none. */
+        private final int requestId;
+        /** Game time of the first cut or refusal in a row, -1 while the target takes items. */
+        private long refusedSince = -1;
         /** The receiver's To storage room a wireless shipment without a terminal fills, null while it holds none. */
         private Grant intakeGrant;
         /** Room the target granted before the picks arrive, null while none is held. */
@@ -96,7 +104,8 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         /** Why the target takes nothing now, a lang key suffix, null while it takes items. */
         private String waiting;
 
-        Shipment(BlockPos target, ItemKey key, ProductionLedger.Transfer transfer, boolean wireless, String site, BlockPos terminal, long feed) {
+        Shipment(BlockPos target, ItemKey key, ProductionLedger.Transfer transfer, boolean wireless, String site, BlockPos terminal,
+                 long feed, int requestId) {
             this.target = target;
             this.key = key;
             this.transfer = transfer;
@@ -104,6 +113,17 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
             this.site = site == null ? "" : site;
             this.terminal = terminal;
             this.feed = feed;
+            this.requestId = requestId;
+        }
+
+        /** The pick request id its queued picks are tagged with, 0 for none. */
+        public int requestId() {
+            return requestId;
+        }
+
+        /** Game time of the first cut or refusal in a row, -1 while the target takes items. */
+        public long refusedSince() {
+            return refusedSince;
         }
 
         /**
@@ -178,7 +198,8 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
     }
 
     /** A saved shipment, resolved against the ledger on the first tick after loading. */
-    private record SavedShipment(long id, BlockPos target, ItemKey key, boolean wireless, String site, BlockPos terminal, long feed) {
+    private record SavedShipment(long id, BlockPos target, ItemKey key, boolean wireless, String site, BlockPos terminal, long feed,
+                                 int requestId, long refusedSince) {
     }
 
     /** Items per tick over the last second, for the Production Terminal. */
@@ -413,7 +434,12 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
 
     /** Registers a shipment of {@code planned} items; picks arrive in the outgoing buffer afterwards. */
     public Shipment addShipment(BlockPos target, ItemKey key, int planned) {
-        Shipment shipment = new Shipment(target.immutable(), key, ledger().open(planned), false, "", null, -1);
+        return addShipment(target, key, planned, 0);
+    }
+
+    /** Like {@link #addShipment(BlockPos, ItemKey, int)} for picks tagged with {@code requestId}, dropped when it ends short. */
+    public Shipment addShipment(BlockPos target, ItemKey key, int planned, int requestId) {
+        Shipment shipment = new Shipment(target.immutable(), key, ledger().open(planned), false, "", null, -1, requestId);
         shipments.add(shipment);
         if (level instanceof ServerLevel server) {
             holdGrant(server, shipment);
@@ -430,7 +456,7 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
      * transfer brings.
      */
     public Shipment addRelay(BlockPos terminal, ItemKey key, int planned, long feed) {
-        Shipment shipment = new Shipment(terminal.immutable(), key, ledger().open(planned), false, "", null, feed);
+        Shipment shipment = new Shipment(terminal.immutable(), key, ledger().open(planned), false, "", null, feed, 0);
         shipments.add(shipment);
         setChanged();
         return shipment;
@@ -454,8 +480,13 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
      * that terminal, without one in its To storage buffer.
      */
     public Shipment addWirelessShipment(BlockPos target, String site, ItemKey key, int planned, BlockPos terminal) {
+        return addWirelessShipment(target, site, key, planned, terminal, 0);
+    }
+
+    /** Like {@link #addWirelessShipment(BlockPos, String, ItemKey, int, BlockPos)} for picks tagged with {@code requestId}. */
+    public Shipment addWirelessShipment(BlockPos target, String site, ItemKey key, int planned, BlockPos terminal, int requestId) {
         Shipment shipment = new Shipment(target.immutable(), key, ledger().open(planned), true, site,
-                terminal == null ? null : terminal.immutable(), -1);
+                terminal == null ? null : terminal.immutable(), -1, requestId);
         shipments.add(shipment);
         WirelessIncoming.add(level.dimension(), shipment.target, shipment.id());
         setChanged();
@@ -569,16 +600,97 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
     }
 
     /**
-     * Ends a shipment early. Packets already on the line still land; what is
-     * still waiting in the outgoing buffer goes back into storage.
+     * Ends a shipment early. Packets already on the line still land; its
+     * queued picks are dropped and what is still waiting in the outgoing
+     * buffer goes back into storage.
      */
     public void cancel(long shipmentId) {
-        for (Shipment shipment : shipments) {
+        for (Shipment shipment : new ArrayList<>(shipments)) {
             if (shipment.id() == shipmentId && !shipment.ended()) {
-                ledger().end(shipment.transfer);
-                setChanged();
+                endShort(shipment);
             }
         }
+    }
+
+    /** Whether an open shipment of this station has that ledger id. */
+    public boolean holds(long shipmentId) {
+        for (Shipment shipment : shipments) {
+            if (shipment.id() == shipmentId && !shipment.ended()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Ends a shipment short: its transfer ends, its grants are dropped and its queued picks too. What
+     * waits for it in the outgoing buffer goes back into storage at the end of the next push.
+     */
+    private void endShort(Shipment shipment) {
+        ledger().end(shipment.transfer);
+        shipment.dropPickGrant();
+        closeIntakeGrant(shipment);
+        if (shipment.requestId != 0) {
+            network().ifPresent(network -> network.dropQueuedFor(shipment.requestId));
+        }
+        setChanged();
+    }
+
+    /** Applies what the station saw of the shipment's target to its refusal clock, ending it short when the clock says so. */
+    private void judge(ServerLevel server, Shipment shipment, RefusalClock.TargetState state) {
+        boolean player = state != RefusalClock.TargetState.UNLOADED
+                && server.getBlockEntity(shipment.target) instanceof StorageTerminalBlockEntity;
+        RefusalClock.Verdict verdict = RefusalClock.judge(state, player, shipment.refusedSince, server.getGameTime(),
+                ShuttlesStatsManager.INSTANCE.refusedShipmentTimeout());
+        if (verdict.refusedSince() != shipment.refusedSince) {
+            shipment.refusedSince = verdict.refusedSince();
+            setChanged();
+        }
+        if (verdict.end()) {
+            endShort(shipment);
+        }
+    }
+
+    /**
+     * What the station can tell about a shipment's target before offering or moving: not loaded, removed (nothing
+     * there takes items) or cut (this station's data line does not reach it); null while it is reachable.
+     */
+    private RefusalClock.TargetState reach(ServerLevel server, Shipment shipment) {
+        if (!server.isLoaded(shipment.target)) {
+            return RefusalClock.TargetState.UNLOADED;
+        }
+        if (!takesItems(server, shipment.target)) {
+            return RefusalClock.TargetState.REMOVED;
+        }
+        boolean reached = DataNetworks.networkAt(server, worldPosition).filter(network -> network.reaches(shipment.target)).isPresent();
+        return reached ? null : RefusalClock.TargetState.CUT;
+    }
+
+    /** Whether the block at a loaded position takes items from the data line on any face or without one. */
+    private static boolean takesItems(ServerLevel server, BlockPos pos) {
+        if (takesItems(server, pos, null)) {
+            return true;
+        }
+        for (Direction side : Direction.values()) {
+            if (takesItems(server, pos, side)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean takesItems(ServerLevel server, BlockPos pos, Direction side) {
+        return PacketInlets.handler(server, pos, side) != null
+                || server.getCapability(ServusFoundationCapabilities.STOCK_SINK, pos, side) != null;
+    }
+
+    /** How a failed delivery's reason reads for the refusal clock. */
+    private static RefusalClock.TargetState failure(DeliveryReason reason) {
+        return switch (reason) {
+            case NO_TARGET -> RefusalClock.TargetState.REMOVED;
+            case NO_ROUTE, ROUTE_BROKEN -> RefusalClock.TargetState.CUT;
+            case REFUSED, STALLED -> RefusalClock.TargetState.REFUSING;
+        };
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, PackingStationBlockEntity point) {
@@ -612,6 +724,11 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         }
         for (Shipment shipment : new ArrayList<>(shipments)) {
             if (shipment.wireless || shipment.ended() || shipment.sending()) {
+                continue;
+            }
+            RefusalClock.TargetState seen = reach(server, shipment);
+            if (seen != null) {
+                judge(server, shipment, seen);
                 continue;
             }
             int ready = Math.min(shipment.missing(), outgoingCount(shipment.key) - claimed(shipment.key));
@@ -653,9 +770,8 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         if (delivery.ended() && delivery.state() == Delivery.State.FAILED) {
             if (delivery.reason() == DeliveryReason.REFUSED) {
                 shipment.waiting = delivery.refusal();
-            } else {
-                ledger().end(shipment.transfer);
             }
+            judge(server, shipment, failure(delivery.reason()));
             return;
         }
         shipment.waiting = null;
@@ -687,10 +803,12 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         }
         if (!offered.get().granted()) {
             shipment.waiting = offered.get().refusal();
+            judge(server, shipment, RefusalClock.TargetState.REFUSING);
             return;
         }
         shipment.waiting = null;
         shipment.pickGrant = offered.get();
+        judge(server, shipment, RefusalClock.TargetState.TAKING);
     }
 
     /**
@@ -950,20 +1068,34 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
     }
 
     /**
-     * Books a delivery that ended. A target that refused or stalled keeps the
-     * shipment open to be tried again; a route or target that is gone ends it.
+     * Books a delivery that ended. Items the target took reset the refusal
+     * clock; a refusal, a stall or a cut line keeps the shipment open to be
+     * tried again until the clock gives it up; a removed target ends it.
      */
     private void finished(Shipment shipment, Delivery delivery) {
         ProductionLedger ledger = ledger();
         ledger.delivered(shipment.transfer, delivery.delivered());
         shipment.delivery = null;
-        boolean retried = delivery.reason() == DeliveryReason.REFUSED || delivery.reason() == DeliveryReason.STALLED;
-        if (delivery.state() == Delivery.State.FAILED && !retried || shipment.missing() == 0) {
-            ledger.end(shipment.transfer);
-        } else if (delivery.state() == Delivery.State.FAILED) {
-            shipment.waiting = delivery.reason() == DeliveryReason.STALLED ? STALLED : delivery.refusal();
-        }
         setChanged();
+        if (shipment.ended()) {
+            return;
+        }
+        if (shipment.missing() == 0) {
+            ledger.end(shipment.transfer);
+            return;
+        }
+        if (!(level instanceof ServerLevel server)) {
+            return;
+        }
+        if (delivery.delivered() > 0) {
+            judge(server, shipment, RefusalClock.TargetState.TAKING);
+        }
+        if (delivery.state() == Delivery.State.FAILED) {
+            if (delivery.reason() == DeliveryReason.STALLED || delivery.reason() == DeliveryReason.REFUSED) {
+                shipment.waiting = delivery.reason() == DeliveryReason.STALLED ? STALLED : delivery.refusal();
+            }
+            judge(server, shipment, failure(delivery.reason()));
+        }
     }
 
     /** Moves items in the outgoing buffer that no open shipment wants into the intake, to be put away. */
@@ -997,8 +1129,13 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         for (SavedShipment saved : unresolved) {
             ProductionLedger.Transfer transfer = ledger.transfer(saved.id());
             if (transfer != null && !transfer.ended()) {
-                Shipment shipment = new Shipment(saved.target(), saved.key(), transfer, saved.wireless(), saved.site(), saved.terminal(), saved.feed());
+                Shipment shipment = new Shipment(saved.target(), saved.key(), transfer, saved.wireless(), saved.site(), saved.terminal(),
+                        saved.feed(), saved.requestId());
+                shipment.refusedSince = saved.refusedSince();
                 shipments.add(shipment);
+                if (saved.requestId() != 0) {
+                    ledger.seenRequestId(saved.requestId());
+                }
                 if (shipment.wireless) {
                     WirelessIncoming.add(level.dimension(), shipment.target, shipment.id());
                 }
@@ -1067,7 +1204,7 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         for (Shipment shipment : shipments) {
             if (!shipment.ended()) {
                 list.add(savedShipment(new SavedShipment(shipment.id(), shipment.target, shipment.key, shipment.wireless, shipment.site,
-                        shipment.terminal, shipment.feed), registries));
+                        shipment.terminal, shipment.feed, shipment.requestId, shipment.refusedSince), registries));
             }
         }
         for (SavedShipment saved : unresolved) {
@@ -1098,7 +1235,8 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
             if (target.isPresent() && !item.isEmpty() && entry.contains("Id")) {
                 unresolved.add(new SavedShipment(entry.getLongOr("Id", 0L), target.get(), ItemKey.of(item),
                         entry.getBooleanOr("Wireless", false), entry.getStringOr("Site", ""),
-                        ValueIo.readPos(entry, "Terminal").orElse(null), entry.getLongOr("Feed", -1L)));
+                        ValueIo.readPos(entry, "Terminal").orElse(null), entry.getLongOr("Feed", -1L),
+                        entry.getIntOr("RequestId", 0), entry.getLongOr("RefusedSince", -1L)));
             }
         }
     }
@@ -1117,6 +1255,12 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
         }
         if (saved.feed() >= 0) {
             entry.putLong("Feed", saved.feed());
+        }
+        if (saved.requestId() != 0) {
+            entry.putInt("RequestId", saved.requestId());
+        }
+        if (saved.refusedSince() >= 0) {
+            entry.putLong("RefusedSince", saved.refusedSince());
         }
         return entry;
     }

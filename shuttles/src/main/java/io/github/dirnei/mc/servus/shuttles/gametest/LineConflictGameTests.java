@@ -111,7 +111,7 @@ public final class LineConflictGameTests {
             PackingStationBlockEntity station = helper.getBlockEntity(STATION_A, PackingStationBlockEntity.class);
             helper.assertTrue(statusKeyIs(station, LineWarehouse.CONFLICT_KEY) && station.status().alert(),
                     "the Packing Station names the conflict as an alert");
-            int supplied = new WarehouseSupplier(station).supply(helper.absolutePos(TERMINAL), new ItemStack(Items.COBBLESTONE), 5);
+            int supplied = new WarehouseSupplier(station).supply(helper.absolutePos(TERMINAL), new ItemStack(Items.COBBLESTONE), 5).amount();
             helper.assertTrue(supplied == 0, "the supplier answers 0, got " + supplied);
             helper.succeed();
         });

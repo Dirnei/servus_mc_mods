@@ -62,4 +62,13 @@ class FoundationMachinesTest {
         assertEquals(1.0, MachineStats.restartFraction(3.0));
         assertEquals(0.0, MachineStats.restartFraction(-1.0));
     }
+
+    @Test
+    void upkeepBatchDefaultsAndClamps() {
+        assertEquals(MachineStats.DEFAULT_UPKEEP_BATCH, MachineDefaults.stats("servus_foundation:coal_generator").upkeepBatch());
+        assertEquals(MachineStats.DEFAULT_UPKEEP_BATCH, MachineDefaults.stats("servus_foundation:burner_pump").upkeepBatch());
+        assertEquals(1, MachineStats.powered(40, 20, 8000).upkeepBatch());
+        assertEquals(1, new MachineStats(1, 0, 0, 1, 0, 1, 0, 0, 0, 0, "minecraft:coal", 16, -3, 0).upkeepBatch());
+        assertEquals(3, new MachineStats(1, 0, 0, 1, 0, 1, 0, 0, 0, 0, "minecraft:coal", 16, 3, 0).upkeepBatch());
+    }
 }

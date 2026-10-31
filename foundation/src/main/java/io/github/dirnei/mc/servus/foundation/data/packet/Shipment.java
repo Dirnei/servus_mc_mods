@@ -131,8 +131,15 @@ public final class Shipment {
         return grant == null && blockedSince >= 0 && level.getGameTime() - blockedSince >= limits.stallTicks();
     }
 
-    /** The target took less than offered: waits {@code retry_interval} and counts towards a stall. */
+    /**
+     * The target took less than offered: waits {@code retry_interval} and counts towards a stall. A loaded target that
+     * takes no items at all any more, because its block was broken or replaced, fails the shipment at once.
+     */
     private void waitForTarget(ServerLevel level, PacketLimits limits) {
+        if (grant == null && level.isLoaded(to) && !PacketIo.accepts(level, to, targetFace)) {
+            settle(level, DeliveryReason.NO_TARGET);
+            return;
+        }
         retry = limits.retryTicks();
         if (blockedSince < 0) {
             blockedSince = level.getGameTime();

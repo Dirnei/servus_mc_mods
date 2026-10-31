@@ -14,6 +14,7 @@
   "terminal_output_slots": 9,
   "stock_rule_interval": 100,
   "push_interval": 8,
+  "refused_shipment_timeout": 1200,
   "outbound_check_interval": 40,
   "anchor_upgrade_slots": 4,
   "chunks_per_upgrade": 9,

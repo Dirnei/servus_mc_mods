@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import net.minecraft.core.BlockPos;
@@ -83,7 +84,6 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
     private final List<Shipment> shipments = new ArrayList<>();
     /** Budgets of the ducts that carried items during the last second; idle ducts have none. */
     private final Map<NodePos, DuctBudget> budgets = new HashMap<>();
-    private final UpkeepBook<BlockPos> upkeep = new UpkeepBook<>();
     private int upkeepTimer;
     private ServerLevel level;
 
@@ -328,10 +328,12 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
         }
     }
 
-    /** Asks suppliers on the line for the upkeep each upkeep member is missing, one open request per member. */
+    /**
+     * Checks each upkeep member's open request and asks suppliers on the line for what it is missing, one open
+     * request per member, kept on the member itself.
+     */
     private void keepUpkeep(ServerLevel server) {
         List<DataMember> holders = dataMembers(DataRole.UPKEEP);
-        upkeep.retain(holders.stream().map(DataMember::pos).toList());
         if (holders.isEmpty()) {
             return;
         }
@@ -346,33 +348,62 @@ public final class DataNetwork extends ServusNetwork<DataNode, DataEvent> {
                 continue;
             }
             int count = holder.upkeepCount();
-            int missing = upkeep.ask(member.pos(), count, holder.upkeepLevel(), now);
-            if (missing <= 0) {
+            UpkeepRequest open = holder.upkeepRequest();
+            UpkeepBook.Step step = UpkeepBook.step(open, count, holder.upkeepLevel(), holder.upkeepBatch(),
+                    ticketState(server, open), now);
+            if (step.cancel()) {
+                ItemSupplier supplier = supplierAt(server, BlockPos.of(open.supplier()));
+                if (supplier != null) {
+                    supplier.cancel(open.ticket());
+                }
+            }
+            if (!Objects.equals(step.keep(), open)) {
+                holder.upkeepRequest(step.keep());
+            }
+            if (step.ask() <= 0) {
                 continue;
             }
             if (suppliers == null) {
                 suppliers = new ArrayList<>(dataMembers());
                 suppliers.sort(Comparator.comparingLong(candidate -> candidate.pos().asLong()));
             }
-            askSuppliers(server, suppliers, member.pos(), holder, count, missing, now);
+            askSuppliers(server, suppliers, member.pos(), holder, count, step.ask(), now);
         }
     }
 
-    /** Asks the suppliers in order until one sends the missing upkeep, and opens the request with it. */
+    /** What the supplier says about the open request's ticket; a supplier block that is not loaded cannot say. */
+    private static UpkeepBook.TicketState ticketState(ServerLevel server, UpkeepRequest open) {
+        if (open == null) {
+            return UpkeepBook.TicketState.CLOSED;
+        }
+        BlockPos pos = BlockPos.of(open.supplier());
+        if (!server.isLoaded(pos)) {
+            return UpkeepBook.TicketState.UNREACHABLE;
+        }
+        ItemSupplier supplier = supplierAt(server, pos);
+        return supplier != null && supplier.open(open.ticket()) ? UpkeepBook.TicketState.OPEN : UpkeepBook.TicketState.CLOSED;
+    }
+
+    private static ItemSupplier supplierAt(ServerLevel server, BlockPos pos) {
+        return server.isLoaded(pos) ? server.getCapability(ServusFoundationCapabilities.SUPPLIER, pos, null) : null;
+    }
+
+    /** Asks the suppliers in order until one sends the missing upkeep, and keeps its answer as the open request. */
     private void askSuppliers(ServerLevel server, List<DataMember> suppliers, BlockPos target, UpkeepHolder holder,
                               int count, int missing, long now) {
         for (DataMember candidate : suppliers) {
-            if (candidate.pos().equals(target) || !server.isLoaded(candidate.pos())) {
+            if (candidate.pos().equals(target)) {
                 continue;
             }
-            ItemSupplier supplier = server.getCapability(ServusFoundationCapabilities.SUPPLIER, candidate.pos(), null);
+            ItemSupplier supplier = supplierAt(server, candidate.pos());
             if (supplier == null) {
                 continue;
             }
-            int answer = supplier.supply(target, holder.upkeepItem().copyWithCount(1), missing);
-            if (answer > 0) {
-                upkeep.asked(target, answer, count, now, UPKEEP_TIMEOUT);
-                holder.upkeepRequested(answer, now + UPKEEP_TIMEOUT);
+            ItemSupplier.Supply answer = supplier.supply(target, holder.upkeepItem().copyWithCount(1), missing);
+            if (answer.amount() > 0) {
+                long until = now + UPKEEP_TIMEOUT;
+                holder.upkeepRequest(new UpkeepRequest(candidate.pos().asLong(), answer.ticket(), answer.amount(), count, until));
+                holder.upkeepRequested(answer.amount(), until);
                 return;
             }
         }

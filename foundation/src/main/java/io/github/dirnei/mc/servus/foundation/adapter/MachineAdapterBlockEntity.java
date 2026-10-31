@@ -6,6 +6,7 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.core.component.DataComponentGetter;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
+import io.github.dirnei.mc.servus.foundation.data.UpkeepRequest;
 import io.github.dirnei.mc.servus.foundation.graph.Side;
 import io.github.dirnei.mc.servus.foundation.naming.MachineNameSlot;
 import io.github.dirnei.mc.servus.foundation.naming.NamedMachine;
@@ -15,6 +16,7 @@ import io.github.dirnei.mc.servus.foundation.production.ProductionProvider;
 import io.github.dirnei.mc.servus.foundation.production.ProductionRecipe;
 import io.github.dirnei.mc.servus.foundation.production.SingleInputRecipes;
 import io.github.dirnei.mc.servus.foundation.production.UpkeepHolder;
+import io.github.dirnei.mc.servus.foundation.production.UpkeepRequestCodec;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
@@ -68,6 +70,7 @@ public class MachineAdapterBlockEntity extends BlockEntity implements MaterialHo
 
     private int expected;
     private long deadline;
+    private UpkeepRequest upkeepRequest;
 
     private final SingleInputRecipes recipes = new SingleInputRecipes();
 
@@ -84,8 +87,24 @@ public class MachineAdapterBlockEntity extends BlockEntity implements MaterialHo
         }
 
         @Override
+        public int upkeepBatch() {
+            return profile().map(MachineProfile::upkeepBatch).orElse(1);
+        }
+
+        @Override
         public int upkeepCount() {
             return MachineAdapterBlockEntity.this.upkeepCount();
+        }
+
+        @Override
+        public UpkeepRequest upkeepRequest() {
+            return upkeepRequest;
+        }
+
+        @Override
+        public void upkeepRequest(UpkeepRequest request) {
+            upkeepRequest = request;
+            setChanged();
         }
 
         @Override
@@ -308,6 +327,7 @@ public class MachineAdapterBlockEntity extends BlockEntity implements MaterialHo
         }
         output.putInt("level", upkeepLevel);
         output.putBoolean("set", upkeepSet);
+        UpkeepRequestCodec.save(output, upkeepRequest);
         NamedMachines.save(this, output);
     }
 
@@ -318,6 +338,7 @@ public class MachineAdapterBlockEntity extends BlockEntity implements MaterialHo
         upkeepItem = input.read("upkeep", ItemStack.CODEC).orElse(ItemStack.EMPTY);
         upkeepLevel = input.getIntOr("level", MachineProfile.DEFAULT_LEVEL);
         upkeepSet = input.getBooleanOr("set", false);
+        upkeepRequest = UpkeepRequestCodec.load(input);
         NamedMachines.load(this, input);
     }
 

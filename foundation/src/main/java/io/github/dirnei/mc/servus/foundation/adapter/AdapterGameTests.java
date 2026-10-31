@@ -1,6 +1,12 @@
 package io.github.dirnei.mc.servus.foundation.adapter;
 
+import io.github.dirnei.mc.servus.foundation.data.UpkeepBook;
+import io.github.dirnei.mc.servus.foundation.data.UpkeepRequest;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
+import io.github.dirnei.mc.servus.foundation.production.UpkeepHolder;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.BlockHitResult;
@@ -134,5 +140,41 @@ public final class AdapterGameTests {
                     "holding " + held + " should reach the GUI, got " + result);
         }
         helper.succeed();
+    }
+
+    /** The adapter saves its open upkeep request with its block. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void adapterUpkeepRequestSurvivesSaveLoad(GameTestHelper helper) {
+        MachineAdapterBlockEntity adapter = onFurnace(helper);
+        UpkeepRequest request = new UpkeepRequest(helper.absolutePos(ADAPTER.south()).asLong(), 7L, 12, 4, 999L);
+        adapter.upkeep().upkeepRequest(request);
+        CompoundTag saved = adapter.saveWithoutMetadata(helper.getLevel().registryAccess());
+        adapter.upkeep().upkeepRequest(null);
+        adapter.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, helper.getLevel().registryAccess(), saved));
+        helper.assertTrue(request.equals(adapter.upkeep().upkeepRequest()), "the request is read back, got " + adapter.upkeep().upkeepRequest());
+        helper.succeed();
+    }
+
+    /** With the furnace profile's batch of 8 the adapter asks nothing at 10 of 16 coal, and for 8 at 8 coal. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void adapterWaitsForBatch(GameTestHelper helper) {
+        MachineAdapterBlockEntity adapter = onFurnace(helper);
+        adapter.setUpkeepItem(new ItemStack(Items.COAL));
+        adapter.setUpkeepLevel(16);
+        UpkeepHolder upkeep = adapter.upkeep();
+        helper.assertTrue(upkeep.upkeepBatch() == 8, "the furnace profile's batch is 8, got " + upkeep.upkeepBatch());
+        furnace(helper).setItem(1, new ItemStack(Items.COAL, 10));
+        int atTen = ask(upkeep);
+        helper.assertTrue(atTen == 0, "nothing is asked at 10 coal, got " + atTen);
+        furnace(helper).setItem(1, new ItemStack(Items.COAL, 8));
+        int atEight = ask(upkeep);
+        helper.assertTrue(atEight == 8, "8 are asked at 8 coal, got " + atEight);
+        helper.succeed();
+    }
+
+    /** What the data network's upkeep check would ask for the holder without an open request. */
+    private static int ask(UpkeepHolder upkeep) {
+        return UpkeepBook.step(null, upkeep.upkeepCount(), upkeep.upkeepLevel(), upkeep.upkeepBatch(),
+                UpkeepBook.TicketState.CLOSED, 0).ask();
     }
 }

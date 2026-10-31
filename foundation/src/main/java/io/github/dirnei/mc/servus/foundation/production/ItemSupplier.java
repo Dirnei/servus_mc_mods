@@ -10,9 +10,21 @@ import net.minecraft.world.item.ItemStack;
 public interface ItemSupplier {
 
     /**
-     * Asks for up to {@code amount} items like the stack to be sent to the data member at {@code target}.
+     * The answer to a request.
      *
-     * @return how many will be sent, zero when none can
+     * @param amount how many will be sent, zero when none can
+     * @param ticket names the request for {@link #open} and {@link #cancel}; meaningless when the amount is zero
      */
-    int supply(BlockPos target, ItemStack like, int amount);
+    record Supply(int amount, long ticket) {
+        public static final Supply NONE = new Supply(0, 0L);
+    }
+
+    /** Asks for up to {@code amount} items like the stack to be sent to the data member at {@code target}. */
+    Supply supply(BlockPos target, ItemStack like, int amount);
+
+    /** Whether the request with the ticket is still on its way; false for a ticket this supplier does not know. */
+    boolean open(long ticket);
+
+    /** Gives up the request with the ticket and takes back what it had not sent yet; does nothing for an unknown ticket. */
+    void cancel(long ticket);
 }

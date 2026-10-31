@@ -1,61 +1,66 @@
 package io.github.dirnei.mc.servus.foundation.data;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-
 /**
- * Open upkeep requests per member. Arrivals are counted from the member's
- * own count: every rise since the last check is credited against the open
- * request, which ends once complete or timed out.
- *
- * @param <K> member key
+ * Decides one upkeep check of a member: credits arrivals counted from the
+ * member's own count against its open request, ends the request when complete,
+ * when its supplier ticket closed or after its timeout, and says how much to ask for.
  */
-public final class UpkeepBook<K> {
+public final class UpkeepBook {
 
-    private static final class Request {
-        int remaining;
-        int lastCount;
-        long until;
+    /** What the supplier says about the open request's ticket. */
+    public enum TicketState {
+        OPEN,
+        CLOSED,
+        /** The supplier's block is not loaded, so it can neither be asked nor told to cancel. */
+        UNREACHABLE
     }
-
-    private final Map<K, Request> open = new HashMap<>();
 
     /**
-     * Updates the member's open request from its count, then answers how
-     * much to ask for: nothing while a request is open or nothing is missing.
+     * The outcome of a check.
+     *
+     * @param keep   the open request to keep, null when it ended or there was none
+     * @param cancel whether the ended request's ticket must be cancelled at its supplier
+     * @param ask    how many to ask for now, 0 for nothing
      */
-    public int ask(K member, int count, int level, long now) {
-        Request request = open.get(member);
-        if (request != null) {
-            if (count > request.lastCount) {
-                request.remaining -= count - request.lastCount;
+    public record Step(UpkeepRequest keep, boolean cancel, int ask) {
+    }
+
+    private UpkeepBook() {
+    }
+
+    /**
+     * One check of a member holding {@code count} that keeps {@code level}
+     * and waits for {@code batch} missing before it asks again.
+     *
+     * @param open   the member's open request, null for none
+     * @param ticket the state of the open request's ticket, ignored without one
+     */
+    public static Step step(UpkeepRequest open, int count, int level, int batch, TicketState ticket, long now) {
+        boolean cancel = false;
+        if (open != null) {
+            UpkeepRequest counted = open.counted(count);
+            boolean ended = counted.remaining() <= 0 || ticket == TicketState.CLOSED;
+            if (!ended && now > counted.until()) {
+                if (ticket == TicketState.UNREACHABLE) {
+                    return new Step(counted, false, 0);
+                }
+                ended = true;
+                cancel = true;
             }
-            request.lastCount = count;
-            if (request.remaining > 0 && now <= request.until) {
-                return 0;
+            if (!ended) {
+                return new Step(counted, false, 0);
             }
-            open.remove(member);
         }
-        return Math.max(0, level - count);
+        return new Step(null, cancel, missing(count, level, batch));
     }
 
-    /** Opens a request for {@code amount} that ends at {@code now + timeout} at the latest. */
-    public void asked(K member, int amount, int count, long now, long timeout) {
-        Request request = new Request();
-        request.remaining = amount;
-        request.lastCount = count;
-        request.until = now + timeout;
-        open.put(member, request);
-    }
-
-    /** Whether the member has a request on its way. */
-    public boolean isOpen(K member) {
-        return open.containsKey(member);
-    }
-
-    /** Forgets every member not in {@code members}. */
-    public void retain(Collection<K> members) {
-        open.keySet().retainAll(members);
+    /** How many to ask for: everything missing, once at least a batch (at most the level) is missing or none is held. */
+    public static int missing(int count, int level, int batch) {
+        int missing = level - count;
+        if (missing <= 0) {
+            return 0;
+        }
+        int effective = Math.max(1, Math.min(batch, level));
+        return count <= 0 || missing >= effective ? missing : 0;
     }
 }

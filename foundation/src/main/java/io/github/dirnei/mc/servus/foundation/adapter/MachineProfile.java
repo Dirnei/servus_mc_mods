@@ -2,6 +2,7 @@ package io.github.dirnei.mc.servus.foundation.adapter;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import io.github.dirnei.mc.servus.foundation.machine.MachineStats;
 import io.github.dirnei.mc.servus.foundation.side.RelativeSide;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,8 +21,10 @@ import java.util.Map;
  * @param sides       the role of each side relative to the machine's facing; missing sides are off
  * @param upkeepItem  default upkeep item id, empty for none
  * @param upkeepLevel default upkeep level
+ * @param upkeepBatch how many upkeep items must be missing before the adapter asks again, at least 1
  */
-public record MachineProfile(List<String> blocks, String recipeType, Map<RelativeSide, Role> sides, String upkeepItem, int upkeepLevel) {
+public record MachineProfile(List<String> blocks, String recipeType, Map<RelativeSide, Role> sides, String upkeepItem, int upkeepLevel,
+                             int upkeepBatch) {
 
     /** What a side of the machine is used for. */
     public enum Role {
@@ -40,6 +43,12 @@ public record MachineProfile(List<String> blocks, String recipeType, Map<Relativ
             all.put(side, sides.getOrDefault(side, Role.OFF));
         }
         sides = Collections.unmodifiableMap(all);
+        upkeepBatch = Math.max(1, upkeepBatch);
+    }
+
+    /** A profile with the default upkeep batch. */
+    public MachineProfile(List<String> blocks, String recipeType, Map<RelativeSide, Role> sides, String upkeepItem, int upkeepLevel) {
+        this(blocks, recipeType, sides, upkeepItem, upkeepLevel, MachineStats.DEFAULT_UPKEEP_BATCH);
     }
 
     public Role role(RelativeSide side) {
@@ -49,7 +58,7 @@ public record MachineProfile(List<String> blocks, String recipeType, Map<Relativ
     /**
      * Reads a profile: {@code blocks} (array), {@code recipe_type}, {@code sides}
      * (object keyed by front, back, left, right, top, bottom with ingredients,
-     * upkeep, output or off) and an optional {@code upkeep} object with item and level.
+     * upkeep, output or off) and an optional {@code upkeep} object with item, level and batch.
      *
      * @throws IllegalArgumentException when blocks or recipe_type are missing or a value is unknown
      */
@@ -70,11 +79,13 @@ public record MachineProfile(List<String> blocks, String recipeType, Map<Relativ
         }
         String item = "";
         int level = DEFAULT_LEVEL;
+        int batch = MachineStats.DEFAULT_UPKEEP_BATCH;
         if (json.has("upkeep")) {
             JsonObject upkeep = json.getAsJsonObject("upkeep");
             item = upkeep.has("item") ? upkeep.get("item").getAsString() : "";
             level = upkeep.has("level") ? upkeep.get("level").getAsInt() : DEFAULT_LEVEL;
+            batch = upkeep.has("batch") ? upkeep.get("batch").getAsInt() : batch;
         }
-        return new MachineProfile(blocks, json.get("recipe_type").getAsString(), sides, item, level);
+        return new MachineProfile(blocks, json.get("recipe_type").getAsString(), sides, item, level, batch);
     }
 }

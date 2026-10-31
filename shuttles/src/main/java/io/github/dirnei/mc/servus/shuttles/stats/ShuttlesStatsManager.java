@@ -28,6 +28,7 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     public static final int DEFAULT_RAIL_MAX_SPAN = 3;
     public static final int DEFAULT_TERMINAL_OUTPUT_SLOTS = 9;
     public static final int DEFAULT_PUSH_INTERVAL = 8;
+    public static final int DEFAULT_REFUSED_SHIPMENT_TIMEOUT = 1200;
     public static final int DEFAULT_OUTBOUND_CHECK_INTERVAL = 40;
     public static final int DEFAULT_CRAFTING_STATION_TICKS = 40;
     public static final int DEFAULT_STOCK_RULE_INTERVAL = 100;
@@ -127,6 +128,7 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
     private volatile int railMaxSpan = DEFAULT_RAIL_MAX_SPAN;
     private volatile int terminalOutputSlots = DEFAULT_TERMINAL_OUTPUT_SLOTS;
     private volatile int pushInterval = DEFAULT_PUSH_INTERVAL;
+    private volatile int refusedShipmentTimeout = DEFAULT_REFUSED_SHIPMENT_TIMEOUT;
     private volatile int outboundCheckInterval = DEFAULT_OUTBOUND_CHECK_INTERVAL;
     private volatile int craftingStationTicks = DEFAULT_CRAFTING_STATION_TICKS;
     private volatile int stockRuleInterval = DEFAULT_STOCK_RULE_INTERVAL;
@@ -225,6 +227,8 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
         lockerCheckInterval = intField(files.get(WAREHOUSE), "locker_check_interval", DEFAULT_LOCKER_CHECK_INTERVAL);
         terminalOutputSlots = intField(files.get(WAREHOUSE), "terminal_output_slots", DEFAULT_TERMINAL_OUTPUT_SLOTS);
         pushInterval = intField(files.get(WAREHOUSE), "push_interval", DEFAULT_PUSH_INTERVAL);
+        refusedShipmentTimeout = Math.max(pushInterval,
+                intField(files.get(WAREHOUSE), "refused_shipment_timeout", DEFAULT_REFUSED_SHIPMENT_TIMEOUT));
         outboundCheckInterval = intField(files.get(WAREHOUSE), "outbound_check_interval", DEFAULT_OUTBOUND_CHECK_INTERVAL);
         craftingStationTicks = intField(files.get(CRAFTING_STATION), "work_ticks", DEFAULT_CRAFTING_STATION_TICKS);
         stockRuleInterval = intField(files.get(WAREHOUSE), "stock_rule_interval", DEFAULT_STOCK_RULE_INTERVAL);
@@ -363,6 +367,16 @@ public final class ShuttlesStatsManager extends SimpleJsonResourceReloadListener
 
     public int pushInterval() {
         return pushInterval;
+    }
+
+    /** Ticks a Packing Station shipment may stay cut from its target, or refused by a machine target, before it ends short. */
+    public int refusedShipmentTimeout() {
+        return refusedShipmentTimeout;
+    }
+
+    /** For GameTests: the refusal timeout in ticks, at least the push interval. */
+    public void setRefusedShipmentTimeout(int ticks) {
+        refusedShipmentTimeout = Math.max(pushInterval, ticks);
     }
 
     public int outboundCheckInterval() {

@@ -21,6 +21,7 @@ import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.cpu.CpuOrders;
+import io.github.dirnei.mc.servus.shuttles.order.ProductionLedger;
 import io.github.dirnei.mc.servus.shuttles.field.FieldDue;
 import io.github.dirnei.mc.servus.shuttles.field.FieldHeadBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.field.FieldHeads;
@@ -908,10 +909,11 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
      * shuttle trip from the racks holding them.
      *
      * @return refusal keys: {@code offline}, {@code no_packing_station}, {@code out_of_stock},
-     *         {@code needs_shuttle} or {@code no_rail}
+     *         {@code needs_shuttle} or {@code no_rail}; the pick jobs get a fresh request id, so the shipment drops
+     *         them when it ends short
      */
     public Shipping ship(BlockPos target, ItemKey key, int amount) {
-        return ship(target, key, amount, 0);
+        return ship(target, key, amount, level == null ? 0 : ProductionLedger.get(level).nextRequestId());
     }
 
     /** Like {@link #ship(BlockPos, ItemKey, int)}, with pick jobs tagged by {@code requestId} so they can be dropped. */
@@ -987,8 +989,8 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         if (plan.jobs().isEmpty()) {
             return new Shipping(refusal(plan, reachable), Optional.empty(), destination);
         }
-        PackingStationBlockEntity.Shipment shipment = site == null ? chosen.get().addShipment(target, key, plan.planned())
-                : chosen.get().addWirelessShipment(target, site, key, plan.planned(), terminal);
+        PackingStationBlockEntity.Shipment shipment = site == null ? chosen.get().addShipment(target, key, plan.planned(), requestId)
+                : chosen.get().addWirelessShipment(target, site, key, plan.planned(), terminal, requestId);
         startJobs(plan, requestId, key, destination);
         return new Shipping("", Optional.of(shipment), destination);
     }
@@ -1167,6 +1169,19 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
     /** The position of the single controller, empty unless online. */
     public Optional<BlockPos> controllerPos() {
         return status() == Status.ONLINE ? Optional.ofNullable(controllerPos) : Optional.empty();
+    }
+
+    /**
+     * Ends the shipment with that ledger id short at the loaded Packing Station holding it: its queued picks are
+     * dropped and what waits for it in the To network buffer goes back into storage. Does nothing for an unknown id.
+     */
+    public void cancelShipment(long id) {
+        for (BlockPos pos : packingStations()) {
+            if (loaded(pos) instanceof PackingStationBlockEntity station && station.holds(id)) {
+                station.cancel(id);
+                return;
+            }
+        }
     }
 
     /** Drops the queued pick jobs of a request; loads already taken keep going. */

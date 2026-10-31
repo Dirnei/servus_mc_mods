@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.machine.generator;
 
+import io.github.dirnei.mc.servus.foundation.data.UpkeepRequest;
 import io.github.dirnei.mc.servus.foundation.gametest.GameTestSteps;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.logistics.duct.Line;
@@ -13,6 +14,7 @@ import io.github.dirnei.mc.servus.foundation.machine.PoweredMachineBlockEntity;
 import io.github.dirnei.mc.servus.foundation.machine.menu.CoalGeneratorMenu;
 import io.github.dirnei.mc.servus.foundation.machine.pump.PumpGameTests;
 import io.github.dirnei.mc.servus.foundation.production.ServusFoundationCapabilities;
+import io.github.dirnei.mc.servus.foundation.production.UpkeepHolder;
 import io.github.dirnei.mc.servus.foundation.transfer.EnergyView;
 import io.github.dirnei.mc.servus.foundation.transfer.FluidView;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
@@ -20,6 +22,8 @@ import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -32,6 +36,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -339,5 +344,63 @@ public final class CoalGeneratorGameTests {
                 helper.succeed();
             });
         });
+    }
+
+    private static UpkeepHolder upkeepWith(GameTestHelper helper, ItemStack fuel) {
+        place(helper, GEN, Direction.NORTH);
+        CoalGeneratorBlockEntity generator = helper.getBlockEntity(GEN, CoalGeneratorBlockEntity.class);
+        generator.inventory().setStackInSlot(CoalGeneratorBlockEntity.SLOT_FUEL, fuel);
+        return generator.upkeep();
+    }
+
+    /** Coal Blocks in the fuel slot are the upkeep item: they count, and only they are asked for. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void coalBlockSlotAsksCoalBlocks(GameTestHelper helper) {
+        UpkeepHolder upkeep = upkeepWith(helper, new ItemStack(Items.COAL_BLOCK, 11));
+        helper.assertTrue(upkeep.upkeepItem().is(Items.COAL_BLOCK), "the upkeep item is the Coal Block, got " + upkeep.upkeepItem());
+        helper.assertTrue(upkeep.upkeepCount() == 11, "11 Coal Blocks count, got " + upkeep.upkeepCount());
+        helper.assertTrue(upkeep.upkeepLevel() == 16, "the level stays 16, got " + upkeep.upkeepLevel());
+        helper.assertTrue(upkeep.upkeepBatch() == 8, "the batch is 8, got " + upkeep.upkeepBatch());
+        helper.succeed();
+    }
+
+    /** An empty fuel slot asks for the stats item, coal. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void emptySlotAsksStatsItem(GameTestHelper helper) {
+        UpkeepHolder upkeep = upkeepWith(helper, ItemStack.EMPTY);
+        helper.assertTrue(upkeep.upkeepItem().is(Items.COAL), "an empty slot asks for coal, got " + upkeep.upkeepItem());
+        helper.assertTrue(upkeep.upkeepCount() == 0 && upkeep.upkeepLevel() == 16, "count 0 at level 16");
+        helper.succeed();
+    }
+
+    /** A Lava Bucket keeps a level of one stack, and the empty bucket it leaves asks for nothing. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void lavaBucketCapsLevel(GameTestHelper helper) {
+        UpkeepHolder upkeep = upkeepWith(helper, new ItemStack(Items.LAVA_BUCKET));
+        helper.assertTrue(upkeep.upkeepItem().is(Items.LAVA_BUCKET), "the upkeep item is the Lava Bucket, got " + upkeep.upkeepItem());
+        helper.assertTrue(upkeep.upkeepLevel() == 1 && upkeep.upkeepCount() == 1, "level 1 and count 1, got "
+                + upkeep.upkeepLevel() + " and " + upkeep.upkeepCount());
+        helper.getBlockEntity(GEN, CoalGeneratorBlockEntity.class).inventory()
+                .setStackInSlot(CoalGeneratorBlockEntity.SLOT_FUEL, new ItemStack(Items.BUCKET));
+        helper.assertTrue(upkeep.upkeepItem().isEmpty(), "an empty bucket blocks the slot, got " + upkeep.upkeepItem());
+        helper.succeed();
+    }
+
+    /** The open upkeep request is saved with the generator and read back. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void upkeepRequestSurvivesSaveLoad(GameTestHelper helper) {
+        UpkeepHolder upkeep = upkeepWith(helper, new ItemStack(Items.COAL, 4));
+        UpkeepRequest request = new UpkeepRequest(helper.absolutePos(GEN.east()).asLong(), 42L, 12, 4, 1234L);
+        upkeep.upkeepRequest(request);
+        CoalGeneratorBlockEntity generator = helper.getBlockEntity(GEN, CoalGeneratorBlockEntity.class);
+        CompoundTag saved = generator.saveWithoutMetadata(helper.getLevel().registryAccess());
+        upkeep.upkeepRequest(null);
+        generator.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, helper.getLevel().registryAccess(), saved));
+        helper.assertTrue(request.equals(generator.upkeep().upkeepRequest()), "the request is read back, got " + generator.upkeep().upkeepRequest());
+        upkeep.upkeepRequest(null);
+        CompoundTag none = generator.saveWithoutMetadata(helper.getLevel().registryAccess());
+        generator.loadWithComponents(TagValueInput.create(ProblemReporter.DISCARDING, helper.getLevel().registryAccess(), none));
+        helper.assertTrue(generator.upkeep().upkeepRequest() == null, "no request is saved when there is none");
+        helper.succeed();
     }
 }

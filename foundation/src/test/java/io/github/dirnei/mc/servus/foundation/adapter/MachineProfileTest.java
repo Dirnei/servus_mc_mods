@@ -50,4 +50,26 @@ class MachineProfileTest {
     void rejectsMissingRecipeType() {
         assertThrows(IllegalArgumentException.class, () -> MachineProfile.parse(json("{\"blocks\": [\"minecraft:furnace\"]}")));
     }
+
+    @Test
+    void upkeepBatchDefaultsToEight() {
+        MachineProfile profile = MachineProfile.parse(json("""
+                {"blocks": ["minecraft:furnace"], "recipe_type": "minecraft:smelting",
+                 "upkeep": {"item": "minecraft:coal", "level": 16}}"""));
+
+        assertEquals(8, profile.upkeepBatch());
+    }
+
+    @Test
+    void upkeepBatchReadAndClamped() {
+        MachineProfile three = MachineProfile.parse(json("""
+                {"blocks": ["minecraft:furnace"], "recipe_type": "minecraft:smelting",
+                 "upkeep": {"item": "minecraft:coal", "level": 16, "batch": 3}}"""));
+        MachineProfile zero = MachineProfile.parse(json("""
+                {"blocks": ["minecraft:furnace"], "recipe_type": "minecraft:smelting",
+                 "upkeep": {"item": "minecraft:coal", "level": 16, "batch": 0}}"""));
+
+        assertEquals(3, three.upkeepBatch());
+        assertEquals(1, zero.upkeepBatch());
+    }
 }

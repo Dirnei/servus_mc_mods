@@ -35,17 +35,17 @@ public final class AlchemyMachineDefaults {
      * upkeep and holds {@code ash} Ash in its Ash Pan; its Sulfur and Mercury go straight into its tanks.
      */
     private static MachineStats calciner(int fuelDivisor, int ash) {
-        return new MachineStats(1, 0, 0, fuelDivisor, 0, 1, 0, 0, 0, 0, MachineStats.DEFAULT_UPKEEP_ITEM, MachineStats.DEFAULT_UPKEEP_LEVEL, ash);
+        return new MachineStats(1, 0, 0, fuelDivisor, 0, 1, 0, 0, 0, 0, MachineStats.DEFAULT_UPKEEP_ITEM, MachineStats.DEFAULT_UPKEEP_LEVEL, MachineStats.DEFAULT_UPKEEP_BATCH, ash);
     }
 
     /** The Gnome Hollow: each principle tank holds {@code tank} mB, its store {@code store} items of the vein's yield. */
     private static MachineStats hollow(int tank, int store) {
-        return new MachineStats(1, 0, 0, 1, 0, 1, 0, 0, tank, 0, "", 0, store);
+        return new MachineStats(1, 0, 0, 1, 0, 1, 0, 0, tank, 0, "", 0, 0, store);
     }
 
     /** The Principle Dropper: every {@code interval} ticks it drips up to {@code perDrip} mB of each principle; each tank holds {@code tank} mB. */
     private static MachineStats dropper(int interval, int perDrip, int tank) {
-        return new MachineStats(interval, 0, 0, 1, 0, 1, 0, perDrip, tank, 0, "", 0, 0);
+        return new MachineStats(interval, 0, 0, 1, 0, 1, 0, perDrip, tank, 0, "", 0, 0, 0);
     }
 
     /**
@@ -53,17 +53,17 @@ public final class AlchemyMachineDefaults {
      * {@code workTicks} as its default press time, while each pressing recipe sets its own.
      */
     private static MachineStats forge(int workTicks) {
-        return new MachineStats(workTicks, 0, 0, 1, 0, 1, 0, 0, 0, 0, "", 0, 0);
+        return new MachineStats(workTicks, 0, 0, 1, 0, 1, 0, 0, 0, 0, "", 0, 0, 0);
     }
 
     /** An unpowered alchemy machine without tanks that holds {@code items} items of its input. */
     private static MachineStats store(int items) {
-        return new MachineStats(1, 0, 0, 1, 0, 1, 0, 0, 0, 0, "", 0, items);
+        return new MachineStats(1, 0, 0, 1, 0, 1, 0, 0, 0, 0, "", 0, 0, items);
     }
 
     /** An unpowered alchemy machine: recipe time decides the cycle, each principle tank holds {@code tank} mB. */
     private static MachineStats alchemy(int tank) {
-        return new MachineStats(1, 0, 0, 1, 0, 1, 0, 0, tank, 0, "", 0, 0);
+        return new MachineStats(1, 0, 0, 1, 0, 1, 0, 0, tank, 0, "", 0, 0, 0);
     }
 
     private static void add(String path, String kind, List<String> recipeTypes, MachineStats stats) {

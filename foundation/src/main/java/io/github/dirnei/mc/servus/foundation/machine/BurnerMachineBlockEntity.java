@@ -2,7 +2,9 @@ package io.github.dirnei.mc.servus.foundation.machine;
 
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import io.github.dirnei.mc.servus.foundation.data.UpkeepRequest;
 import io.github.dirnei.mc.servus.foundation.production.UpkeepHolder;
+import io.github.dirnei.mc.servus.foundation.production.UpkeepRequestCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
@@ -25,26 +27,41 @@ public abstract class BurnerMachineBlockEntity extends MachineBlockEntity {
 
     private String upkeepId = "";
     private ItemStack upkeepStack = ItemStack.EMPTY;
+    private UpkeepRequest upkeepRequest;
     private final UpkeepHolder upkeep = new UpkeepHolder() {
         @Override
         public ItemStack upkeepItem() {
-            return upkeepStack();
+            return slotUpkeepItem();
         }
 
+        /** At most one stack of the item, so a Lava Bucket keeps a level of 1. */
         @Override
         public int upkeepLevel() {
-            return stats().upkeepLevel();
+            ItemStack item = slotUpkeepItem();
+            return item.isEmpty() ? 0 : Math.min(stats().upkeepLevel(), item.getMaxStackSize());
         }
 
-        /** Any fuel in the fuel slot counts: a slot of charcoal is stocked, and coal could not join it anyway. */
+        @Override
+        public int upkeepBatch() {
+            return stats().upkeepBatch();
+        }
+
         @Override
         public int upkeepCount() {
-            ItemStack item = upkeepStack();
+            ItemStack item = slotUpkeepItem();
             ItemStack fuel = inventory.getStackInSlot(fuelSlot());
-            if (item.isEmpty() || fuel.isEmpty()) {
-                return 0;
-            }
-            return ItemStack.isSameItemSameComponents(item, fuel) || burnTimeOf(fuel) > 0 ? fuel.getCount() : 0;
+            return !item.isEmpty() && ItemStack.isSameItemSameComponents(item, fuel) ? fuel.getCount() : 0;
+        }
+
+        @Override
+        public UpkeepRequest upkeepRequest() {
+            return upkeepRequest;
+        }
+
+        @Override
+        public void upkeepRequest(UpkeepRequest request) {
+            upkeepRequest = request;
+            setChanged();
         }
     };
 
@@ -63,6 +80,18 @@ public abstract class BurnerMachineBlockEntity extends MachineBlockEntity {
     /** The fuel slot as upkeep, or null when the machine's stats keep none or an eternal fire burns. */
     public UpkeepHolder upkeep() {
         return stats().hasUpkeep() && !eternalFire() ? upkeep : null;
+    }
+
+    /**
+     * The item to keep: the burning fuel in the fuel slot, the stats item while the slot is empty, and none while
+     * the slot holds something that does not burn.
+     */
+    private ItemStack slotUpkeepItem() {
+        ItemStack fuel = inventory.getStackInSlot(fuelSlot());
+        if (fuel.isEmpty()) {
+            return upkeepStack();
+        }
+        return burnTimeOf(fuel) > 0 ? fuel.copyWithCount(1) : ItemStack.EMPTY;
     }
 
     private ItemStack upkeepStack() {
@@ -190,6 +219,7 @@ public abstract class BurnerMachineBlockEntity extends MachineBlockEntity {
         super.saveAdditional(output);
         output.putInt("BurnTime", burnTime);
         output.putInt("BurnDuration", burnDuration);
+        UpkeepRequestCodec.save(output, upkeepRequest);
     }
 
     @Override
@@ -197,5 +227,6 @@ public abstract class BurnerMachineBlockEntity extends MachineBlockEntity {
         super.loadAdditional(input);
         burnTime = input.getIntOr("BurnTime", 0);
         burnDuration = input.getIntOr("BurnDuration", 0);
+        upkeepRequest = UpkeepRequestCodec.load(input);
     }
 }

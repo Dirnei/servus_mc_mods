@@ -39,7 +39,7 @@ class MachineDefaultsTest {
     @Test
     void registeredItemCapacityIsLookedUp() {
         MachineDefaults.register("test_items:pan", "burner", List.of(),
-                new MachineStats(1, 0, 0, 1, 0, 1, 0, 0, 0, 0, "", 0, 64));
+                new MachineStats(1, 0, 0, 1, 0, 1, 0, 0, 0, 0, "", 0, 0, 64));
 
         assertEquals(64, MachineDefaults.stats("test_items:pan").itemCapacity());
     }

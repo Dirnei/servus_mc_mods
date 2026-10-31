@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.production;
 
+import io.github.dirnei.mc.servus.foundation.data.UpkeepRequest;
 import net.minecraft.world.item.ItemStack;
 
 /**
@@ -15,8 +16,19 @@ public interface UpkeepHolder {
     /** How many to keep. */
     int upkeepLevel();
 
-    /** How many of the upkeep item, or of another item doing its job such as another fuel, the block holds right now. */
+    /** How many must be missing before the network asks again; the network never waits for more than the level. */
+    default int upkeepBatch() {
+        return 1;
+    }
+
+    /** How many of the upkeep item the block holds right now. */
     int upkeepCount();
+
+    /** The open upkeep request, null for none. */
+    UpkeepRequest upkeepRequest();
+
+    /** Keeps {@code request} as the open upkeep request, saved with the block; null clears it. */
+    void upkeepRequest(UpkeepRequest request);
 
     /**
      * A supplier will send {@code amount} upkeep items; the request ends at

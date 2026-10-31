@@ -16,6 +16,7 @@ import java.util.Optional;
  * @param fluidPerCycle  mB a pump adds to its buffer per work cycle (0 for other machines)
  * @param fluidCapacity  mB a pump's buffer holds (0 for other machines)
  * @param minSourceNeighbours water source neighbours the source below a pump needs (0 for other machines)
+ * @param upkeepBatch    how many upkeep items must be missing before the machine asks again (at least 1)
  * @param itemCapacity   items a machine's output buffer holds (0 for machines without one)
  * @param restartBelow   fraction of its buffer a machine with a restart threshold waits for after its buffer filled
  *                       (1 restarts as soon as there is room)
@@ -23,22 +24,27 @@ import java.util.Optional;
 public record MachineStats(int workTicks, int energyPerTick, int energyCapacity, int fuelDivisor,
                            int itemsPerTick, int recipeSlots, int fuelReserve, int fluidPerCycle,
                            int fluidCapacity, int minSourceNeighbours, String upkeepItem, int upkeepLevel,
-                           int itemCapacity, double restartBelow) {
+                           int upkeepBatch, int itemCapacity, double restartBelow) {
 
     /** Upkeep of the burner machines unless their stats say otherwise. */
     public static final String DEFAULT_UPKEEP_ITEM = "minecraft:coal";
     public static final int DEFAULT_UPKEEP_LEVEL = 16;
+    public static final int DEFAULT_UPKEEP_BATCH = 8;
     /** Restart threshold of a machine that runs again as soon as its buffer has room. */
     public static final double NO_RESTART_THRESHOLD = 1.0;
     /** Restart threshold of the generator and the pumps unless their stats say otherwise. */
     public static final double DEFAULT_RESTART_BELOW = 0.5;
 
+    public MachineStats {
+        upkeepBatch = Math.max(1, upkeepBatch);
+    }
+
     /** Stats without a restart threshold. */
     public MachineStats(int workTicks, int energyPerTick, int energyCapacity, int fuelDivisor, int itemsPerTick,
                         int recipeSlots, int fuelReserve, int fluidPerCycle, int fluidCapacity, int minSourceNeighbours,
-                        String upkeepItem, int upkeepLevel, int itemCapacity) {
+                        String upkeepItem, int upkeepLevel, int upkeepBatch, int itemCapacity) {
         this(workTicks, energyPerTick, energyCapacity, fuelDivisor, itemsPerTick, recipeSlots, fuelReserve, fluidPerCycle,
-                fluidCapacity, minSourceNeighbours, upkeepItem, upkeepLevel, itemCapacity, NO_RESTART_THRESHOLD);
+                fluidCapacity, minSourceNeighbours, upkeepItem, upkeepLevel, upkeepBatch, itemCapacity, NO_RESTART_THRESHOLD);
     }
 
     /** A restart threshold from data as a fraction between 0 and 1. */
@@ -58,7 +64,7 @@ public record MachineStats(int workTicks, int energyPerTick, int energyCapacity,
                           Optional<Integer> fuelReserve, Optional<Integer> fluidPerCycle,
                           Optional<Integer> fluidCapacity, Optional<Integer> minSourceNeighbours,
                           Optional<String> upkeepItem, Optional<Integer> upkeepLevel,
-                          Optional<Integer> itemCapacity, Optional<Double> restartBelow) {
+                          Optional<Integer> upkeepBatch, Optional<Integer> itemCapacity, Optional<Double> restartBelow) {
 
         public static final Codec<Partial> CODEC = RecordCodecBuilder.create(instance -> instance.group(
                 Codec.INT.optionalFieldOf("work_ticks").forGetter(Partial::workTicks),
@@ -73,6 +79,7 @@ public record MachineStats(int workTicks, int energyPerTick, int energyCapacity,
                 Codec.INT.optionalFieldOf("min_source_neighbours").forGetter(Partial::minSourceNeighbours),
                 Codec.STRING.optionalFieldOf("upkeep_item").forGetter(Partial::upkeepItem),
                 Codec.INT.optionalFieldOf("upkeep_level").forGetter(Partial::upkeepLevel),
+                Codec.INT.optionalFieldOf("upkeep_batch").forGetter(Partial::upkeepBatch),
                 Codec.INT.optionalFieldOf("item_capacity").forGetter(Partial::itemCapacity),
                 Codec.DOUBLE.optionalFieldOf("restart_below").forGetter(Partial::restartBelow)
         ).apply(instance, Partial::new));
@@ -91,6 +98,7 @@ public record MachineStats(int workTicks, int energyPerTick, int energyCapacity,
                     minSourceNeighbours.orElse(defaults.minSourceNeighbours()),
                     upkeepItem.orElse(defaults.upkeepItem()),
                     Math.max(0, upkeepLevel.orElse(defaults.upkeepLevel())),
+                    upkeepBatch.orElse(defaults.upkeepBatch()),
                     Math.max(0, itemCapacity.orElse(defaults.itemCapacity())),
                     restartFraction(restartBelow.orElse(defaults.restartBelow())));
         }
@@ -102,35 +110,35 @@ public record MachineStats(int workTicks, int energyPerTick, int energyCapacity,
 
     /** A burner that keeps {@code fuelReserve} of its own yield as fuel. */
     public static MachineStats burner(int workTicks, int fuelReserve) {
-        return new MachineStats(workTicks, 0, 0, 1, 0, 1, fuelReserve, 0, 0, 0, DEFAULT_UPKEEP_ITEM, DEFAULT_UPKEEP_LEVEL, 0);
+        return new MachineStats(workTicks, 0, 0, 1, 0, 1, fuelReserve, 0, 0, 0, DEFAULT_UPKEEP_ITEM, DEFAULT_UPKEEP_LEVEL, DEFAULT_UPKEEP_BATCH, 0);
     }
 
     public static MachineStats powered(int workTicks, int energyPerTick, int energyCapacity) {
-        return new MachineStats(workTicks, energyPerTick, energyCapacity, 1, 0, 1, 0, 0, 0, 0, "", 0, 0);
+        return new MachineStats(workTicks, energyPerTick, energyCapacity, 1, 0, 1, 0, 0, 0, 0, "", 0, 0, 0);
     }
 
     public static MachineStats crafter(int workTicks, int energyPerTick, int energyCapacity, int recipeSlots) {
-        return new MachineStats(workTicks, energyPerTick, energyCapacity, 1, 0, recipeSlots, 0, 0, 0, 0, "", 0, 0);
+        return new MachineStats(workTicks, energyPerTick, energyCapacity, 1, 0, recipeSlots, 0, 0, 0, 0, "", 0, 0, 0);
     }
 
     /** A driven machine with one tank of {@code fluidCapacity} mB and no balance numbers of its own besides. */
     public static MachineStats fluidHolder(int fluidCapacity) {
-        return new MachineStats(1, 0, 0, 1, 0, 1, 0, 0, fluidCapacity, 0, "", 0, 0);
+        return new MachineStats(1, 0, 0, 1, 0, 1, 0, 0, fluidCapacity, 0, "", 0, 0, 0);
     }
 
     public static MachineStats burnerPump(int workTicks, int fluidPerCycle, int fluidCapacity, int minSourceNeighbours) {
         return new MachineStats(workTicks, 0, 0, 1, 0, 1, 0, fluidPerCycle, fluidCapacity, minSourceNeighbours,
-                DEFAULT_UPKEEP_ITEM, DEFAULT_UPKEEP_LEVEL, 0, DEFAULT_RESTART_BELOW);
+                DEFAULT_UPKEEP_ITEM, DEFAULT_UPKEEP_LEVEL, DEFAULT_UPKEEP_BATCH, 0, DEFAULT_RESTART_BELOW);
     }
 
     public static MachineStats poweredPump(int workTicks, int energyPerTick, int energyCapacity, int fluidPerCycle,
                                            int fluidCapacity, int minSourceNeighbours) {
         return new MachineStats(workTicks, energyPerTick, energyCapacity, 1, 0, 1, 0, fluidPerCycle, fluidCapacity,
-                minSourceNeighbours, "", 0, 0, DEFAULT_RESTART_BELOW);
+                minSourceNeighbours, "", 0, 0, 0, DEFAULT_RESTART_BELOW);
     }
 
     public static MachineStats generator(int energyPerTick, int energyCapacity, int fuelDivisor) {
-        return new MachineStats(1, energyPerTick, energyCapacity, fuelDivisor, 0, 1, 0, 0, 0, 0, DEFAULT_UPKEEP_ITEM, DEFAULT_UPKEEP_LEVEL, 0,
+        return new MachineStats(1, energyPerTick, energyCapacity, fuelDivisor, 0, 1, 0, 0, 0, 0, DEFAULT_UPKEEP_ITEM, DEFAULT_UPKEEP_LEVEL, DEFAULT_UPKEEP_BATCH, 0,
                 DEFAULT_RESTART_BELOW);
     }
 }
