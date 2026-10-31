@@ -30,6 +30,14 @@
 
 - [x] 5.1 `gametest/ParcelLockerGameTests.java`: placement needs ten free spaces, break removes all and drops contents, numbered by its warehouse, order reserves boxes and delivers, too big refused before picking, shortfall clamped, collecting only own boxes frees them, expired parcel put away, break during an order unlocks stock, STOCK basket emptied by SEND and kept by cancel, out of range refused. Run `:shuttles:runGameTestServer`.
 
-## 6. Verify
+## 6. Look and collecting from the concept page
 
-- [ ] 6.1 Full `gradlew build`, all tests and GameTests green, the game launches with all mods; play check: place a locker at a rail, order from the Handheld at several distances, watch the shuttle deliver and the lamps, collect, let a parcel expire, break a full locker, look for flicker on every part from several angles.
+- [ ] 6.1 `tools/locker-textures/gen.py`: new textures from `temp/parcel-locker-look.html` (doors 32 px with small ids, door insides, carcass, sides, roof, dock with hatch and lamp spot, screen states IDLE with animated `.mcmeta` blink, HELLO, NONE, LOAD, DENY, animated dock lamp); remove unused ones. Run the script.
+- [ ] 6.2 `locker/LockerLayout.java`: `boxAt(part, hitY)`. JUnit in `LockerLayoutTest`: `lowerSOfFourColumn`, `mBoxBelowTwoS`, `lBoxFromBothParts`, `headHasNoBox`. Run `:shuttles:test`.
+- [ ] 6.3 `locker/ParcelLockerBlock.java`, `ParcelLockerBlockEntity.java`: `SCREEN` and `LOADING` properties, `LAMP_TOP`/`LAMP_BOTTOM` removed; Handheld scan opens the player's READY boxes with `openUntil` (`warehouse.json` `locker_door_open_ticks`), screen HELLO/NONE with a scheduled fall back; empty hand opens the GUI; right click on a box takes its items or sets DENY; update tag with box states, owners, open flags and the first stacks of open boxes. Run `:shuttles:build`.
+- [ ] 6.4 `client/ParcelLockerRenderer.java` registered for the dock entity: doors hinged left with ease, ding per door, lamps full bright, items with counts in open boxes, HELLO count over the LCD; `datagen/ParcelLockerModels.java`: doors and lamp models removed from the static parts, roof element, screen states, dock lamp. List overlapping boxes and shared planes in the task note. Run `:shuttles:runData` and `:shuttles:build`.
+- [ ] 6.5 `gametest/ParcelLockerGameTests.java`: scan opens only the scanner's ready boxes, nothing waiting sets NONE, taking from an open box fills the inventory and frees it, a full inventory leaves the rest, another player's box sets DENY and stays closed, doors close after the open time, empty hand opens the GUI and renames. Run `:shuttles:runGameTestServer`.
+
+## 7. Verify
+
+- [ ] 7.1 Full `gradlew build`, all tests and GameTests green, the game launches with all mods; play check: place a locker at a rail, order from the Handheld at several distances, watch the shuttle deliver with the dock lamp and LOAD, scan and watch the doors open, take items from the boxes, let a parcel expire, rename by empty hand, break a full locker, look for flicker on every part and on the moving doors from several angles.

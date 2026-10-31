@@ -40,13 +40,26 @@ The picker data comes from `HandheldMenuStatePayload`: per locker its label, pos
 When an order's planned stacks are all in, it turns READY with `readySince = gameTime`; the dock plays a chime, the box lamps go green, and the owner gets `HandheldParcelPayload(locker label)` which the panel shows until the next order or collection. An order whose picks fail (stock gone, shuttle lost) turns READY with what arrived, or is dropped and its boxes freed when nothing arrived.
 
 ### Collecting
-`ParcelLockerMenu` shows the opening player's boxes as take-only slots (a filtered view of `LockedSlots`, no insert), others' boxes as taken cells. Opened by right clicking the screen part with the Handheld or an empty hand (`useWithoutItem`/`useItemOn` on the screen part). A box whose slots are all empty and whose order is READY is freed; when all boxes of an order are free the order is removed.
+Two ways in, both on the screen part:
+- **Handheld scan** (`useItemOn` with a `HandheldItem`): the entity opens the player's READY boxes in the world. It keeps per box an `openUntil` game time (`locker_door_open_ticks`, example 200) and sends the open boxes in its update tag; the screen state goes to HELLO (or NONE). The client staggers the swing by box order (about 8 ticks apart) and plays a ding per door; the scan itself plays the Handheld's chirp.
+- **Empty hand** (`useWithoutItem`): `ParcelLockerMenu` as before (`NamedMachineScreen` with the name pencil), own boxes take-only, others' boxes taken.
+
+Taking from an open box: right click (any hand) on a box part. The box comes from the part and the hit height inside the block through `LockerLayout.boxAt(part, hitY)` (S boxes are half a block). The owner's open box moves its stacks into the inventory (`Inventory.add`, the rest stays); an empty READY box is freed and closes. Another player's box sets the screen to DENY. The Data Potato still passes to its report.
+
+### Screen states
+`ParcelLockerBlock` gets `SCREEN` (IDLE, HELLO, NONE, LOAD, DENY) on the HEAD_SCREEN part, emissive LCD models per state. IDLE uses an animated texture (`.mcmeta`, QR with SCAN blinking). HELLO, NONE and DENY fall back after a few seconds through a scheduled tick; LOAD shows while picks of an order are arriving and returns to IDLE with the last one. HELLO shows the count of opened boxes in the renderer, drawn over the LCD as text, so the texture carries only the frame of that state.
+
+### Doors, lamps and items: renderer
+The doors leave the static model. `ParcelLockerRenderer` (block entity renderer on the dock, `shouldRenderOffScreen`, a render box over all ten parts) draws per box from `LockerLayout`: the door as a 1 px slab hinged on its left edge, turning to about 108 degrees with an ease out over 10 ticks when opened and back when closed; the door's lamp full bright in its colour (dark free, ochre someone else's, amber reserved, green ready); and in an open box up to three of its stacks as items with their counts. The update tag carries per box its state, open flag and owner UUID, and the first three stacks of open boxes; the client compares the owner with the local player for the lamp colour. The `LAMP_TOP`/`LAMP_BOTTOM` properties and lamp multipart models are removed.
+
+### Dock lamp and roof
+The dock lamp is a separate emissive element with an animated amber texture shown while the screen is LOAD (block state on the dock part `LOADING`). The roof is a model element 3 px tall on the top of the five high parts with a 1 px overhang at the front, back and both ends; its faces end at the part edges so neighbours never share a plane.
 
 ### Returns
 Every `fluid_check_interval`-like `locker_check_interval` ticks the warehouse checks READY orders older than `locker_return_ticks` (example 24000, `warehouse.json`). Those boxes join the put-away buffer (`PutAwaySource.drains(slot)`, true by default, is true only for the slots of expired orders), so the existing put-away planning takes them by zone rules. Stuck items stay and `setBlocked` shows the reason on the screen and in the potato line.
 
 ### Look
-Datagen models per part from `LockerLayout`: yellow (Handheld bumper colour) box doors with a stamped id, grey steel frame, a handle and a small lamp per box (dark, orange, green). The lamps are block state properties of the parts (`LAMP_TOP`, `LAMP_BOTTOM`, the dock's own lamp on `LAMP_TOP`) that the dock entity sets from the order states, drawn by emissive multipart models, so no block entity renderer is needed. The screen part shows "SCAN TO OPEN" on an emissive LCD plate. The dock has a hatch and a lamp like the stations. Plane rules from CLAUDE.md apply; lamps and handles stand in front of the door faces without a back face. Textures come from `tools/locker-textures/gen.py`.
+From `temp/parcel-locker-look.html`. Textures by `tools/locker-textures/gen.py`: the doors at 32 px per block (small `S-01` ids, lamp spot, handle, sheen), door insides, the column sides and carcass (dark interior, 1 px ochre gaps right and bottom of each box), the roof, the dock on the Inbound Station side with a hatch, and the screen states at 32 px (steel bezel with yellow edge, red scan window, green LCD). Static models keep the carcass, frame, roof, screen and dock; the renderer draws doors, lamps and items. Plane rules from CLAUDE.md apply: closed doors stand 0.05 px in front of the carcass face.
 
 ### Numbers, potato, recipe
 `NamedMachine` kind `parcel_locker`, label "Parcel Locker #n". Potato line via the station report pattern. Recipe example: yellow dye, iron ingots, chests, a Data Cable and an Outbound Station.

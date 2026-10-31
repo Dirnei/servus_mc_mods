@@ -54,16 +54,38 @@ The items of an order SHALL be picked from the racks like a terminal request, ca
 - **WHEN** a player orders 128 cobblestone to Parcel Locker #1
 - **THEN** a shuttle brings it to the dock, the cobblestone lies in the order's box and the player's panel says the parcel is ready at Parcel Locker #1
 
-### Requirement: Collecting a parcel
-Right clicking the locker's screen with a Handheld, or with an empty hand, SHALL open the locker GUI showing that player's boxes with their items; other players' boxes SHALL show as taken and SHALL NOT open. The player SHALL take items out as from a chest; a box emptied by its owner SHALL be free again. Nothing SHALL be put into a box by hand.
+### Requirement: Scan opens the doors
+Right clicking the locker's screen with a Handheld SHALL scan it: the screen flashes and greets the player with the number of their ready boxes, and those doors swing open one after another with a ding. With no ready box the screen says there is no parcel. Open doors SHALL close by themselves after a time from data (example 10 seconds).
+
+#### Scenario: Doors open
+- **WHEN** Steve has parcels in S-02 and M-02 and scans the screen
+- **THEN** the screen greets him with 2 boxes and the doors of S-02 and M-02 swing open
+
+#### Scenario: Nothing waiting
+- **WHEN** a player without a parcel scans the screen
+- **THEN** the screen says there is no parcel and no door opens
+
+### Requirement: Taking from an open box
+Right clicking one's own open box SHALL move its items into the player's inventory; what does not fit SHALL stay in the box. An emptied box SHALL close and be free for the next order. Clicking another player's box SHALL open nothing and the screen SHALL say it is not theirs. Nothing SHALL be put into a box by hand.
+
+#### Scenario: Box freed
+- **WHEN** Steve right clicks his open box S-02 holding 32 bread
+- **THEN** the bread is in his inventory, the door closes and S-02 is free
+
+#### Scenario: Not yours
+- **WHEN** Steve right clicks Alex's box
+- **THEN** it stays closed and the screen says it is not his
+
+### Requirement: Locker GUI
+Right clicking the screen with an empty hand SHALL open the locker GUI: its name, renamed with the pencil like the stations, and the boxes, the player's own with their items to take and others' shown as taken.
+
+#### Scenario: Rename
+- **WHEN** a player opens the GUI with an empty hand and types "Front Gate" after the pencil
+- **THEN** the locker is called "Front Gate" in the picker, the panel and the potato report
 
 #### Scenario: Only my boxes
 - **WHEN** a locker holds a parcel of Alex and one of Steve and Steve opens the GUI
 - **THEN** Steve can take items from his box only and sees Alex's box as taken
-
-#### Scenario: Box freed
-- **WHEN** Steve takes every item from his box
-- **THEN** that box is free for the next order
 
 ### Requirement: Uncollected parcels return
 A ready parcel not collected within a time from data (example one in-game day) SHALL be put away into the racks by shuttle, like an Inbound Station's buffer, by the zone rules; its boxes SHALL be free once empty. Items that find no place SHALL stay in the box and the locker SHALL say so.
@@ -73,11 +95,15 @@ A ready parcel not collected within a time from data (example one in-game day) S
 - **THEN** shuttles carry its items back into the racks and the box is free
 
 ### Requirement: Locker look
-The locker SHALL be yellow like the Handheld's bumper, with a grey frame, box doors with a number each and a small lamp per box (dark free, orange reserved, green ready), a screen on the head showing "SCAN TO OPEN" and a dock with a hatch and lamp where shuttles stop. Its faces SHALL follow the plane rules of the family.
+The locker SHALL be yellow like the Handheld's bumper with a thin roof strip, doors with a small id (S-01) and a lamp each (dark free, ochre someone else's, amber reserved, green ready), a steel screen with a yellow edge, red scan window and green LCD with a QR code and a blinking SCAN, and a steel dock with a hatch and a lamp that blinks while a shuttle loads. An open box SHALL show its items. Faces SHALL follow the family's plane rules.
 
 #### Scenario: Ready lamp
 - **WHEN** a parcel is ready in box S-02
 - **THEN** the lamp of S-02 is green
+
+#### Scenario: Loading
+- **WHEN** a shuttle delivers into the locker
+- **THEN** the dock lamp blinks amber and the screen shows LOAD
 
 ### Requirement: Locker inspect
 Using the Data Potato on any part SHALL print the locker's label, its free boxes per size and each parcel with its owner, its items and how long until it returns. It SHALL change nothing.
