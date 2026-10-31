@@ -1,5 +1,11 @@
 # Servus: Alchemy changelog
 
+## Unreleased
+
+### Changed
+- Ripe Gnome Hollows dig much slower unfed; feed them Salt, Sulfur and Mercury and they dig up to three times as fast. Each vein has its own taste.
+- The Principle Dropper now also feeds ripe Gnome Hollows.
+
 ## 0.5.0-alpha
 
 ### Added

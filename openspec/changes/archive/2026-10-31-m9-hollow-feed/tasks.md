@@ -24,7 +24,7 @@
 
 ## 5. Verification
 
-- [ ] 5.1 Full `gradlew build` and `gradlew test` green; launch the client with all mods. Under the sight, check a ripe iron Hollow: unfed slow flow, pour Salt and see the flow speed up, Jade fed/hungry and per item time, a Dropper on top keeps it fed.
+- [x] 5.1 Full `gradlew build` and `gradlew test` green; launch the client with all mods. Under the sight, check a ripe iron Hollow: unfed slow flow, pour Salt and see the flow speed up, Jade fed/hungry and per item time, a Dropper on top keeps it fed.
 
 ## Workflow follow-up
 

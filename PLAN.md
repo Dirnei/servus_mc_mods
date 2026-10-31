@@ -170,6 +170,8 @@ The bridge between the mods lives in Servus: Foundation as a small API (producti
   - `m12-house-gnome`: befriend the old gnome found through the hints and take him home as the House Gnome companion, a second voice next to the journal; what he does is open (`alchemy_plan.md`). The team's found state is already kept in world data.
   - Story texts for the storyteller: every line starting with "[storyteller]" (Wandering years, Basel and Salzburg, the homunculus' whispers and secret, the old gnome's greeting) and the knocker folklore of The Old Gnome; historical claims are checked when the text is written.
   - The open story and play questions in `alchemy_plan.md`, "Open".
+- **Gnome feed quality:** a principle in a vein's feed could give a chance of a second ore per dig instead of speed (for example Sulfur as richness); the feed gives speed only so far.
+- **Vein diets in the book:** a table of each vein's feed, revealed per team like the calcination table.
 - Better upgrade items from Alchemy through the Foundation upgrade API.
 - Breaking the Athanor block itself keeps the grown vats and obelisks, so a new Athanor gets the old stage back once formed; decide whether that should turn them back like an unform.
 - Principle Vats can no longer be pushed by pistons, since a vat may carry a grown crystal (block entity); allow it for plain vats if play tests ask.

@@ -106,7 +106,7 @@ Numbers are examples. The real ones live in datapack JSON.
 
 - No screen, no pipes, no fluid or item capability.
 - The gnome fills a small internal store and stops when it is full. Only a hand under Sight or a homunculus empties it.
-- **Gnome upkeep for speed:** a gnome that gets something it likes works faster. Without gifts it still works at the base rate. *(What gnomes like is open.)*
+- **Gnome upkeep for speed:** a working gnome is fed principles, each vein with its own mix, and digs up to three times as fast; unfed he digs slowly. A gift he likes doubles that again for a while.
 
 ## Vas Hermeticum and Receptaculum
 
