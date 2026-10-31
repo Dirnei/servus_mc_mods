@@ -57,7 +57,7 @@ The Packing Station SHALL be crafted from iron ingots, a chest, redstone, copper
 - **THEN** chat says 16 planks are planned and they arrive at the station
 
 ### Requirement: Warehouse as supplier
-The Warehouse Controller and every Packing Station SHALL expose the supplier capability. A request SHALL be shipped like any shipment to a data member: through the Packing Station with the shortest shuttle trip, as packets. The answer SHALL be the amount planned, at most what the warehouse holds, and zero when the warehouse cannot ship.
+The Warehouse Controller and every Packing Station SHALL expose the supplier capability. A request SHALL be shipped like any shipment to a data member: through the Packing Station with the shortest shuttle trip, as packets. The answer SHALL be the amount planned, at most what the warehouse holds, and zero when the warehouse cannot ship, together with the shipment as its ticket. The ticket SHALL be open while the shipment is open, also after a reload. Cancelling it SHALL end the shipment like a cancelled terminal request: its queued picks are dropped and what waits for it in the To network buffer goes back into storage.
 
 #### Scenario: Upkeep from the warehouse
 - **WHEN** a Machine Adapter on the line asks the controller's supplier for 16 coal and a rack served by a shuttle holds 40
@@ -66,6 +66,14 @@ The Warehouse Controller and every Packing Station SHALL expose the supplier cap
 #### Scenario: Out of stock
 - **WHEN** the warehouse holds no coal
 - **THEN** the supplier answers 0
+
+#### Scenario: Ticket of a delivered shipment
+- **WHEN** all 16 coal of a supplier request arrived
+- **THEN** the supplier reports its ticket as not open
+
+#### Scenario: Cancel a refused shipment
+- **WHEN** a supplier shipment of 8 coal waits in the To network buffer because its target refuses it, and its ticket is cancelled at the Packing Station's or the controller's supplier
+- **THEN** the shipment ends, the 8 coal go back into storage, coal is no longer wanted in the buffer, and queued picks for it are dropped
 
 ### Requirement: Shipments survive a reload
 A Packing Station SHALL save its open shipments with their ids, targets, items and amounts, and their progress SHALL be kept by id so that whoever waits for a shipment can book it after a reload. After its block entity loads again, a shipment SHALL only wait for what the outgoing buffer holds for it; the rest SHALL end as a shortfall, so its owner ships it again. Items that arrive later for no open shipment SHALL be put away as before.
@@ -131,7 +139,7 @@ A Packing Station SHALL have `upgrade_slots` upgrade slots (example 2, datapack 
 - **THEN** it converts about 16 items per second in each direction and its GUI shows 16/s
 
 ### Requirement: Shipping to a data member by shuttle
-A mod SHALL be able to ask a warehouse, on the server, to ship an amount of an item to a member of a data line. The warehouse SHALL plan and lock the picks like a terminal request, but shuttles SHALL bring picks into the To network buffer of the chosen Packing Station only as far as the member has granted room and the buffer has room. The station SHALL send what arrives at no more than its rate out of storage. A shipment its member refuses SHALL wait without holding up the station's other shipments and be offered again every push interval. The request SHALL report how many items were planned, how many were delivered so far and whether it ended. It SHALL be refused when the warehouse is offline, has no Packing Station on a data line reaching the member, has none of the item, or has no shuttle that reaches the racks holding it.
+A mod SHALL be able to ask a warehouse, on the server, to ship an amount of an item to a member of a data line. The warehouse SHALL plan and lock the picks like a terminal request, but shuttles SHALL bring picks into the To network buffer of the chosen Packing Station only as far as the member has granted room and the buffer has room. The station SHALL send what arrives at no more than its rate out of storage. A shipment its member refuses SHALL wait without holding up the station's other shipments and be offered again every push interval. A shipment to a machine target, any data member that is not a Storage Terminal, SHALL end once its target has refused it without a break for longer than the refusal timeout (example 1200 ticks). A terminal request SHALL wait for room in its Output slot with no timeout. A shipment whose target is cut from the line, because no route of data ducts reaches it any more, its route broke, or it no longer is a member of a data line reaching the station, SHALL wait and be judged like a refusal: it ends only once it has been cut or refused without a break for longer than the refusal timeout, for terminal requests too. A shipment whose target is removed, because no block at that loaded position takes items any more, SHALL end at once. A target in an unloaded chunk SHALL count as neither removed, cut nor refusing: its shipment waits. A shipment the station ends this way SHALL end short: what waits for it in the To network buffer goes back into storage, its queued picks are dropped, and the request reports it ended, so whoever asked may ask again. The request SHALL report how many items were planned, how many were delivered so far and whether it ended. It SHALL be refused when the warehouse is offline, has no Packing Station on a data line reaching the member, has none of the item, or has no shuttle that reaches the racks holding it.
 
 #### Scenario: From a rack
 - **WHEN** a warehouse with 32 planks in a rack served by a shuttle and a Packing Station on a data line to a Crafting Station ships 16 planks to the station
@@ -156,6 +164,34 @@ A mod SHALL be able to ask a warehouse, on the server, to ship an amount of an i
 #### Scenario: Picks stay locked
 - **WHEN** the other 64 copper wait in the rack for room in the slot
 - **THEN** the terminal's requestable count does not include them and no other request can take them
+
+#### Scenario: Full Output slot outlasts the timeout
+- **WHEN** a terminal request's Output slot stays full for longer than the refusal timeout of 1200 ticks
+- **THEN** the request is still open, its picks stay locked, and its items arrive once the player takes items out of the slot
+
+#### Scenario: Refused past the timeout
+- **WHEN** a Coal Generator whose fuel slot holds Coal Blocks refuses a shipment of 8 coal waiting in the To network buffer, with a refusal timeout of 1200 ticks, for longer than 1200 ticks
+- **THEN** the shipment ends short, the 8 coal go back into storage, no queued pick for it remains, and the request reports it ended
+
+#### Scenario: Room in between restarts the timeout
+- **WHEN** a machine target refuses a shipment for 1000 ticks, then takes some of its items, then refuses again
+- **THEN** the shipment ends only after the target has refused it for longer than the timeout counted from the new refusal
+
+#### Scenario: Target removed
+- **WHEN** the Crafting Station a shipment of 16 planks goes to is broken while 8 planks wait in the To network buffer and 8 are still in the rack
+- **THEN** at the next push interval the shipment ends short, the 8 planks go back into storage and the queued pick for the other 8 is dropped
+
+#### Scenario: Duct rebuilt within the timeout
+- **WHEN** the duct between the Packing Station and a shipment's Crafting Station is broken and placed again 200 ticks later, with a refusal timeout of 1200 ticks
+- **THEN** the shipment is still open and its items arrive at the Crafting Station
+
+#### Scenario: Target cut from the line past the timeout
+- **WHEN** the duct between the Packing Station and a shipment's target is broken and stays broken for longer than the refusal timeout
+- **THEN** the shipment ends short and its buffered items go back into storage
+
+#### Scenario: Target not loaded
+- **WHEN** a shipment's target sits in a chunk that is not loaded while the Packing Station runs
+- **THEN** the shipment waits, its items stay in the To network buffer and it is offered again once the target is loaded
 
 ### Requirement: Packing Station has no pipe access
 A Packing Station SHALL register no item capability: hoppers, item pipes and neighbouring machines SHALL neither insert into nor extract from either buffer, and item pipes SHALL show no item arm toward it. Items SHALL enter it only from shuttles and as packets through its packet inlet, and leave it only to shuttles and as packets.
@@ -253,3 +289,44 @@ A Packing Station SHALL save no grants. After its block entity loads again it SH
 #### Scenario: Restart during a hand in
 - **WHEN** 30 of 64 granted cobblestone are in the To storage buffer when the server stops
 - **THEN** after the restart the 30 are put away and the other 34 are handed in again from the Input row
+
+### Requirement: Picks of one item share To network slots
+Picks that bring an item into a Packing Station's To network buffer SHALL join a stack of that item with room, counting what picks on their way already bring there, before they use empty slots. Many small picks of one item SHALL fill as few slots as their total needs, so the buffer counts as full only when its room is used, not when every slot holds a little.
+
+#### Scenario: Small coal picks
+- **WHEN** a shipment of 14 coal to a Machine Adapter is picked in six picks of 1 to 3 coal into an empty To network buffer of 9 slots
+- **THEN** all 14 coal land in one slot and the other 8 slots stay free for other items
+
+#### Scenario: Another item still finds room
+- **WHEN** the To network buffer holds those 14 coal in one slot and a shipment of 16 iron ingots follows
+- **THEN** the iron ingots are picked into a free slot without waiting
+
+#### Scenario: Stack of one item overflows
+- **WHEN** a To network slot holds 64 coal and a pick of 8 coal is sent
+- **THEN** the 8 coal take an empty slot
+
+#### Scenario: Pick larger than the room on a stack
+- **WHEN** a To network slot holds 60 coal and a pick of 10 coal is sent
+- **THEN** the pick fills that stack to 64 and its other 6 coal take an empty slot
+
+### Requirement: Picks never ask for more than fits in the To network buffer
+A pick SHALL be sent into a Packing Station's To network buffer only once room for its whole amount is reserved there, counting what picks already on their way reserved, so the items in the buffer and on their way to it SHALL never be more than it holds. A pick that does not fit SHALL wait unsent, reserving nothing, until room frees. Shipment demand or a target's grant SHALL never let a pick through without that reservation.
+
+#### Scenario: Shipments want more than fits
+- **WHEN** the To network buffer has room for 20 coal, spread over a partial stack of coal and empty slots, and open shipments want 50 coal in picks of 10
+- **THEN** two picks are sent and reserve the 20, the other three wait, and each is sent once the station has sent enough coal to free room for it
+
+#### Scenario: Picks on their way take the room
+- **WHEN** the To network buffer has room for 20 coal and a pick of 12 coal is on its way into it, and a pick of 10 coal is next
+- **THEN** the pick of 10 waits, because only 8 are left, and is sent once room for 10 is free
+
+#### Scenario: A pick bigger than the room waits whole
+- **WHEN** the To network buffer has room for 20 coal and the next pick carries 32 coal
+- **THEN** the pick is not sent and reserves nothing until room for all 32 is free
+
+### Requirement: The station sends from slots with picks on their way
+A Packing Station SHALL send the items of its To network buffer to their shipments' targets also from slots where more picks of that item are still on their way, and those picks SHALL still find their room there when they arrive.
+
+#### Scenario: Send while more coal comes
+- **WHEN** a To network slot holds 6 coal of a granted shipment and a pick of 4 more coal for the same shipment is on its way into that slot
+- **THEN** the station sends the 6 coal at its rate, and the 4 coal land in the slot when the pick arrives and are sent after them

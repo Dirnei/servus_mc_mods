@@ -29,6 +29,11 @@
 - The Shuttle Workshop turns the shuttle slowly in its large view, and you can turn it by dragging.
 - Build now and Build by hand are one Build button that starts the build by hand; while it runs the button reads Skip and finishes the build at once, keeping the old name plate.
 - Removed the Fluid Gantry: empty your gantries before updating, placed gantries and their fluid are lost.
+- The Fluid Outbound restocks whole buckets only, and only once its tank falls below a restock level. Drag the white keep arrow and the orange restock arrow on the taller gauge, or type both levels into the fields beside it. A new keep starts at the full tank with a restock level of 1 B.
+
+### Fixed
+- Packing Stations put picks of one item into one slot and never send more into their To network buffer than fits, so coal for upkeep no longer spreads over many slots.
+- Packing Station shipments whose target is gone, cut from the data line or keeps refusing them end after a while, and their items go back into storage. This also clears coal stuck in Packing Stations of existing worlds.
 
 ### Removed
 - Zone Label: zones are now set with the Handheld. Labels in inventories disappear, and racks zoned with a label load without a zone, so set your zones again with the Handheld.

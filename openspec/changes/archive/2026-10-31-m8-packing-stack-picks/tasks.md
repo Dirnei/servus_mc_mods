@@ -16,7 +16,7 @@
 
 ## 4. Verify
 
-- [ ] 4.1 Full gradle build, tests green, game launches with all mods; play check: a Machine Adapter with coal upkeep fed through a Packing Station; open the Packing Station GUI while picks arrive: coal picks share one To network slot, tooltips name each pick on a shared slot, other items still find free slots. Verify: `gradlew build` and `gradlew test` green, client starts from main.
+- [x] 4.1 Full gradle build, tests green, game launches with all mods; play check: a Machine Adapter with coal upkeep fed through a Packing Station; open the Packing Station GUI while picks arrive: coal picks share one To network slot, tooltips name each pick on a shared slot, other items still find free slots. Verify: `gradlew build` and `gradlew test` green, client starts from main.
 
 ## Workflow follow-up
 

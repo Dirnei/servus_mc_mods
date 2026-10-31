@@ -10,6 +10,9 @@
 ### Changed
 - The journal now sends surplus into the Incinerator, the new name of the Sink.
 
+### Fixed
+- The Calciner's fuel upkeep asks for the fuel already in its slot and tops up in batches, like the burner machines.
+
 ## 0.4.0-alpha
 
 ### Added

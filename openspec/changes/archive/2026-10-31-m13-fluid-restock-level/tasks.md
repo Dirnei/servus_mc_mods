@@ -30,4 +30,4 @@
 
 ## 6. Verify
 
-- [ ] 6.1 Full `gradlew build`, all tests and GameTests green, the game launches with all mods; play check: drag and type both levels, check push and drag, drain the tank with a pipe, watch tankers start at the level, bring whole buckets and fill back to the keep.
+- [x] 6.1 Full `gradlew build`, all tests and GameTests green, the game launches with all mods; play check: drag and type both levels, check push and drag, drain the tank with a pipe, watch tankers start at the level, bring whole buckets and fill back to the keep.

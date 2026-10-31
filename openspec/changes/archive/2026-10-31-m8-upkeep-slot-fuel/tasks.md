@@ -22,7 +22,7 @@
 
 ## 4. Integration
 
-- [ ] 4.1 Full `gradlew build` and `gradlew test` green, GameTests green, the client launches with all mods; play check: a Coal Generator with Coal Blocks is topped up with Coal Blocks in batches, coal in the Packing Station is not stuck, and after a restart no second upkeep request appears; in a world from before the update the coal stuck in the Packing Station goes back into storage about a minute after the load; a terminal request into an Output slot kept full still waits after a minute and delivers once the slot is emptied; a duct to a Crafting Station broken and placed again within a minute does not end its shipment; a Machine Adapter on a furnace tops up only once a batch of coal is missing
+- [x] 4.1 Full `gradlew build` and `gradlew test` green, GameTests green, the client launches with all mods; play check: a Coal Generator with Coal Blocks is topped up with Coal Blocks in batches, coal in the Packing Station is not stuck, and after a restart no second upkeep request appears; in a world from before the update the coal stuck in the Packing Station goes back into storage about a minute after the load; a terminal request into an Output slot kept full still waits after a minute and delivers once the slot is emptied; a duct to a Crafting Station broken and placed again within a minute does not end its shipment; a Machine Adapter on a furnace tops up only once a batch of coal is missing
 
 ## Workflow follow-up
 

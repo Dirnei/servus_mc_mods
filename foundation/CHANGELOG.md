@@ -12,6 +12,9 @@
 - The Sink is now called the Incinerator. Placed Sinks stay where they are.
 - The fluid picker lists every fluid, also those without a bucket.
 
+### Fixed
+- Burner machines ask upkeep for the fuel already in their slot, so a slot of Coal Blocks gets Coal Blocks. Open upkeep requests survive a restart, a lost shipment no longer blocks the next one, and machines top up only once a batch is missing (example 8) instead of after every coal.
+
 ## 0.5.0
 
 ### Added
