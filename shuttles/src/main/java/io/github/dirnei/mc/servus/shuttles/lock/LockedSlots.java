@@ -24,10 +24,12 @@ import net.neoforged.neoforge.transfer.transaction.TransactionContext;
  * {@link #setStackInSlot} writes past a lock; callers that move items must not
  * use it on locked slots.
  *
- * <p>Counted slots (a Field Head buffer part) reserve instead of closing: a
- * slot holds IN and OUT locks of several jobs side by side, and everyone but
- * a job acting through its own lock sees the slot's room and items less what
- * the other jobs reserved.
+ * <p>Counted slots (a Field Head buffer part, a Packing Station's To network
+ * buffer, a Parcel Locker box) reserve instead of closing: a slot holds IN
+ * and OUT locks of several jobs side by side, and everyone but a job acting
+ * through its own lock sees the slot's room and items less what the other
+ * jobs reserved. While other jobs' IN locks reserve room on a counted slot,
+ * it takes no other item than theirs, so their items always fit.
  *
  * <p>Top up slots (an Inbound Station buffer) keep a slot that holds only OUT
  * locks open to more of its own item, so a planned put-away no shuttle has
@@ -300,6 +302,27 @@ public class LockedSlots extends ItemSlots {
         return amount - left + (left > 0 ? lockIn(jobId, key, left, false) : 0);
     }
 
+    /**
+     * Locks room for {@code amount} of the key for the job in counted slots,
+     * joining stacks of the key and the IN locks of other jobs on their way
+     * before empty slots, each slot up to a stack. Returns how many it found
+     * room for, never more than the room left after every IN reservation.
+     */
+    public int lockInJoining(int jobId, ItemKey key, int amount) {
+        List<SlotFill.Slot<ItemKey>> views = new ArrayList<>(getSlots());
+        for (int slot = 0; slot < getSlots(); slot++) {
+            ItemStack stack = getStackInSlot(slot);
+            List<SlotFill.Reservation<ItemKey>> reservations = new ArrayList<>();
+            for (SlotLock lock : at(slot)) {
+                if (lock.kind() == SlotLock.Kind.IN) {
+                    reservations.add(new SlotFill.Reservation<>(lock.key(), lock.amount()));
+                }
+            }
+            views.add(SlotFill.incoming(stack.isEmpty() ? null : ItemKey.of(stack), stack.getCount(), getSlotLimit(slot), reservations));
+        }
+        return place(SlotFill.in(views, key, amount, key.stack(1).getMaxStackSize()), SlotLock.Kind.IN, key, jobId);
+    }
+
     /** How many items the job's locks of that kind reserve here. */
     public int lockedAmount(int jobId, SlotLock.Kind kind) {
         int sum = 0;
@@ -492,9 +515,25 @@ public class LockedSlots extends ItemSlots {
         });
     }
 
+    /** Whether another job's IN lock on the slot reserves room for a different item than the resource. */
+    private boolean reservedForOther(int index, ItemResource resource) {
+        if (!inRange(index)) {
+            return false;
+        }
+        for (SlotLock lock : at(index)) {
+            if (lock.kind() == SlotLock.Kind.IN && lock.jobId() != acting && !lock.key().matches(resource.toStack())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public int insert(int index, ItemResource resource, int amount, TransactionContext transaction) {
         if (counted) {
+            if (reservedForOther(index, resource)) {
+                return 0;
+            }
             int room = inRange(index) ? SlotFill.sharedRoom(getCapacity(index, resource), getStackInSlot(index).getCount(),
                     reserved(index, SlotLock.Kind.IN, acting)) : 0;
             return room <= 0 ? 0 : super.insert(index, resource, Math.min(amount, room), transaction);
@@ -514,7 +553,8 @@ public class LockedSlots extends ItemSlots {
 
     @Override
     public boolean isValid(int index, ItemResource resource) {
-        return (counted || !blocked(index) || takesTopUp(index, resource)) && super.isValid(index, resource);
+        boolean open = counted ? !reservedForOther(index, resource) : !blocked(index) || takesTopUp(index, resource);
+        return open && super.isValid(index, resource);
     }
 
     /** The locks as a list tag; empty when nothing is locked. */

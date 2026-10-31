@@ -9,7 +9,9 @@ import io.github.dirnei.mc.servus.shuttles.menu.HeavyRackMenu;
 import io.github.dirnei.mc.servus.shuttles.menu.InboundStationMenu;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
 import io.github.dirnei.mc.servus.shuttles.outbound.OutboundStationBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.packing.PackingStationBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
 import io.github.dirnei.mc.servus.shuttles.station.InboundStationBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -240,5 +242,21 @@ public final class SlotLockGameTests {
                         helper.succeed();
                     });
         });
+    }
+
+    /** An empty To network slot with room reserved for coal takes no iron ingots, while the coal pick still fits. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void countedSlotTakesOnlyItsReservedItem(GameTestHelper helper) {
+        helper.setBlock(LONE_STATION, ServusShuttlesBlocks.PACKING_STATION.get().defaultBlockState());
+        PackingStationBlockEntity point = helper.getBlockEntity(LONE_STATION, PackingStationBlockEntity.class);
+        ItemKey coal = ItemKey.of(new ItemStack(Items.COAL));
+        point.outgoing().lock(0, new SlotLock(SlotLock.Kind.IN, coal, 8, FOREIGN_JOB));
+        ItemStack left = point.outgoing().insertItemStacked(new ItemStack(Items.IRON_INGOT, 16), false);
+        helper.assertTrue(left.isEmpty(), "the iron ingots should find another slot");
+        helper.assertTrue(point.outgoing().getStackInSlot(0).isEmpty(), "the reserved slot takes no iron ingots");
+        helper.assertTrue(WarehouseFixtures.count(point.outgoing(), Items.IRON_INGOT) == 16, "the iron ingots land in another slot");
+        ItemStack rest = point.outgoing().insertAs(FOREIGN_JOB, 0, coal.stack(8));
+        helper.assertTrue(rest.isEmpty() && point.outgoing().getStackInSlot(0).getCount() == 8, "the coal pick still fits its slot");
+        helper.succeed();
     }
 }

@@ -5,7 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.dirnei.mc.servus.shuttles.lock.SlotFill.Part;
+import io.github.dirnei.mc.servus.shuttles.lock.SlotFill.Reservation;
 import io.github.dirnei.mc.servus.shuttles.lock.SlotFill.Slot;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -97,5 +99,111 @@ class SlotFillTest {
         assertEquals(12, SlotFill.unreserved(20, 8));
         assertEquals(0, SlotFill.unreserved(20, 20));
         assertEquals(0, SlotFill.unreserved(20, 30));
+    }
+
+    /** Counted slots with their IN reservations, planned the way incoming picks see them. */
+    private static final class Incoming {
+        private final List<String> keys = new ArrayList<>();
+        private final List<Integer> counts = new ArrayList<>();
+        private final List<Integer> limits = new ArrayList<>();
+        private final List<List<Reservation<String>>> reservations = new ArrayList<>();
+
+        @SafeVarargs
+        private Incoming slot(String key, int count, int limit, Reservation<String>... reserved) {
+            keys.add(key);
+            counts.add(count);
+            limits.add(limit);
+            reservations.add(new ArrayList<>(List.of(reserved)));
+            return this;
+        }
+
+        Incoming empties(int number) {
+            for (int i = 0; i < number; i++) {
+                slot(null, 0, 64);
+            }
+            return this;
+        }
+
+        List<Slot<String>> views() {
+            List<Slot<String>> views = new ArrayList<>();
+            for (int i = 0; i < keys.size(); i++) {
+                views.add(SlotFill.incoming(keys.get(i), counts.get(i), limits.get(i), reservations.get(i)));
+            }
+            return views;
+        }
+
+        /** Plans the pick and reserves what the plan found. */
+        List<Part> pick(String key, int amount) {
+            List<Part> parts = SlotFill.in(views(), key, amount, 64);
+            for (Part part : parts) {
+                reservations.get(part.slot()).add(new Reservation<>(key, part.count()));
+            }
+            return parts;
+        }
+
+        int reservedAt(int slot) {
+            return reservations.get(slot).stream().mapToInt(Reservation::amount).sum();
+        }
+    }
+
+    @Test
+    void smallPicksOfOneItemEndInOneSlot() {
+        Incoming buffer = new Incoming().empties(9);
+        for (int amount : new int[] {3, 1, 2, 3, 2, 3}) {
+            for (Part part : buffer.pick("coal", amount)) {
+                assertEquals(0, part.slot());
+            }
+        }
+        assertEquals(14, buffer.reservedAt(0));
+        for (int slot = 1; slot < 9; slot++) {
+            assertEquals(0, buffer.reservedAt(slot));
+        }
+    }
+
+    @Test
+    void pickJoinsAPickOnItsWay() {
+        Incoming buffer = new Incoming().slot(null, 0, 64, new Reservation<>("coal", 3)).empties(1);
+        assertEquals(List.of(new Part(0, 2)), buffer.pick("coal", 2));
+    }
+
+    @Test
+    void nearlyFullStackSplits() {
+        Incoming buffer = new Incoming().slot("coal", 60, 64).empties(1);
+        assertEquals(List.of(new Part(0, 4), new Part(1, 6)), buffer.pick("coal", 10));
+    }
+
+    @Test
+    void fullStackSpillsToAnEmptySlot() {
+        Incoming buffer = new Incoming().slot("coal", 64, 64).empties(1);
+        assertEquals(List.of(new Part(1, 8)), buffer.pick("coal", 8));
+    }
+
+    @Test
+    void slotReservedForAnotherItemTakesNothing() {
+        Incoming buffer = new Incoming().slot(null, 0, 64, new Reservation<>("iron", 8));
+        assertEquals(List.of(), buffer.pick("coal", 8));
+    }
+
+    @Test
+    void stackAndReservationsDisagreeTakesNothing() {
+        Slot<String> mixed = SlotFill.incoming("coal", 10, 64, List.of(new Reservation<>("iron", 4)));
+        assertTrue(mixed.locked());
+        assertEquals(List.of(), SlotFill.in(List.of(mixed), "coal", 8, 64));
+        assertEquals(List.of(), SlotFill.in(List.of(mixed), "iron", 8, 64));
+    }
+
+    @Test
+    void planNeverExceedsRoomLeft() {
+        Incoming buffer = new Incoming().slot("coal", 50, 64, new Reservation<>("coal", 10)).empties(2);
+        List<Part> parts = buffer.pick("coal", 200);
+        assertEquals(List.of(new Part(0, 4), new Part(1, 64), new Part(2, 64)), parts);
+        assertEquals(132, SlotFill.total(parts));
+    }
+
+    @Test
+    void reservationsOnTheirWayCountAgainstRoom() {
+        Incoming buffer = new Incoming().slot("coal", 60, 64).slot(null, 0, 16);
+        assertEquals(12, SlotFill.total(buffer.pick("coal", 12)));
+        assertEquals(8, SlotFill.total(SlotFill.in(buffer.views(), "coal", 10, 64)));
     }
 }

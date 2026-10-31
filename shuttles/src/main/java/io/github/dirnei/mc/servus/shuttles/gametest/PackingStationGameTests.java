@@ -13,6 +13,7 @@ import io.github.dirnei.mc.servus.shuttles.controller.WarehouseControllerBlockEn
 import io.github.dirnei.mc.servus.shuttles.crafting.CraftingStationBlock;
 import io.github.dirnei.mc.servus.shuttles.crafting.CraftingStationBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.garage.ShuttleGarageBlockEntity;
+import io.github.dirnei.mc.servus.shuttles.lock.LockedSlots;
 import io.github.dirnei.mc.servus.shuttles.lock.SlotLock;
 import io.github.dirnei.mc.servus.shuttles.menu.PackingStationMenu;
 import io.github.dirnei.mc.servus.shuttles.network.ItemKey;
@@ -23,6 +24,7 @@ import io.github.dirnei.mc.servus.shuttles.production.ProductionRows;
 import io.github.dirnei.mc.servus.shuttles.production.ProductionView;
 import io.github.dirnei.mc.servus.shuttles.rack.HeavyRackBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
+import io.github.dirnei.mc.servus.shuttles.shuttle.PickJob;
 import io.github.dirnei.mc.servus.shuttles.shuttle.ShuttleView;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import io.github.dirnei.mc.servus.shuttles.terminal.StorageTerminalBlock;
@@ -580,5 +582,141 @@ public final class PackingStationGameTests {
                 helper.assertTrue(network.index().count(logs) == 64, "stock counts the 64 logs once, got " + network.index().count(logs));
             });
         });
+    }
+
+    private static final ItemKey COAL = ItemKey.of(new ItemStack(Items.COAL));
+    private static final ItemKey PLANKS = ItemKey.of(new ItemStack(Items.OAK_PLANKS));
+    /** Job ids no fleet hands out in these tests. */
+    private static final int FIRST_TEST_JOB = 1_000_000;
+
+    /** The slots of the To network buffer that IN locks of the job name. */
+    private static Set<Integer> inSlots(PackingStationBlockEntity point, int jobId) {
+        Set<Integer> slots = new HashSet<>();
+        point.outgoing().locked().stream()
+                .filter(entry -> entry.lock().jobId() == jobId && entry.lock().kind() == SlotLock.Kind.IN)
+                .forEach(entry -> slots.add(entry.slot()));
+        return slots;
+    }
+
+    /** Small coal picks into the To network buffer all join one slot; an iron pick after them takes a free slot. */
+    @ServusGameTest(timeoutTicks = 60)
+    public static void smallPicksShareOneSlot(GameTestHelper helper) {
+        setup(helper, 0, true, false);
+        helper.runAfterDelay(5, () -> {
+            PackingStationBlockEntity point = helper.getBlockEntity(FAR, PackingStationBlockEntity.class);
+            int[] amounts = {3, 1, 2, 3, 2, 3};
+            for (int i = 0; i < amounts.length; i++) {
+                int job = FIRST_TEST_JOB + i;
+                helper.assertTrue(point.lockDelivery(job, 0, COAL, amounts[i]) == amounts[i], "pick " + i + " should find room");
+                helper.assertTrue(inSlots(point, job).equals(Set.of(0)), "pick " + i + " should lock slot 0, got " + inSlots(point, job));
+            }
+            for (int i = 0; i < amounts.length; i++) {
+                ItemStack left = point.outgoing().insertAs(FIRST_TEST_JOB + i, COAL.stack(amounts[i]));
+                helper.assertTrue(left.isEmpty(), "pick " + i + " should land whole, left " + left);
+            }
+            helper.assertTrue(point.outgoing().getStackInSlot(0).is(Items.COAL) && point.outgoing().getStackInSlot(0).getCount() == 14,
+                    "all 14 coal should sit in slot 0, got " + point.outgoing().getStackInSlot(0));
+            for (int slot = 1; slot < point.outgoing().getSlots(); slot++) {
+                helper.assertTrue(point.outgoing().getStackInSlot(slot).isEmpty(), "slot " + slot + " should stay empty");
+            }
+            helper.assertTrue(point.outgoing().locked().isEmpty(), "every pick released its lock on landing");
+            int iron = FIRST_TEST_JOB + 10;
+            ItemKey ironKey = ItemKey.of(new ItemStack(Items.IRON_INGOT));
+            helper.assertTrue(point.lockDelivery(iron, 0, ironKey, 16) == 16, "the iron pick should find room");
+            Set<Integer> ironSlots = inSlots(point, iron);
+            helper.assertTrue(ironSlots.size() == 1 && !ironSlots.contains(0), "the iron pick should lock a free slot, got " + ironSlots);
+            helper.succeed();
+        });
+    }
+
+    /** The station sends the planks a slot holds while another pick is on its way into that slot, and the pick still lands. */
+    @ServusGameTest(timeoutTicks = 400)
+    public static void sendsWhileAPickIsOnItsWay(GameTestHelper helper) {
+        Setup setup = setup(helper, 0, true, false);
+        helper.runAfterDelay(10, () -> {
+            PackingStationBlockEntity point = helper.getBlockEntity(FAR, PackingStationBlockEntity.class);
+            int job = FIRST_TEST_JOB;
+            point.outgoing().setStackInSlot(0, new ItemStack(Items.OAK_PLANKS, 6));
+            point.outgoing().lock(0, new SlotLock(SlotLock.Kind.IN, PLANKS, 4, job));
+            point.addShipment(helper.absolutePos(STATION), PLANKS, 10);
+            boolean[] landed = {false};
+            helper.succeedWhen(() -> {
+                if (!landed[0]) {
+                    int arrived = WarehouseFixtures.count(setup.station().inputs(), Items.OAK_PLANKS);
+                    helper.assertTrue(arrived >= 6, "the 6 planks should leave past the pick on its way, got " + arrived);
+                    helper.assertTrue(point.outgoing().getStackInSlot(0).isEmpty(), "slot 0 should be sent empty");
+                    ItemStack left = point.outgoing().insertAs(job, PLANKS.stack(4));
+                    helper.assertTrue(left.isEmpty(), "the pick on its way should still find its room, left " + left);
+                    landed[0] = true;
+                }
+                int arrived = WarehouseFixtures.count(setup.station().inputs(), Items.OAK_PLANKS);
+                helper.assertTrue(arrived == 10, "all 10 planks should arrive, got " + arrived);
+            });
+        });
+    }
+
+    /**
+     * Picks ask for room in the To network buffer before they go and never
+     * reserve more than it has left: with room for 20 planks, over a partial
+     * stack and a slot a pick on its way already reserves most of, two picks
+     * of 10 go and the rest wait with no locks, a pick of 32 waits whole, and
+     * once 10 planks left the buffer one more pick of 10 goes.
+     */
+    @ServusGameTest(timeoutTicks = 60)
+    public static void picksNeverExceedBufferRoom(GameTestHelper helper) {
+        setup(helper, 0, true, false);
+        helper.runAfterDelay(5, () -> {
+            PackingStationBlockEntity point = helper.getBlockEntity(FAR, PackingStationBlockEntity.class);
+            WarehouseNetwork network = point.network().orElseThrow(() -> new AssertionError("the Packing Station should be in a warehouse"));
+            LockedSlots outgoing = point.outgoing();
+            outgoing.setStackInSlot(0, new ItemStack(Items.OAK_PLANKS, 54));
+            outgoing.lock(1, new SlotLock(SlotLock.Kind.IN, PLANKS, 54, FIRST_TEST_JOB));
+            for (int slot = 2; slot < outgoing.getSlots(); slot++) {
+                outgoing.setStackInSlot(slot, new ItemStack(Items.COBBLESTONE, 64));
+            }
+            int room = 2 * 64;
+            // Wireless shipments keep the demand open without a target grant; nothing ticks inside this callback.
+            BlockPos receiver = helper.absolutePos(NEAR);
+            point.addWirelessShipment(receiver, "elsewhere", PLANKS, 54 + 54 + 50 + 32 + 10, null);
+            point.addWirelessShipment(receiver, "elsewhere", ItemKey.of(new ItemStack(Items.COBBLESTONE)), 64 * 7, null);
+            BlockPos at = helper.absolutePos(FAR);
+            BlockPos source = helper.absolutePos(RACK);
+            int passed = 0;
+            for (int i = 1; i <= 5; i++) {
+                PickJob pick = new PickJob(FIRST_TEST_JOB + i, 0, PLANKS, 10, source, at);
+                boolean ready = network.readyToSend(pick);
+                helper.assertTrue(ready == (i <= 2), "pick " + i + " of 10 should " + (i <= 2 ? "go" : "wait"));
+                int locked = outgoing.lockedAmount(pick.id(), SlotLock.Kind.IN);
+                helper.assertTrue(locked == (ready ? 10 : 0), "pick " + i + " should lock " + (ready ? 10 : 0) + ", locked " + locked);
+                passed += ready ? 1 : 0;
+                assertWithinRoom(helper, outgoing, room);
+            }
+            helper.assertTrue(passed == 2, "two picks should go, got " + passed);
+            PickJob big = new PickJob(FIRST_TEST_JOB + 6, 0, PLANKS, 32, source, at);
+            helper.assertTrue(!network.readyToSend(big) && !outgoing.holds(big.id()), "the pick of 32 should wait whole, reserving nothing");
+            ItemStack sent = outgoing.extractItem(0, 10, false);
+            helper.assertTrue(sent.getCount() == 10, "the station takes 10 planks out of the slot picks still come into, got " + sent);
+            PickJob next = new PickJob(FIRST_TEST_JOB + 7, 0, PLANKS, 10, source, at);
+            helper.assertTrue(network.readyToSend(next) && outgoing.lockedAmount(next.id(), SlotLock.Kind.IN) == 10,
+                    "once 10 planks left, one more pick of 10 should go");
+            assertWithinRoom(helper, outgoing, room);
+            helper.succeed();
+        });
+    }
+
+    /** Planks held in the To network buffer plus room IN locks reserve for planks never exceed the planks' room there. */
+    private static void assertWithinRoom(GameTestHelper helper, LockedSlots outgoing, int room) {
+        int reserved = 0;
+        for (LockedSlots.Locked entry : outgoing.locked()) {
+            if (entry.lock().kind() == SlotLock.Kind.IN && entry.lock().key().equals(PLANKS)) {
+                reserved += entry.lock().amount();
+            }
+        }
+        int held = WarehouseFixtures.count(outgoing, Items.OAK_PLANKS);
+        helper.assertTrue(held + reserved <= room, "planks held " + held + " plus reserved " + reserved + " exceed the room " + room);
+        for (int slot = 0; slot < outgoing.getSlots(); slot++) {
+            int inSlot = outgoing.getStackInSlot(slot).getCount() + outgoing.reserved(slot, SlotLock.Kind.IN, 0);
+            helper.assertTrue(inSlot <= 64, "slot " + slot + " holds and reserves " + inSlot + ", more than a stack");
+        }
     }
 }

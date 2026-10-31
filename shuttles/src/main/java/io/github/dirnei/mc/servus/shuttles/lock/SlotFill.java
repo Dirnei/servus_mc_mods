@@ -44,6 +44,35 @@ public final class SlotFill {
     public record Part(int slot, int count) {
     }
 
+    /** Room an IN lock reserves on a slot for a job on its way. */
+    public record Reservation<K>(K key, int amount) {
+    }
+
+    /**
+     * A counted slot as incoming picks see it: what it holds plus what IN
+     * locks already bring count as its item, and it is never locked, so
+     * {@link #in} joins picks on their way. A slot whose stack and
+     * reservations name different items is seen as locked and takes nothing.
+     *
+     * @param key   the item the slot holds, null when empty
+     * @param count how many it holds
+     * @param limit how many the slot can hold at most
+     */
+    public static <K> Slot<K> incoming(K key, int count, int limit, List<Reservation<K>> reservations) {
+        K seen = count > 0 ? key : null;
+        int total = Math.max(0, count);
+        boolean mixed = false;
+        for (Reservation<K> reservation : reservations) {
+            if (seen == null) {
+                seen = reservation.key();
+            } else if (!Objects.equals(seen, reservation.key())) {
+                mixed = true;
+            }
+            total += Math.max(0, reservation.amount());
+        }
+        return new Slot<>(seen, total, limit, mixed);
+    }
+
     /**
      * Where {@code amount} of the key goes: first on top of unlocked partial
      * stacks of the key, then into unlocked empty slots, each up to {@code max}

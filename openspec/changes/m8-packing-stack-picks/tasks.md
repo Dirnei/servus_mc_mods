@@ -1,0 +1,24 @@
+# Tasks
+
+## 1. Joining planner (pure)
+
+- [x] 1.1 `shuttles/src/main/java/io/github/dirnei/mc/servus/shuttles/lock/SlotFill.java`: add the slot view for incoming picks (stack key and count, slot limit, the slot's IN reservations as key and amount; key falls back to the reservations' key, count adds their amounts, never locked, seen as locked when stack and reservations name different keys). JUnit in `shuttles/src/test/java/io/github/dirnei/mc/servus/shuttles/lock/SlotFillTest.java`: `smallPicksOfOneItemEndInOneSlot` (six picks of 1 to 3 coal, 14 in all, into 9 empty slots, each plan applied to the views before the next: every part lands in slot 0), `pickJoinsAPickOnItsWay` (empty slot reserved for 3 takes a pick of 2), `nearlyFullStackSplits` (60 held plus 10 gives parts 4 and 6), `fullStackSpillsToAnEmptySlot` (64 held, pick of 8 goes to an empty slot), `slotReservedForAnotherItemTakesNothing`, `stackAndReservationsDisagreeTakesNothing`, `planNeverExceedsRoomLeft` (one slot of 50 coal reserved for 10 more, two empty slots: a pick of 200 plans exactly 4 plus 64 plus 64, never more), `reservationsOnTheirWayCountAgainstRoom` (room for 20 coal over a partial stack and an empty slot, a pick of 12 planned and applied, then a pick of 10 plans only 8, so the caller refuses it). Verify: `gradlew :shuttles:test` green.
+
+## 2. Counted To network buffer
+
+- [x] 2.1 `shuttles/src/main/java/io/github/dirnei/mc/servus/shuttles/lock/LockedSlots.java`: add `lockInJoining(jobId, key, amount)` (views from stacks and IN locks, `SlotFill.in`, IN locks placed with `lock()`), and in counted mode refuse in `insert` and `isValid` a resource that differs from another job's IN lock key on that slot; update the class Javadoc for counted slots. Verify: `gradlew :shuttles:build` green.
+- [x] 2.2 `shuttles/src/main/java/io/github/dirnei/mc/servus/shuttles/packing/PackingStationBlockEntity.java`: create `outgoing` with `LockedSlots.Mode.COUNTED` and override `lockDelivery` to call `outgoing.lockInJoining`; read `admitted`, `returnOrphans`, `keep`, `outgoingRoom` and `takeOutgoing` against counted semantics and leave them unchanged unless one breaks (note the result here); confirm `readyToSend` still sends a Packing Station pick only when `lockDelivery` locked its whole amount and that `admits`/`PickAdmission` never bypass it (design D6). Verify: `gradlew :shuttles:build` green.
+
+## 3. GameTests
+
+- [x] 3.1 `shuttles/src/main/java/io/github/dirnei/mc/servus/shuttles/gametest/PackingStationGameTests.java`: `smallPicksShareOneSlot` (several job ids lock 1 to 3 coal each through `lockDelivery`, all IN locks name slot 0; delivering each with the network's `deliverTo` path or `outgoing().insertAs` leaves all coal in slot 0 and the other slots empty; a following iron pick locks an empty slot), `sendsWhileAPickIsOnItsWay` (slot 0 holds 6 coal and another job holds an IN lock for 4 there; a shipment of 10 coal to a Crafting Station on the data line sends the 6, then the 4 are inserted as that job and all 10 arrive). Also `picksNeverExceedBufferRoom` (To network buffer with room for 20 coal over a partial coal stack and empty slots, other slots filled with other items; open shipments want 50 coal and five picks of 10 ask `readyToSend`: two pass and lock 20, three wait with no locks; a pick of 32 waits whole; after the station sends 10 coal one more pick of 10 passes; at no point do items held plus IN reservations of coal exceed the buffer's room for coal). Verify: `gradlew :shuttles:runGameTestServer` green.
+- [x] 3.2 `shuttles/src/main/java/io/github/dirnei/mc/servus/shuttles/gametest/SlotLockGameTests.java`: `countedSlotTakesOnlyItsReservedItem` (an empty To network slot IN locked for 8 coal: `insertItemStacked` of iron ingots lands in another slot, coal from the job still fits). Verify: `gradlew :shuttles:runGameTestServer` green, including the existing `PackingStationGameTests`, `EgressGameTests`, `SlotLockGameTests`, `FieldLockGameTests` and `ParcelLockerGameTests`; adjust an existing test only where it asserted the old empty slot rule for the To network buffer.
+
+## 4. Verify
+
+- [ ] 4.1 Full gradle build, tests green, game launches with all mods; play check: a Machine Adapter with coal upkeep fed through a Packing Station; open the Packing Station GUI while picks arrive: coal picks share one To network slot, tooltips name each pick on a shared slot, other items still find free slots. Verify: `gradlew build` and `gradlew test` green, client starts from main.
+
+## Workflow follow-up
+
+- At archive: Fixed line in `shuttles/CHANGELOG.md` under `## Unreleased` ("Small shuttle picks into a Packing Station now share a stack instead of filling every To network slot").
+- After `m11-handheld-link` is archived: the Parcel Locker may switch its `reservedView` planning to `LockedSlots.lockInJoining`.

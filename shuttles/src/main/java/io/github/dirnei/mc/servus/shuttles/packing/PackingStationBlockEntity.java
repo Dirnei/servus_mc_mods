@@ -232,7 +232,7 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
     private static final int SENDING_TICKS = 20;
     private static final String STATUS = "gui.servus_shuttles.packing_station.status.";
 
-    private final LockedSlots outgoing = new LockedSlots(ShuttlesStatsManager.INSTANCE.inboundBufferSlots()) {
+    private final LockedSlots outgoing = new LockedSlots(ShuttlesStatsManager.INSTANCE.inboundBufferSlots(), LockedSlots.Mode.COUNTED) {
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
@@ -273,6 +273,16 @@ public class PackingStationBlockEntity extends InboundStationBlockEntity impleme
 
     public LockedSlots outgoing() {
         return outgoing;
+    }
+
+    /**
+     * A pick into the To network buffer joins stacks of its item and picks of
+     * it on their way before it takes empty slots, and never reserves more
+     * than the room left there.
+     */
+    @Override
+    public int lockDelivery(int jobId, int requestId, ItemKey key, int amount) {
+        return outgoing.lockInJoining(jobId, key, amount);
     }
 
     @Override
