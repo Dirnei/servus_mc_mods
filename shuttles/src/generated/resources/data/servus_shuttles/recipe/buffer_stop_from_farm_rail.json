@@ -11,6 +11,11 @@
     " R "
   ],
   "result": {
-    "id": "servus_shuttles:farm_buffer_stop"
+    "components": {
+      "minecraft:block_state": {
+        "rail": "farm"
+      }
+    },
+    "id": "servus_shuttles:buffer_stop"
   }
 }

@@ -454,7 +454,7 @@
     }
   ],
   "textures": {
-    "dock": "servus_shuttles:block/farm_rail_dock",
+    "dock": "servus_shuttles:block/rail_dock",
     "frame": "servus_shuttles:block/heavy_rack_iron",
     "head": "servus_shuttles:block/farm_rail_head",
     "particle": "servus_shuttles:block/heavy_rack_iron",

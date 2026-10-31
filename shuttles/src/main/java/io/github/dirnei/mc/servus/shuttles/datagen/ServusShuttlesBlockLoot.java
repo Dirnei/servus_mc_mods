@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.shuttles.datagen;
 
+import io.github.dirnei.mc.servus.shuttles.rail.BufferStopBlock;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesComponents;
 import java.util.ArrayList;
@@ -9,6 +10,9 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.advancements.criterion.StatePropertiesPredicate;
+import net.minecraft.world.level.storage.loot.functions.CopyBlockState;
+import net.minecraft.world.level.storage.loot.predicates.LootItemBlockStatePropertyCondition;
 import net.minecraft.world.level.storage.loot.functions.CopyComponentsFunction;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import io.github.dirnei.mc.servus.foundation.material.MaterialContent;
@@ -21,8 +25,7 @@ final class ServusShuttlesBlockLoot extends BlockLootSubProvider {
             ServusShuttlesBlocks.SHUTTLE_GARAGE.get(), ServusShuttlesBlocks.OUTBOUND_STATION.get(), ServusShuttlesBlocks.CRAFTING_STATION.get(),
             ServusShuttlesBlocks.CRAFTING_CPU.get(), ServusShuttlesBlocks.CPU_BUFFER.get(), ServusShuttlesBlocks.PRODUCTION_TERMINAL.get(),
             ServusShuttlesBlocks.FIELD_HEAD.get(), ServusShuttlesBlocks.RAIL.get(), ServusShuttlesBlocks.FARM_RAIL.get(),
-            ServusShuttlesBlocks.SHUTTLE_WORKSHOP.get(), ServusShuttlesBlocks.ELEVATOR.get(), ServusShuttlesBlocks.BUFFER_STOP.get(),
-            ServusShuttlesBlocks.FARM_BUFFER_STOP.get());
+            ServusShuttlesBlocks.SHUTTLE_WORKSHOP.get(), ServusShuttlesBlocks.ELEVATOR.get());
 
     ServusShuttlesBlockLoot(HolderLookup.Provider registries) {
         super(Set.of(), FeatureFlags.REGISTRY.allFlags(), registries);
@@ -35,6 +38,13 @@ final class ServusShuttlesBlockLoot extends BlockLootSubProvider {
                     .apply(CopyComponentsFunction.copyComponentsFromBlockEntity(LootContextParams.BLOCK_ENTITY)
                             .include(MaterialContent.MATERIAL.get())));
         }
+        // The Buffer Stop keeps its wood and, like a crafted one, carries its rail only when it is not the Warehouse Rail.
+        add(ServusShuttlesBlocks.BUFFER_STOP.get(), createSingleItemTable(ServusShuttlesBlocks.BUFFER_STOP.get())
+                .apply(CopyComponentsFunction.copyComponentsFromBlockEntity(LootContextParams.BLOCK_ENTITY)
+                        .include(MaterialContent.MATERIAL.get()))
+                .apply(CopyBlockState.copyState(ServusShuttlesBlocks.BUFFER_STOP.get()).copy(BufferStopBlock.RAIL)
+                        .when(LootItemBlockStatePropertyCondition.hasBlockStateProperties(ServusShuttlesBlocks.BUFFER_STOP.get())
+                                .setProperties(StatePropertiesPredicate.Builder.properties().hasProperty(BufferStopBlock.RAIL, BufferStopBlock.Rail.FARM)))));
         // The controller keeps its site name and FE.
         add(ServusShuttlesBlocks.WAREHOUSE_CONTROLLER.get(), createSingleItemTable(ServusShuttlesBlocks.WAREHOUSE_CONTROLLER.get())
                 .apply(CopyComponentsFunction.copyComponentsFromBlockEntity(LootContextParams.BLOCK_ENTITY)
@@ -58,6 +68,7 @@ final class ServusShuttlesBlockLoot extends BlockLootSubProvider {
         known.add(ServusShuttlesBlocks.WAREHOUSE_CONTROLLER.get());
         known.add(ServusShuttlesBlocks.HEAVY_RACK.get());
         known.add(ServusShuttlesBlocks.PATTERN_STORAGE.get());
+        known.add(ServusShuttlesBlocks.BUFFER_STOP.get());
         return known;
     }
 }

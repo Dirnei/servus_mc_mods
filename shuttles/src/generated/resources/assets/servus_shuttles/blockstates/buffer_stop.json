@@ -1,18 +1,33 @@
 {
   "variants": {
-    "facing=east": {
-      "model": "servus_shuttles:block/buffer_stop",
+    "facing=east,rail=farm": {
+      "model": "servus_shuttles:block/buffer_stop_farm",
       "y": 90
     },
-    "facing=north": {
-      "model": "servus_shuttles:block/buffer_stop"
+    "facing=east,rail=warehouse": {
+      "model": "servus_shuttles:block/buffer_stop_warehouse",
+      "y": 90
     },
-    "facing=south": {
-      "model": "servus_shuttles:block/buffer_stop",
+    "facing=north,rail=farm": {
+      "model": "servus_shuttles:block/buffer_stop_farm"
+    },
+    "facing=north,rail=warehouse": {
+      "model": "servus_shuttles:block/buffer_stop_warehouse"
+    },
+    "facing=south,rail=farm": {
+      "model": "servus_shuttles:block/buffer_stop_farm",
       "y": 180
     },
-    "facing=west": {
-      "model": "servus_shuttles:block/buffer_stop",
+    "facing=south,rail=warehouse": {
+      "model": "servus_shuttles:block/buffer_stop_warehouse",
+      "y": 180
+    },
+    "facing=west,rail=farm": {
+      "model": "servus_shuttles:block/buffer_stop_farm",
+      "y": 270
+    },
+    "facing=west,rail=warehouse": {
+      "model": "servus_shuttles:block/buffer_stop_warehouse",
       "y": 270
     }
   }

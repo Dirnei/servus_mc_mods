@@ -1,7 +1,0 @@
-{
-  "model": {
-    "type": "servus_foundation:material",
-    "kind": "wood",
-    "model": "servus_shuttles:item/farm_buffer_stop"
-  }
-}

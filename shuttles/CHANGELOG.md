@@ -1,5 +1,10 @@
 # Servus: Shuttles changelog
 
+## Unreleased
+
+### Added
+- Buffer Stop: a steel stop with a yellow and black beam for the end of a rail. Craft it from three iron ingots over a Warehouse Rail or a Farm Rail; it keeps that rail's wood and steel or copper heads. It turns to the rail when placed, the Configuration Carrot turns it, and shuttles ignore it.
+
 ## 0.6.0
 
 ### Added

@@ -7,6 +7,22 @@
         "servus_foundation:material"
       ],
       "source": "block_entity"
+    },
+    {
+      "block": "servus_shuttles:buffer_stop",
+      "conditions": [
+        {
+          "block": "servus_shuttles:buffer_stop",
+          "condition": "minecraft:block_state_property",
+          "properties": {
+            "rail": "farm"
+          }
+        }
+      ],
+      "function": "minecraft:copy_state",
+      "properties": [
+        "rail"
+      ]
     }
   ],
   "pools": [

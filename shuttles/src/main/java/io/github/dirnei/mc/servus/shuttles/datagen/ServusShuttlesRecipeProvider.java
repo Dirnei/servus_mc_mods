@@ -1,5 +1,9 @@
 package io.github.dirnei.mc.servus.shuttles.datagen;
 
+import net.minecraft.core.component.DataComponentPatch;
+import net.minecraft.core.component.DataComponents;
+import io.github.dirnei.mc.servus.shuttles.rail.BufferStopBlock;
+import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.foundation.material.MaterialKind;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
 import io.github.dirnei.mc.servus.shuttles.fluidrack.FluidRackRecipe;
@@ -143,8 +147,8 @@ final class ServusShuttlesRecipeProvider extends RecipeProvider {
                 .unlockedBy("has_rail", has(ServusShuttlesItems.RAIL.get()))
                 .save(MaterialRecipes.output(output, registries, MaterialKind.WOOD));
 
-        bufferStop(ServusShuttlesItems.BUFFER_STOP.get(), ServusShuttlesItems.RAIL.get(), "has_rail");
-        bufferStop(ServusShuttlesItems.FARM_BUFFER_STOP.get(), ServusShuttlesItems.FARM_RAIL.get(), "has_farm_rail");
+        bufferStop(BufferStopBlock.Rail.WAREHOUSE, ServusShuttlesItems.RAIL.get(), "has_rail");
+        bufferStop(BufferStopBlock.Rail.FARM, ServusShuttlesItems.FARM_RAIL.get(), "has_farm_rail");
 
         // The fluid stations: the item station on a Fluid Tank; the station's wood carries over.
         fluidStation(ServusShuttlesItems.FLUID_INBOUND.get(), ServusShuttlesItems.INBOUND_STATION.get());
@@ -386,14 +390,23 @@ final class ServusShuttlesRecipeProvider extends RecipeProvider {
     /** Saves a shaped recipe as a rack recipe, which remembers the planks' wood. */
     /** A fluid station: its item station on top of a Fluid Tank, as a wood material recipe that takes the station's wood. */
     /** Three iron ingots over a rail make one stop with the rail's wood. */
-    private void bufferStop(Item stop, Item rail, String criterion) {
-        ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS, stop)
+    /** Three iron ingots over a rail; the stop remembers the rail's kind and wood. */
+    private void bufferStop(BufferStopBlock.Rail kind, Item rail, String criterion) {
+        DataComponentPatch patch = kind == BufferStopBlock.Rail.WAREHOUSE ? DataComponentPatch.EMPTY
+                : DataComponentPatch.builder().set(DataComponents.BLOCK_STATE, BufferStopBlock.railState(kind)).build();
+        ShapedRecipeBuilder builder = ShapedRecipeBuilder.shaped(items, RecipeCategory.DECORATIONS,
+                        new ItemStackTemplate(ServusShuttlesItems.BUFFER_STOP.get(), patch))
                 .pattern("III")
                 .pattern(" R ")
                 .define('I', Items.IRON_INGOT)
                 .define('R', rail)
-                .unlockedBy(criterion, has(rail))
-                .save(MaterialRecipes.output(output, registries, MaterialKind.WOOD));
+                .unlockedBy(criterion, has(rail));
+        RecipeOutput wooden = MaterialRecipes.output(output, registries, MaterialKind.WOOD);
+        if (kind == BufferStopBlock.Rail.WAREHOUSE) {
+            builder.save(wooden);
+        } else {
+            builder.save(wooden, ServusShuttlesIds.MOD_ID + ":buffer_stop_from_" + kind.getSerializedName() + "_rail");
+        }
     }
 
     private void fluidStation(Item fluidStation, Item itemStation) {

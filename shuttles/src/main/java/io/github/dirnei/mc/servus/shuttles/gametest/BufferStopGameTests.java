@@ -35,7 +35,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
- * The Buffer Stop and the Farm Buffer Stop: facing, the rail running into it, carrot, standing, recipe,
+ * The Buffer Stop from either rail: facing, the rail running into it, carrot, standing, recipe,
  * and that the network, fields and field aging ignore it.
  */
 public final class BufferStopGameTests {
@@ -213,25 +213,26 @@ public final class BufferStopGameTests {
     /** A field of five Farm Rails ending at a stop still has five rails and is served. */
     @ServusGameTest(timeoutTicks = 40)
     public static void fieldIgnoresTheStop(GameTestHelper helper) {
-        FieldHeadBlockEntity head = fieldEndingAt(helper, ServusShuttlesBlocks.BUFFER_STOP.get());
+        FieldHeadBlockEntity head = fieldEndingAt(helper, BufferStopBlock.Rail.WAREHOUSE);
         helper.runAfterDelay(3, () -> {
             assertServesFiveRails(helper, head);
             helper.succeed();
         });
     }
 
-    /** A Farm Buffer Stop placed beside a Farm Rail faces it, and the rail runs into it. */
+    /** A stop from a Farm Rail placed beside a Farm Rail faces it, keeps its rail kind, and the rail runs into it. */
     @ServusGameTest(timeoutTicks = 20)
     public static void farmStopFacesAndConnectsAFarmRail(GameTestHelper helper) {
         floor(helper);
         FieldFixtures.farmRail(helper, SPOT.north());
         Placing.onTop(helper, farmItem(), SPOT.below(), Direction.EAST, false);
         helper.assertBlockProperty(SPOT, BufferStopBlock.FACING, Direction.NORTH);
+        helper.assertBlockProperty(SPOT, BufferStopBlock.RAIL, BufferStopBlock.Rail.FARM);
         helper.assertBlockProperty(SPOT.north(), ConnectableBlock.SOUTH, true);
         helper.succeed();
     }
 
-    /** A Farm Buffer Stop placed beside a Warehouse Rail faces it, and the rail runs into it. */
+    /** A stop from a Farm Rail placed beside a Warehouse Rail faces it, and the rail runs into it. */
     @ServusGameTest(timeoutTicks = 20)
     public static void farmStopFacesAndConnectsAWarehouseRail(GameTestHelper helper) {
         floor(helper);
@@ -243,10 +244,10 @@ public final class BufferStopGameTests {
         helper.succeed();
     }
 
-    /** Aging a field that ends at a Farm Buffer Stop leaves the stop as it was and the field's rails the same. */
+    /** Aging a field that ends at a stop from a Farm Rail leaves the stop as it was and the field's rails the same. */
     @ServusGameTest(timeoutTicks = 40)
     public static void agingLeavesTheFarmStop(GameTestHelper helper) {
-        FieldHeadBlockEntity head = fieldEndingAt(helper, ServusShuttlesBlocks.FARM_BUFFER_STOP.get());
+        FieldHeadBlockEntity head = fieldEndingAt(helper, BufferStopBlock.Rail.FARM);
         BlockState before = helper.getBlockState(FIELD_STOP);
         helper.runAfterDelay(3, () -> {
             head.age(ShuttlesStatsManager.INSTANCE.fieldCorrosionWater());
@@ -268,19 +269,35 @@ public final class BufferStopGameTests {
                 List.of(iron, iron.copy(), iron.copy(), ItemStack.EMPTY, rail, ItemStack.EMPTY));
         helper.assertTrue(result.is(ServusShuttlesItems.BUFFER_STOP.get()) && result.getCount() == 1, "one Buffer Stop, got " + result);
         helper.assertTrue(OAK.equals(result.get(MaterialContent.MATERIAL.get())), "the stop is oak, got " + result.get(MaterialContent.MATERIAL.get()));
+        helper.assertTrue(BufferStopBlock.railOf(result) == BufferStopBlock.Rail.WAREHOUSE, "the stop is a Warehouse Rail stop, got " + BufferStopBlock.railOf(result));
         helper.succeed();
     }
 
-    /** Three iron ingots over an oak Farm Rail give one oak Farm Buffer Stop. */
+    /** Three iron ingots over an oak Farm Rail give one oak Buffer Stop that remembers the Farm Rail. */
     @ServusGameTest(timeoutTicks = 20)
     public static void farmRecipeKeepsTheRailsWood(GameTestHelper helper) {
         ItemStack rail = new ItemStack(ServusShuttlesItems.FARM_RAIL.get());
         rail.set(MaterialContent.MATERIAL.get(), OAK);
         ItemStack iron = new ItemStack(Items.IRON_INGOT);
-        ItemStack result = BlockStyleGameTests.craft(helper, "farm_buffer_stop", 3, 2,
+        ItemStack result = BlockStyleGameTests.craft(helper, "buffer_stop_from_farm_rail", 3, 2,
                 List.of(iron, iron.copy(), iron.copy(), ItemStack.EMPTY, rail, ItemStack.EMPTY));
-        helper.assertTrue(result.is(ServusShuttlesItems.FARM_BUFFER_STOP.get()) && result.getCount() == 1, "one Farm Buffer Stop, got " + result);
+        helper.assertTrue(result.is(ServusShuttlesItems.BUFFER_STOP.get()) && result.getCount() == 1, "one Buffer Stop, got " + result);
         helper.assertTrue(OAK.equals(result.get(MaterialContent.MATERIAL.get())), "the stop is oak, got " + result.get(MaterialContent.MATERIAL.get()));
+        helper.assertTrue(BufferStopBlock.railOf(result) == BufferStopBlock.Rail.FARM, "the stop remembers the Farm Rail, got " + BufferStopBlock.railOf(result));
+        helper.succeed();
+    }
+
+    /** Breaking a birch stop from a Farm Rail drops an item that places a birch stop from a Farm Rail again. */
+    @ServusGameTest(timeoutTicks = 40)
+    public static void farmStopKeepsItsRailThroughBreaking(GameTestHelper helper) {
+        floor(helper);
+        helper.setBlock(SPOT, stop(Direction.NORTH).setValue(BufferStopBlock.RAIL, BufferStopBlock.Rail.FARM));
+        wood(helper, SPOT, BIRCH);
+        helper.getLevel().destroyBlock(helper.absolutePos(SPOT), true);
+        ItemStack dropped = assertDroppedWith(helper, BIRCH);
+        helper.assertTrue(BufferStopBlock.railOf(dropped) == BufferStopBlock.Rail.FARM, "the drop remembers the Farm Rail, got " + BufferStopBlock.railOf(dropped));
+        Placing.onTop(helper, dropped.copy(), SPOT.below(), Direction.NORTH, false);
+        helper.assertBlockProperty(SPOT, BufferStopBlock.RAIL, BufferStopBlock.Rail.FARM);
         helper.succeed();
     }
 
@@ -301,24 +318,20 @@ public final class BufferStopGameTests {
     }
 
     private static ItemStack farmItem() {
-        return new ItemStack(ServusShuttlesItems.FARM_BUFFER_STOP.get());
+        return ServusShuttlesBlocks.BUFFER_STOP.get().item(BufferStopBlock.Rail.FARM);
     }
 
     private static BlockState stop(Direction facing) {
-        return stop(ServusShuttlesBlocks.BUFFER_STOP.get(), facing);
-    }
-
-    private static BlockState stop(Block block, Direction facing) {
-        return block.defaultBlockState().setValue(BufferStopBlock.FACING, facing);
+        return ServusShuttlesBlocks.BUFFER_STOP.get().defaultBlockState().setValue(BufferStopBlock.FACING, facing);
     }
 
     /** Five Farm Rails along x 3..7 with a Field Head west of them and that stop at {@link #FIELD_STOP} facing the last one. */
-    private static FieldHeadBlockEntity fieldEndingAt(GameTestHelper helper, Block stop) {
+    private static FieldHeadBlockEntity fieldEndingAt(GameTestHelper helper, BufferStopBlock.Rail rail) {
         for (int x = 3; x <= 7; x++) {
             FieldFixtures.farmRail(helper, new BlockPos(x, 1, FIELD_Z));
         }
         WarehouseFixtures.stone(helper, FIELD_STOP.below());
-        helper.setBlock(FIELD_STOP, stop(stop, Direction.WEST));
+        helper.setBlock(FIELD_STOP, stop(Direction.WEST).setValue(BufferStopBlock.RAIL, rail));
         return FieldFixtures.head(helper, new BlockPos(2, 1, FIELD_Z));
     }
 
@@ -337,11 +350,12 @@ public final class BufferStopGameTests {
         return new NodePos(absolute.getX(), absolute.getY(), absolute.getZ());
     }
 
-    private static void assertDroppedWith(GameTestHelper helper, Identifier wood) {
+    private static ItemStack assertDroppedWith(GameTestHelper helper, Identifier wood) {
         List<ItemEntity> items = GameTestSteps.drops(helper, SPOT, 1).stream()
                 .filter(entity -> entity.getItem().is(ServusShuttlesItems.BUFFER_STOP.get())).toList();
         helper.assertTrue(items.size() == 1 && wood.equals(Material.of(items.get(0).getItem())),
                 "one dropped stop with " + wood + ", got " + items);
+        return items.get(0).getItem();
     }
 
     private static void floor(GameTestHelper helper) {

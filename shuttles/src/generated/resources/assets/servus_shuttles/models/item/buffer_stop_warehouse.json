@@ -1,5 +1,5 @@
 {
-  "parent": "servus_shuttles:block/farm_buffer_stop",
+  "parent": "servus_shuttles:block/buffer_stop_warehouse",
   "display": {
     "fixed": {
       "rotation": [

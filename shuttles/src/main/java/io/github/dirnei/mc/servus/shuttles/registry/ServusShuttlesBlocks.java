@@ -71,8 +71,12 @@ public final class ServusShuttlesBlocks {
                     .sound(SoundType.METAL)
                     .noOcclusion());
 
-    public static final DeferredBlock<BufferStopBlock> BUFFER_STOP =
-            BLOCKS.registerBlock("buffer_stop", BufferStopBlock::new, ServusShuttlesBlocks::bufferStopProperties);
+    public static final DeferredBlock<BufferStopBlock> BUFFER_STOP = BLOCKS.registerBlock("buffer_stop", BufferStopBlock::new,
+            () -> BlockBehaviour.Properties.of()
+                    .mapColor(MapColor.METAL)
+                    .strength(2.0F)
+                    .sound(SoundType.METAL)
+                    .noOcclusion());
 
     public static final DeferredBlock<FarmRailBlock> FARM_RAIL = BLOCKS.registerBlock("farm_rail", FarmRailBlock::new,
             () -> BlockBehaviour.Properties.of()
@@ -80,9 +84,6 @@ public final class ServusShuttlesBlocks {
                     .strength(1.0F)
                     .sound(SoundType.METAL)
                     .noOcclusion());
-
-    public static final DeferredBlock<BufferStopBlock> FARM_BUFFER_STOP =
-            BLOCKS.registerBlock("farm_buffer_stop", BufferStopBlock::new, ServusShuttlesBlocks::bufferStopProperties);
 
     public static final DeferredBlock<FieldHeadBlock> FIELD_HEAD = BLOCKS.registerBlock("field_head", FieldHeadBlock::new,
             () -> BlockBehaviour.Properties.of()
@@ -203,14 +204,5 @@ public final class ServusShuttlesBlocks {
                             .noLootTable());
 
     private ServusShuttlesBlocks() {
-    }
-
-    /** Shared by the Buffer Stop and the Farm Buffer Stop. */
-    private static BlockBehaviour.Properties bufferStopProperties() {
-        return BlockBehaviour.Properties.of()
-                .mapColor(MapColor.METAL)
-                .strength(2.0F)
-                .sound(SoundType.METAL)
-                .noOcclusion();
     }
 }

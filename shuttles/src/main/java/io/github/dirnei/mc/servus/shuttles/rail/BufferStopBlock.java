@@ -6,11 +6,14 @@ import io.github.dirnei.mc.servus.foundation.material.Material;
 import java.util.Map;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.util.RandomSource;
+import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.component.BlockItemStateProperties;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -33,19 +36,22 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * A decorative buffer stop placed beyond the last rail of a run. Its front,
  * the side with the buffer heads, turns to a rail when placed; a rail that the
  * front faces draws full track into it (see {@link RailBlock}). It stands on a
- * floor, never joins a warehouse network and holds no rail up.
+ * floor, never joins a warehouse network and holds no rail up. It remembers
+ * the rail it was crafted from in {@link #RAIL}, which picks the heads of its
+ * track stub and travels on the item as its block state.
  */
 public class BufferStopBlock extends BaseEntityBlock implements Wrenchable {
 
     public static final MapCodec<BufferStopBlock> CODEC = simpleCodec(BufferStopBlock::new);
     public static final EnumProperty<Direction> FACING = HorizontalDirectionalBlock.FACING;
+    public static final EnumProperty<Rail> RAIL = EnumProperty.create("rail", Rail.class);
     private static final Map<Direction, VoxelShape> SHAPES = Shapes.rotateHorizontal(Shapes.or(
             Block.box(1, 0, 6, 15, BufferStopLook.UPRIGHT_TOP, 15),
             Block.box(1, 0, 0, 15, RailLook.HEAD_TOP, 6)));
 
     public BufferStopBlock(Properties properties) {
         super(properties);
-        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH));
+        registerDefaultState(stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(RAIL, Rail.WAREHOUSE));
     }
 
     @Override
@@ -55,7 +61,44 @@ public class BufferStopBlock extends BaseEntityBlock implements Wrenchable {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING);
+        builder.add(FACING, RAIL);
+    }
+
+    /** The rail a stop was crafted from; it picks the heads of the track stub. */
+    public enum Rail implements StringRepresentable {
+        WAREHOUSE("warehouse"),
+        FARM("farm");
+
+        private final String name;
+
+        Rail(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public String getSerializedName() {
+            return name;
+        }
+    }
+
+    /** A stop item of this rail kind; the Warehouse Rail kind carries no block state. */
+    public ItemStack item(Rail rail) {
+        ItemStack stack = new ItemStack(this);
+        if (rail != Rail.WAREHOUSE) {
+            stack.set(DataComponents.BLOCK_STATE, railState(rail));
+        }
+        return stack;
+    }
+
+    /** The item block state that carries a rail kind. */
+    public static BlockItemStateProperties railState(Rail rail) {
+        return BlockItemStateProperties.EMPTY.with(RAIL, rail);
+    }
+
+    /** The rail kind an item carries, the Warehouse Rail when it carries none. */
+    public static Rail railOf(ItemStack stack) {
+        Rail rail = stack.getOrDefault(DataComponents.BLOCK_STATE, BlockItemStateProperties.EMPTY).get(RAIL);
+        return rail != null ? rail : Rail.WAREHOUSE;
     }
 
     /** Whether the stop's front faces the neighbour on that side. */
@@ -92,7 +135,7 @@ public class BufferStopBlock extends BaseEntityBlock implements Wrenchable {
         return RenderShape.MODEL;
     }
 
-    /** The carrot turns the stop a quarter clockwise; sneaking dismantles it into its item with its wood. */
+    /** The carrot turns the stop a quarter clockwise; sneaking dismantles it into its item with its wood and rail. */
     @Override
     public InteractionResult onWrench(UseOnContext context, BlockState state) {
         Level level = context.getLevel();
@@ -100,7 +143,7 @@ public class BufferStopBlock extends BaseEntityBlock implements Wrenchable {
         Player player = context.getPlayer();
         if (!level.isClientSide()) {
             if (player != null && player.isShiftKeyDown()) {
-                Block.popResource(level, pos, Material.stamp(new ItemStack(this), level.getBlockEntity(pos)));
+                Block.popResource(level, pos, Material.stamp(item(state.getValue(RAIL)), level.getBlockEntity(pos)));
                 level.removeBlock(pos, false);
             } else {
                 level.setBlock(pos, state.setValue(FACING, state.getValue(FACING).getClockWise()), Block.UPDATE_ALL);

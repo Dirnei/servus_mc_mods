@@ -54,7 +54,7 @@ Free rails that link to each other SHALL form a gap. The span of a gap SHALL be 
 - **THEN** all four rails drop as items
 
 ### Requirement: Rails auto connect
-A rail SHALL connect to every neighbouring rail, every Rail Elevator segment, the front of every Heavy Duty Rack, every Warehouse Controller, every Inbound Station, Outbound Station and Packing Station and the back of every Shuttle Garage on the same level and SHALL render the matching piece: straight, curve, T or cross. The centre SHALL follow the connections: straight along the axis of a straight run or a single connection, a curve when two connected sides meet at a corner, and a `#` of both line pairs when three or four sides connect. Docks SHALL NOT shape the centre: a dock is drawn on its own and the centre follows only the sides that carry rail. Towards a rack, a controller or a station the piece SHALL be a dock, visibly different from the arm towards a rail or segment; towards a garage it SHALL be a plain arm. Rails SHALL NOT connect up or down. Connections SHALL update when a neighbouring rail, segment, rack, controller, station or garage is placed, rotated or removed.
+A rail SHALL connect to every neighbouring rail, every Rail Elevator segment, the front of every Heavy Duty Rack, every Warehouse Controller, every Inbound Station, Outbound Station and Packing Station, the back of every Shuttle Garage and the front of every Buffer Stop on the same level and SHALL render the matching piece: straight, curve, T or cross. The centre SHALL follow the connections: straight along the axis of a straight run or a single connection, a curve when two connected sides meet at a corner, and a `#` of both line pairs when three or four sides connect. Docks SHALL NOT shape the centre: a dock is drawn on its own and the centre follows only the sides that carry rail. Towards a rack, a controller or a station the piece SHALL be a dock, visibly different from the arm towards a rail or segment; towards a garage or a Buffer Stop it SHALL be a plain arm. A Buffer Stop SHALL count only for the look of the rail: it SHALL NOT link the rail to anything. Rails SHALL NOT connect up or down. Connections SHALL update when a neighbouring rail, segment, rack, controller, station, garage or Buffer Stop is placed, rotated or removed.
 
 #### Scenario: Straight run
 - **WHEN** three rails are placed in a line
@@ -99,6 +99,10 @@ A rail SHALL connect to every neighbouring rail, every Rail Elevator segment, th
 #### Scenario: Rail runs into a garage
 - **WHEN** a garage is placed with its back to a rail
 - **THEN** the rail shows a plain arm towards the garage, and turning the garage with the carrot removes it
+
+#### Scenario: Rail runs into a Buffer Stop
+- **WHEN** the last rail of a north south run has a Buffer Stop on its north side whose front faces the rail
+- **THEN** the rail shows a straight piece instead of an end, and breaking the stop or turning it away with the carrot brings the end back
 
 ### Requirement: Storage blocks join through rails
 Every rail SHALL be a node of the warehouse network. Heavy Duty Racks facing a rail, and warehouse controllers and stations touching a rail on any side, SHALL belong to the same network as that rail, and a chain of connected rails SHALL carry membership along its whole length. Rails SHALL link to each other sideways only; a rail directly above another rail does not link to it.

@@ -1,7 +1,22 @@
 {
   "model": {
-    "type": "servus_foundation:material",
-    "kind": "wood",
-    "model": "servus_shuttles:item/buffer_stop"
+    "type": "minecraft:select",
+    "block_state_property": "rail",
+    "cases": [
+      {
+        "model": {
+          "type": "servus_foundation:material",
+          "kind": "wood",
+          "model": "servus_shuttles:item/buffer_stop_farm"
+        },
+        "when": "farm"
+      }
+    ],
+    "fallback": {
+      "type": "servus_foundation:material",
+      "kind": "wood",
+      "model": "servus_shuttles:item/buffer_stop_warehouse"
+    },
+    "property": "minecraft:block_state"
   }
 }

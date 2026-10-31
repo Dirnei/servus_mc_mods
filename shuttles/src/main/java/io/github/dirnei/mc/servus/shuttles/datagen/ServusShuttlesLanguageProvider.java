@@ -18,7 +18,6 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add(ServusShuttlesBlocks.STORAGE_TERMINAL.get(), "Storage Terminal");
         add(ServusShuttlesBlocks.RAIL.get(), "Warehouse Rail");
         add(ServusShuttlesBlocks.BUFFER_STOP.get(), "Buffer Stop");
-        add(ServusShuttlesBlocks.FARM_BUFFER_STOP.get(), "Farm Buffer Stop");
         add(ServusShuttlesBlocks.ELEVATOR.get(), "Rail Elevator");
         add(ServusShuttlesBlocks.HEAVY_RACK.get(), "Heavy Duty Rack");
         add("tooltip.servus_shuttles.heavy_rack.wood", "Wood: %s");
@@ -282,6 +281,7 @@ final class ServusShuttlesLanguageProvider extends LanguageProvider {
         add("gui.servus_shuttles.field_head.buffer.filled_by", "Brought by shuttles without a tool; no hand filling");
         add("gui.servus_shuttles.field_head.corrosion", "%s, next stage %s%%");
         add("gui.servus_shuttles.field_head.corroded", "Rails corroded, no watering");
+        add("tooltip.servus_shuttles.buffer_stop.rail", "Rail: %s");
         add("gui.servus_shuttles.field_head.stage.copper", "Copper");
         add("gui.servus_shuttles.field_head.stage.exposed", "Exposed");
         add("gui.servus_shuttles.field_head.stage.weathered", "Weathered");

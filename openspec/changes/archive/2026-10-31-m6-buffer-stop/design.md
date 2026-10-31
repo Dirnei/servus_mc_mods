@@ -19,12 +19,12 @@ A parked shuttle body spans z 2..14 of its rail block and the Harvester tool rea
 
 It is not a `StorageNodeBlockEntity`, so the network never sees it. Alternative: no block entity and fixed sleepers. Rejected because a stub in the wrong wood stands right next to the rail's sleepers.
 
-### Farm Buffer Stop as a second block
-The Farm Buffer Stop is a second registration, `servus_shuttles:farm_buffer_stop`, of the same `BufferStopBlock` class, with the same block entity type (valid for both blocks) and its own item, loot table and model. The model is the same `BufferStopLook` boxes with `block/farm_rail_head` (fresh copper) for `HEAD` and `block/farm_rail_dock` for `DOCK`. It is a wood material block like the Buffer Stop. `RailBlock.connectsTo` checks `instanceof BufferStopBlock`, so it covers both.
+### One block that remembers its rail
+The stop is one block, `servus_shuttles:buffer_stop`, with a block state property `rail` (`warehouse`, the default, or `farm`). The kind travels on the item as the vanilla `minecraft:block_state` component, which `BlockItem` already applies to the placed state; the loot table copies it back with `copy_state` for `rail`, next to the `MATERIAL` copy. The Farm Rail recipe's result carries `block_state {rail: farm}`; `MaterialRecipe.assemble` starts from that result and only adds the wood. The blockstate picks one model per `rail` value: the same `BufferStopLook` boxes with `block/rail_head` or `block/farm_rail_head` (fresh copper) for `HEAD`, and `block/rail_dock` (yellow and black) for `DOCK` on both. The item model selects on the stack's `rail` block state (vanilla `select` on `minecraft:block_state`), each case the material item model of that kind's block model, so the item shows both its wood and its rail. The item tooltip names the rail.
 
-Alternative: one block with a stored "farm" flag on the item and block entity. Rejected: a flag needs its own data component, model property and item model swap, while a second block reuses the Rail and Farm Rail pattern and shows as its own item in JEI and the creative tab.
+Alternatives: a second block `farm_buffer_stop` (built first, dropped in the play check because the user wants one item); a data component of our own (rejected: `block_state` already gets from item to block and back). The removed `farm_buffer_stop` was never released, so it needs no migration.
 
-It carries no corrosion stage and is not a `FarmRailBlock`, so field walks, water reach and aging never see it. Its recipe takes `ServusShuttlesItems.FARM_RAIL` as a plain item ingredient, which matches any `RAIL_CORROSION` component; `MaterialRecipe` copies only the wood, so the result is always fresh.
+The stop carries no corrosion stage and is not a `FarmRailBlock`, so field walks, water reach and aging never see it. The Farm Rail recipe takes `ServusShuttlesItems.FARM_RAIL` as a plain item ingredient, which matches any `RAIL_CORROSION` component; the result is always fresh copper.
 
 ### Facing
 `getStateForPlacement` uses `RailFacings.frontToRail(context, RailFacings.ANY_RAIL)`, the shared rule (clicked rail, look direction, only rail, else face the player; sneaking faces the player). `onWrench` (Foundation `Wrenchable`) turns `FACING` clockwise; a sneak wrench dismantles it into its item with its wood, as rails do.
@@ -67,7 +67,7 @@ Overlap check (no two boxes share volume; where boxes touch, their touching face
 Selection and collision use one shape: the sole plus a box around the frame and beam (x 1..15, y 0..10, z 6..15) and the stub as a 2 px slab. The shuttle never enters the block, so the shape only matters for the player.
 
 ### Recipe
-Two `MaterialRecipe`s (shaped) via `MaterialRecipes.output(..., MaterialKind.WOOD)`: `III` over ` R `, `I` iron ingot, `R` Warehouse Rail for the Buffer Stop, or Farm Rail for the Farm Buffer Stop; the wood comes from the rail, like the Rail Elevator recipe. Result count 1 each.
+Two `MaterialRecipe`s (shaped) via `MaterialRecipes.output(..., MaterialKind.WOOD)`: `III` over ` R `, `I` iron ingot, `R` Warehouse Rail or Farm Rail with a result carrying `rail=farm`; the wood comes from the rail, like the Rail Elevator recipe. Result count 1 each.
 
 ## Risks / Trade-offs
 

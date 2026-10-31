@@ -1,4 +1,9 @@
-## ADDED Requirements
+# shuttles/buffer-stop Specification
+
+## Purpose
+A decorative buffer stop the player places beyond the last rail of a run. It remembers the rail and wood it was crafted from, turns to the rail, makes the rail run into it and stays outside the warehouse network.
+
+## Requirements
 
 ### Requirement: Buffer Stop look
 The Buffer Stop SHALL look like a steel buffer stop at the end of a track: a steel sole on the ground, two steel uprights on the lines of the rail heads, stepped steel braces behind them, a beam across the track in the yellow and black dock stripe of the Warehouse Rail, and two steel buffer heads on the front of the beam, one in front of each rail head. In front of the beam it SHALL show a short stub of track with the gauge of the Warehouse Rail: steel heads on sleepers in the wood the stop carries. Every part SHALL be solid geometry in steel textures on every face, and no two faces SHALL flicker against each other. The stop SHALL stay inside its own block.
@@ -11,20 +16,28 @@ The Buffer Stop SHALL look like a steel buffer stop at the end of a track: a ste
 - **WHEN** a Buffer Stop crafted from a Warehouse Rail with spruce sleepers is placed
 - **THEN** the sleepers of its track stub show spruce
 
-### Requirement: Farm Buffer Stop look
-The Farm Buffer Stop SHALL look like the Buffer Stop, except that its track stub SHALL have the copper heads of a fresh Farm Rail and its beam SHALL show the dock stripe of the Farm Rail. It SHALL never corrode: no water, Field Head or time SHALL change its copper. Every requirement for the Buffer Stop below SHALL apply to the Farm Buffer Stop as well.
+### Requirement: Buffer Stop remembers its rail
+A Buffer Stop SHALL remember which rail it was crafted from, a Warehouse Rail or a Farm Rail, and keep it from item to block and back, like its wood. A stop from a Warehouse Rail SHALL show steel heads on its track stub; a stop from a Farm Rail SHALL show the copper heads of a fresh Farm Rail. The beam SHALL be yellow and black for both. A stop SHALL never corrode. Both SHALL be the same block and item, named Buffer Stop; the item tooltip SHALL name the rail. A stop of either rail SHALL stand at either kind of rail.
 
 #### Scenario: Copper stub
-- **WHEN** a Farm Buffer Stop is placed at the end of a run of Farm Rails
-- **THEN** its track stub shows copper heads like the Farm Rail in front of it
+- **WHEN** a Buffer Stop crafted from a Farm Rail is placed at the end of a run of Farm Rails
+- **THEN** its track stub shows copper heads like the Farm Rail in front of it, under a yellow and black beam
+
+#### Scenario: Kept through breaking
+- **WHEN** a player breaks a Buffer Stop crafted from a Farm Rail and places it again
+- **THEN** it shows copper heads again
 
 #### Scenario: Stays copper
-- **WHEN** a Farm Buffer Stop stands at the end of a watered field for a long time
+- **WHEN** a Buffer Stop crafted from a Farm Rail stands at the end of a watered field for a long time
 - **THEN** its copper heads stay fresh
 
 #### Scenario: Any rail kind
-- **WHEN** a Farm Buffer Stop is placed facing a Warehouse Rail
-- **THEN** the rail runs into it like into a Buffer Stop
+- **WHEN** a Buffer Stop crafted from a Farm Rail is placed facing a Warehouse Rail
+- **THEN** the rail runs into it like into any Buffer Stop
+
+#### Scenario: Tooltip
+- **WHEN** a player hovers a Buffer Stop item crafted from a Farm Rail
+- **THEN** the tooltip names the Farm Rail
 
 ### Requirement: Buffer Stop is placed by the player
 The Buffer Stop SHALL be a block of its own, placed by the player beyond the last rail of a run. It SHALL NOT appear on its own at an open rail end, and it SHALL NOT sit inside a rail block.
@@ -67,7 +80,7 @@ The Buffer Stop SHALL NOT join a warehouse network, SHALL NOT dock a rail and SH
 - **THEN** the field's rail count and the Field Head's work are the same as without the stop
 
 ### Requirement: Buffer Stop is obtainable and dismantled
-Three iron ingots over one Warehouse Rail SHALL craft one Buffer Stop, and three iron ingots over one Farm Rail SHALL craft one Farm Buffer Stop, each carrying the wood of the rail. A Farm Rail SHALL craft a Farm Buffer Stop in any corrosion stage, and the stop SHALL come out fresh copper. A stop SHALL drop itself with its wood when broken or dismantled.
+Three iron ingots over one Warehouse Rail or one Farm Rail SHALL craft one Buffer Stop carrying the wood and the kind of that rail. A Farm Rail SHALL craft a stop in any corrosion stage, and the stop SHALL come out fresh copper. A stop SHALL drop itself with its wood and its rail when broken or dismantled.
 
 #### Scenario: Crafting
 - **WHEN** the player places three iron ingots in the top row and a Warehouse Rail with oak sleepers in the middle of the row below
@@ -75,7 +88,7 @@ Three iron ingots over one Warehouse Rail SHALL craft one Buffer Stop, and three
 
 #### Scenario: Crafting from a corroded Farm Rail
 - **WHEN** the player crafts with three iron ingots over a weathered Farm Rail with oak sleepers
-- **THEN** the result is one fresh copper Farm Buffer Stop with oak sleepers
+- **THEN** the result is one Buffer Stop with fresh copper heads and oak sleepers
 
 #### Scenario: Broken
 - **WHEN** a player breaks a Buffer Stop with birch sleepers

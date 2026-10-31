@@ -68,7 +68,7 @@ public final class ServusShuttlesBlockEntities {
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BufferStopBlockEntity>> BUFFER_STOP =
             BLOCK_ENTITIES.register("buffer_stop", () -> new BlockEntityType<>(BufferStopBlockEntity::new,
-                    ServusShuttlesBlocks.BUFFER_STOP.get(), ServusShuttlesBlocks.FARM_BUFFER_STOP.get()));
+                    ServusShuttlesBlocks.BUFFER_STOP.get()));
 
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ElevatorBlockEntity>> ELEVATOR =
             BLOCK_ENTITIES.register("elevator", () -> new BlockEntityType<>(ElevatorBlockEntity::new, ServusShuttlesBlocks.ELEVATOR.get()));
