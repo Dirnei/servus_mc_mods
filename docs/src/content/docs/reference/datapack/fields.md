@@ -1,11 +1,11 @@
 ---
 title: Fields and tree fields
-description: The tree field, Lumber shuttle and Field Head buffer fields of the Servus Shuttles field stats file.
+description: The corrosion, tree field, Lumber shuttle and Field Head buffer fields of the Servus Shuttles field stats file.
 sidebar:
   order: 11
 ---
 
-Servus Shuttles reads the numbers of its fields from one stats file. This page covers the fields for tree fields, the Lumber shuttle and the Field Head's To storage buffer, added in Shuttles 0.5.0. Values are the shipped ones; they live in datapack JSON and modpacks can change them.
+Servus Shuttles reads the numbers of its fields from one stats file. This page covers the corrosion fields, and the fields for tree fields, the Lumber shuttle and the Field Head's To storage buffer, added in Shuttles 0.5.0. Values are the shipped ones; they live in datapack JSON and modpacks can change them.
 
 ## File location
 
@@ -13,7 +13,14 @@ Servus Shuttles reads the numbers of its fields from one stats file. This page c
 data/servus_shuttles/shuttles/field.json
 ```
 
-The file reloads with `/reload`. Every field is optional, and a field the file leaves out falls back to the default below. The shipped file sets more fields (water, corrosion, fertilizer, seed buffer and others); they keep their meaning from earlier versions.
+The file reloads with `/reload`. Every field is optional, and a field the file leaves out falls back to the default below. The shipped file sets more fields (water, fertilizer, seed buffer and others); they keep their meaning from earlier versions.
+
+## Corrosion
+
+| Field | Default | Meaning |
+|---|---|---|
+| `corrosion_water` | 9000 | mB of water a Field Head uses to hydrate its field per aging step. At each step every wet farm rail goes one stage older, unless the head uses one anti-corrosion item. |
+| `axe_damage_per_rail` | 4 | Axe durability one farm rail costs to scrape back one stage. A worn axe spends what it has left and keeps the rest as progress on the next rail. Was 2 before Shuttles 0.7.0. |
 
 ## Tree fields and the Lumber shuttle
 

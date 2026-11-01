@@ -1,6 +1,6 @@
 # Servus: Foundation changelog
 
-## Unreleased
+## 0.7.0
 
 ### Changed
 - Items of wood material blocks can change their look per item stack, which Shuttles uses to show a Farm Rail's copper stage.

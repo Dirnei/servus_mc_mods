@@ -237,7 +237,7 @@ The Mixer runs `servus_foundation:mixing` recipes. Like the Mill it has no power
 |---|---|---|---|
 | `type` | string | required | `servus_foundation:mixing` |
 | `ingredients` | list | required | 1 to 4 sized ingredients, each an `ingredient` (an item id or `#tag`) with a `count`. Shapeless. |
-| `fluid` | sized fluid ingredient | none | An `ingredient` (a fluid id) with an `amount` in mB, drained from the Mixer's tank. |
+| `fluid` | sized fluid ingredient | none | An `ingredient` (a fluid id or `#tag`) with an `amount` in mB (default 1000), drained from the Mixer's tank. |
 | `result` | item stack | required | `id` and `count` (default 1). |
 | `work` | int | required | Work units one mixing takes, as for milling. |
 

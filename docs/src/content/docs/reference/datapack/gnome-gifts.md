@@ -5,7 +5,7 @@ sidebar:
   order: 7
 ---
 
-A gnome at work in a Gnome Hollow digs faster for a while after a gift it likes. Gifts are optional: without one it digs at its vein's `yield_ticks`. Numbers on this page are the shipped values of Alchemy %alchemy_version%; they live in datapack JSON and modpacks can change them.
+A gnome at work in a Gnome Hollow digs faster for a while after a gift it likes. Gifts are optional: without one it digs at the rate its vein and [feed](/servus_mc_mods/reference/datapack/veins/#feed) give it. Numbers on this page are the shipped values of Alchemy %alchemy_version%; they live in datapack JSON and modpacks can change them.
 
 ```
 data/<namespace>/servus_alchemy/gnome_gift/<name>.json
@@ -15,10 +15,10 @@ data/<namespace>/servus_alchemy/gnome_gift/<name>.json
 |---|---|---|---|
 | `items` | list of item ids | none | Items the gnomes like. |
 | `tags` | list of item tags | none | Item tags whose items the gnomes like. |
-| `factor` | number, 1 to 100 | required | How many times faster the gnome digs while the gift lasts. |
+| `factor` | number, 1 to 100 | required | How many times faster the gnome digs while the gift lasts, on top of its feed. |
 | `duration_ticks` | int | required | How long the gift lasts, in ticks while the Hollow is loaded. |
 
-An item uses the first gift file by id that names it or one of its tags; items no file names are refused. A new gift replaces a running one: it restarts with its own factor and full duration, gifts never add up. Gifts speed up digging only, not ripening, and only a Hollow with a bound gnome takes them.
+An item uses the first gift file by id that names it or one of its tags; items no file names are refused. A new gift replaces a running one: it restarts with its own factor and full duration, gifts never add up. A gift and the feed multiply: a fully fed gnome with a x2 gift digs six times as fast as unfed, and the gift does not change what each dug item eats. Gifts speed up digging only, not ripening, and only a Hollow with a bound gnome takes them.
 
 Shipped gifts:
 

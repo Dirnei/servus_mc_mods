@@ -24,17 +24,19 @@ Then add a way in and a way out:
 
 - **Inbound Station**: on the rail. Hoppers and pipes fill it, and shuttles put its items away.
 - **Outbound Station**: on the rail. Set keep amounts, and shuttles keep it stocked. It pushes into the machine next to it.
-- **Storage Terminal**: search your stock, request items and hand items in. It sits on a Foundation data line, together with a **Packing Station** on the rail. The Packing Station is the door between the warehouse and the data line. A data line belongs to one warehouse: a line that reaches two warehouses pauses until you split it.
+- **Storage Terminal**: search your stock, request items and hand items in. It sits on a Foundation data line, together with a **Packing Station** on the rail. The Packing Station is the door between the warehouse and the data line. A data line belongs to one warehouse: a line that reaches two warehouses pauses until you split it. A shipment to a machine that keeps refusing it, or whose target is cut from the line, ends after a while and its items go back into storage.
 
-Stations, racks and the controller turn their front to a rail beside them when placed, and a rack placed against a rack takes its facing. Sneak while placing to face a block towards you instead, the garage included. A rack or a rail in hand places against a rack instead of opening it. Click the top of a rack with racks in hand to put a rack on every bay of its shelf at once, and sneak while looking at a rack to extend its row sideways or its column upwards, with a ghost and an arrow.
+Stations, racks, the controller and the Buffer Stop turn their front to a rail beside them when placed, the Field Head to a Farm Rail, and a rack placed against a rack takes its facing. A Field Head is not placed beside a Warehouse Rail alone. Sneak while placing to face a block towards you instead, the garage included. A rack or a rail in hand places against a rack instead of opening it. Click the top of a rack with racks in hand to put a rack on every bay of its shelf at once, and sneak while looking at a rack to extend its row sideways or its column upwards, with a ghost and an arrow.
 
 Every station gets a number from its warehouse, such as "Outbound #3". Click the pencil in the title row of its screen to give it a name as well, such as "Compost Dock (Outbound #3)". Garages, elevator shafts, Field Heads, Crafting Stations and CPUs are numbered the same way, and messages, terminals and the Data Potato use these names.
 
 ## More of the warehouse
 
 - **Rail Elevator**: a shaft that carries shuttles between floors. Speed Upgrades make its car faster.
+- **Hanging rails**: rails hang on rack fronts and elevator shafts, so a row of rails can run along an upper rack row. A short run of free rails holds between two held rails, and a single rail can hang one block past a rail held by a rack, a shaft or a floor.
+- **Buffer Stop**: a steel stop with a yellow and black beam for the end of a rail. Craft it from three iron ingots over a Warehouse Rail or a Farm Rail; it keeps that rail's wood and its steel or copper heads, and never corrodes. It turns to the rail when placed, the Configuration Carrot turns it and sneaking with the carrot dismantles it. It is only for looks: shuttles ignore it.
 - **Parcel Locker**: a yellow pickup station of six S, three M and one L box beside a shuttle dock, placed as one piece facing a rail. Orders from the Handheld arrive here. Scan its screen with the Handheld and the doors of your parcels swing open; right click an open box to take what is inside. An empty hand opens a map of the boxes with who ordered each. Parcels nobody collects go back to the racks after an in-game day.
-- **Shuttle Workshop**: builds a Mk1 shuttle into a Mk2 and a Mk2 into a Mk3. Higher tiers carry more stacks per trip. Here you also fit Speed Upgrades, Handling Upgrades and one tool.
+- **Shuttle Workshop**: builds a Mk1 shuttle into a Mk2 and a Mk2 into a Mk3. Higher tiers carry more stacks per trip. Once every supply is in the workshop, press **Build** and follow the steps by hand, then engrave a name plate; while the build runs the button reads **Skip** and finishes it at once, keeping the old plate. The large view turns the shuttle slowly, and you can drag to turn it. Here you also fit Speed Upgrades, Handling Upgrades and one tool.
 - **Storage Terminal tabs**: the Stock tab shows your items, the Rules tab lists every stock rule. Right click an item for one popup to request it, craft it or set its rule.
 - **Stock rules**: set a minimum and a maximum for an item. When the stock drops below the minimum, the warehouse orders more from a Crafting CPU. A rule can also refuse the item at Inbound Stations above a cap, or ship the surplus above a threshold out through an Outbound Station.
 - **Shuttle sounds**: shuttles rumble quietly as they drive, with a wheel click and a rattle now and then. A **Muffler** in a shuttle (fitted in the Shuttle Workshop) or in a garage's Muffler slot (for every shuttle of that garage) makes them much quieter.
@@ -50,7 +52,7 @@ A warehouse scanner with a yellow bumper and a green screen. Sneak and scroll to
 - **INFO**: scan a shelf to see its code, zone, filter, slots in use and everything it holds.
 - **STOCK**: scan a Warehouse Controller to bind the Handheld, and its screen lists the whole warehouse. Right click an item, and every shelf holding it glows through walls for a few seconds.
 - **Baskets**: left click items in INFO or STOCK to put them into a basket. **RELOCATE** in INFO sends a shelf's basket to the next shelf you scan, carried by shuttles. **REQUEST** in STOCK picks a Parcel Locker of the bound warehouse, and **ORDER** sends the basket there while you are near the warehouse. The panel says when the parcel is ready.
-- **Location codes**: every shelf of a warehouse with a controller has a code such as N12.E5+2, counted from the controller. It is printed on a barcode sticker on the shelf's bay closest to the controller. Zoned shelves show a stripe in the zone's colour.
+- **Location codes**: every shelf of a warehouse with a controller has a code such as N12.E5+2, counted from the controller. It is printed on a barcode sticker on the shelf's bay closest to the controller. Zoned shelves of Heavy Duty Racks show a stripe in the zone's colour.
 
 ## Autocrafting
 
@@ -67,7 +69,7 @@ Request something in the Storage Terminal that is not in stock, and the CPU craf
 
 ## Fields
 
-A field is farmland along a run of **Farm Rail**, served by a **Field Head** at its side. The Field Head waters the field, tracks which crops are ripe and keeps a small buffer of seeds and fertilizer. A **Range Upgrade** makes the field wider. Farm rail is copper and corrodes with use unless the head has an anti-corrosion item.
+A field is farmland along a run of **Farm Rail**, served by a **Field Head** at its side. The Field Head waters the field, tracks which crops are ripe and keeps a small buffer of seeds and fertilizer. A **Range Upgrade** makes the field wider.
 
 Tool modules turn a shuttle into a field worker. Fit them in the Shuttle Workshop:
 
@@ -76,6 +78,14 @@ Tool modules turn a shuttle into a field worker. Fit them in the Shuttle Worksho
 - **Spreader**: spreads fertilizer from the Field Head's buffer.
 
 Harvesters and Spreaders unload what they bring home into the Field Head, and plain shuttles keep its buffers stocked and carry the harvest into the racks.
+
+### Corrosion
+
+Farm Rail is copper and corrodes as its field is watered. Every rail has its own stage, from copper over exposed, weathered and oxidized to corroded, and keeps it when you break it: the item shows its stage in its look and tooltip, and rails of different stages do not stack. Crafted rails are fresh copper.
+
+Water flows from the Field Head along the rails. A corroded rail is dry and blocks the water for every rail behind it, so a corroded rail next to the head dries the whole field; harvests still go on. Only wet rails age. An anti-corrosion item, picked on the head's **Water** tab and brought by shuttles, holds every stage. The Water tab lists how many rails are in each stage and says when water is blocked and how many rails are dry.
+
+Use an axe on a rail to scrape its field: every rail past fresh copper goes back one stage, outward from the rail you clicked, for 4 durability each (a stone axe cleans about 32 rails). A worn axe scrapes as far as its durability goes, and the work it started on the next rail is kept for the next scrape.
 
 ### Tree fields
 
