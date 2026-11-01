@@ -33,6 +33,7 @@ public final class ServusLogisticsContent {
         ServusLogisticsMenus.MENUS.register(modEventBus);
         ServusLogisticsComponents.COMPONENTS.register(modEventBus);
         ServusLogisticsRecipes.RECIPE_SERIALIZERS.register(modEventBus);
+        ServusLogisticsRecipes.INGREDIENT_TYPES.register(modEventBus);
         NetworkTypes.register(ItemChannelNetwork.TYPE);
         NetworkTypes.register(EnergyChannelNetwork.TYPE);
         NetworkTypes.register(TankNetwork.TYPE);

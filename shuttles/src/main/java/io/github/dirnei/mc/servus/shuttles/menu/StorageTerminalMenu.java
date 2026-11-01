@@ -211,17 +211,19 @@ public class StorageTerminalMenu extends AbstractContainerMenu {
     /**
      * Recipe viewer transfer: lays a vanilla crafting recipe out in the ghost
      * cells, each the accepted stack the warehouse has the most of, with its
-     * components, else the ingredient's first item. Takes nothing.
+     * components, else the ingredient's first item. A recipe the server does not
+     * know is laid out from the stacks the viewer shows. Takes nothing.
      *
+     * @param shown the stacks the viewer shows per cell, see {@link CraftingGrid#templateFor}
      * @param keepMode whether the order grid was open already, which keeps its mode; else it asks for Any
      */
-    public void fillFromRecipe(Identifier recipe, boolean keepMode) {
+    public void fillFromRecipe(Identifier recipe, List<List<ItemStack>> shown, boolean keepMode) {
         if (!(terminal.getLevel() instanceof ServerLevel server)) {
             return;
         }
         List<Map.Entry<ItemKey, Long>> stock = TerminalWarehouses.online(server, terminal.getBlockPos())
                 .map(TerminalWarehouses::stock).orElse(List.of());
-        CraftingGrid.templateOf(server, recipe, stock).ifPresent(template -> {
+        CraftingGrid.templateFor(server, recipe, shown, stock).ifPresent(template -> {
             grid.fill(template);
             if (!keepMode) {
                 grid.resetMode();

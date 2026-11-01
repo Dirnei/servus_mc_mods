@@ -17,7 +17,8 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 
 /**
  * JEI plus button on crafting recipes while a Production Terminal is open:
- * asks the server to open the pattern editor prefilled with the recipe.
+ * asks the server to open the pattern editor prefilled with the recipe, or
+ * with the stacks JEI shows when the server does not know the recipe.
  */
 public final class ProductionTerminalRecipeTransferHandler implements IRecipeTransferHandler<ProductionTerminalMenu, RecipeHolder<CraftingRecipe>> {
 
@@ -40,7 +41,7 @@ public final class ProductionTerminalRecipeTransferHandler implements IRecipeTra
     public IRecipeTransferError transferRecipe(ProductionTerminalMenu menu, RecipeHolder<CraftingRecipe> recipe, IRecipeSlotsView slots,
                                                Player player, boolean maxTransfer, boolean doTransfer) {
         if (doTransfer) {
-            ClientPacketDistributor.sendToServer(new OpenRecipeEditorPayload(recipe.id().identifier()));
+            ClientPacketDistributor.sendToServer(new OpenRecipeEditorPayload(recipe.id().identifier(), ShownCells.of(slots)));
         }
         return null;
     }

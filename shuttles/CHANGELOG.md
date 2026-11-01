@@ -1,5 +1,10 @@
 # Servus: Shuttles changelog
 
+## Unreleased
+
+### Fixed
+- JEI's transfer button fills the Storage Terminal's order grid and the Production Terminal's pattern editor for the Fluid Tank, the Facade examples and the Hollow Facade examples, and for any crafting recipe that only JEI knows.
+
 ## 0.7.0
 
 ### Added

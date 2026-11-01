@@ -203,14 +203,17 @@ public class ProductionTerminalMenu extends AbstractContainerMenu {
     /**
      * Opens the editor prefilled with a vanilla crafting recipe from the recipe
      * viewer, each cell holding the accepted stack the line's warehouse has the most of.
+     * A recipe the server does not know is laid out from the stacks the viewer shows.
+     *
+     * @param shown the stacks the viewer shows per cell, see {@link CraftingGrid#templateFor}
      */
-    public void openEditorWith(Identifier id) {
+    public void openEditorWith(Identifier id, List<List<ItemStack>> shown) {
         if (!(terminal.getLevel() instanceof ServerLevel level)) {
             return;
         }
         List<Map.Entry<ItemKey, Long>> stock = TerminalWarehouses.online(level, terminal.getBlockPos())
                 .map(TerminalWarehouses::stock).orElse(List.of());
-        CraftingGrid.templateOf(level, id, stock).ifPresent(template -> {
+        CraftingGrid.templateFor(level, id, shown, stock).ifPresent(template -> {
             grid.fill(template);
             if (!isEditing()) {
                 editingSlot = null;

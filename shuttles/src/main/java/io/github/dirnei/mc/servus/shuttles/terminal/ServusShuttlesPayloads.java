@@ -111,7 +111,7 @@ public final class ServusShuttlesPayloads {
         toMenu(registrar, CancelProductionOrderPayload.TYPE, CancelProductionOrderPayload.STREAM_CODEC, ProductionTerminalMenu.class,
                 (player, menu, payload) -> menu.cancel(payload.cpu(), payload.id()));
         toMenu(registrar, OpenRecipeEditorPayload.TYPE, OpenRecipeEditorPayload.STREAM_CODEC, ProductionTerminalMenu.class,
-                (player, menu, payload) -> menu.openEditorWith(payload.recipe()));
+                (player, menu, payload) -> menu.openEditorWith(payload.recipe(), payload.shown()));
         toMenu(registrar, EditPatternPayload.TYPE, EditPatternPayload.STREAM_CODEC, ProductionTerminalMenu.class,
                 (player, menu, payload) -> menu.openExisting(payload.storage(), payload.slot()));
         registrar.playToServer(ChooseFieldCropPayload.TYPE, ChooseFieldCropPayload.STREAM_CODEC,
@@ -244,6 +244,6 @@ public final class ServusShuttlesPayloads {
         toMenu(registrar, PushCarriedPayload.TYPE, PushCarriedPayload.STREAM_CODEC, StorageTerminalMenu.class,
                 (player, menu, payload) -> menu.pushCarried());
         toMenu(registrar, OrderGridRecipePayload.TYPE, OrderGridRecipePayload.STREAM_CODEC, StorageTerminalMenu.class,
-                (player, menu, payload) -> menu.fillFromRecipe(payload.recipe(), payload.keepMode()));
+                (player, menu, payload) -> menu.fillFromRecipe(payload.recipe(), payload.shown(), payload.keepMode()));
     }
 }

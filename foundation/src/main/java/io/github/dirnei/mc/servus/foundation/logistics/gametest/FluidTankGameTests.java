@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.foundation.logistics.gametest;
 
+import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
@@ -14,6 +15,7 @@ import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -467,6 +469,21 @@ public final class FluidTankGameTests {
         Optional<RecipeHolder<CraftingRecipe>> glass = level.recipeAccess().getRecipeFor(RecipeType.CRAFTING,
                 tankGrid(Items.GLASS), level);
         helper.assertTrue(glass.isEmpty() || !(glass.get().value() instanceof FluidTankRecipe), "glass must not be a floor");
+        helper.succeed();
+    }
+
+    /** A cobblestone floor crafts a cobblestone tank through the recipe the server holds under {@code fluid_tank}. */
+    @ServusGameTest(timeoutTicks = 100)
+    public static void recipeTakesCobblestone(GameTestHelper helper) {
+        var level = helper.getLevel();
+        CraftingInput cobblestone = tankGrid(Items.COBBLESTONE);
+        Optional<RecipeHolder<CraftingRecipe>> match = level.recipeAccess().getRecipeFor(RecipeType.CRAFTING, cobblestone, level);
+        helper.assertTrue(match.isPresent() && match.get().value() instanceof FluidTankRecipe
+                        && match.get().id().identifier().equals(Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "fluid_tank")),
+                "the cobblestone grid should match the fluid_tank recipe, got " + match);
+        ItemStack result = match.get().value().assemble(cobblestone);
+        helper.assertTrue(result.is(ServusLogisticsItems.FLUID_TANK.get()) && FluidTankItem.floor(result) == Blocks.COBBLESTONE,
+                "the tank should remember cobblestone, got " + result.getComponents());
         helper.succeed();
     }
 

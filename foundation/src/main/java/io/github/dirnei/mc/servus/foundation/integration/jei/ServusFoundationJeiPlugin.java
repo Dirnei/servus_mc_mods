@@ -6,7 +6,6 @@ import io.github.dirnei.mc.servus.foundation.logistics.facade.FacadeItem;
 import io.github.dirnei.mc.servus.foundation.logistics.facade.FacadeRecipe;
 import io.github.dirnei.mc.servus.foundation.logistics.facade.HollowFacadeRecipe;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
-import io.github.dirnei.mc.servus.foundation.logistics.tank.FluidTankItem;
 import io.github.dirnei.mc.servus.foundation.machine.MachineContent;
 import io.github.dirnei.mc.servus.foundation.production.ServusRecipes;
 import java.util.ArrayList;
@@ -17,11 +16,13 @@ import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.ingredients.subtypes.ISubtypeInterpreter;
 import mezz.jei.api.ingredients.subtypes.UidContext;
+import mezz.jei.api.recipe.IRecipeManager;
 import mezz.jei.api.registration.IGuiHandlerRegistration;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.ISubtypeRegistration;
+import mezz.jei.api.runtime.IJeiRuntime;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -30,7 +31,6 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.CraftingBookCategory;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -40,14 +40,13 @@ import net.minecraft.world.item.crafting.ShapedRecipe;
 import net.minecraft.world.item.crafting.ShapedRecipePattern;
 import net.minecraft.world.item.crafting.ShapelessRecipe;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.crafting.DataComponentIngredient;
 
 /**
- * Shows the Mill's milling and the Mixer's mixing recipes in JEI, and Foundation's special crafting recipes as example recipes, since JEI cannot
- * read recipes without fixed ingredients, and lets items dragged from JEI set duct
- * filter slots. Only loaded when JEI is present.
+ * Shows the Mill's milling and the Mixer's mixing recipes in JEI, the Facade and Hollow
+ * Facade recipes as one example recipe per example block, and lets items dragged from
+ * JEI set duct filter slots. Only loaded when JEI is present.
  */
 @JeiPlugin
 public final class ServusFoundationJeiPlugin implements IModPlugin {
@@ -99,18 +98,7 @@ public final class ServusFoundationJeiPlugin implements IModPlugin {
             registration.addRecipes(MillingRecipeCategory.TYPE, ServusRecipes.all(minecraft.level, MachineContent.MILLING.get()));
             registration.addRecipes(MixingRecipeCategory.TYPE, ServusRecipes.all(minecraft.level, MachineContent.MIXING.get()));
         }
-        // Any solid full block is a floor; the slot cycles through these examples.
-        Ingredient floors = Ingredient.of(Items.STONE_BRICKS, Items.COBBLESTONE, Items.COPPER_BLOCK, Items.SMOOTH_STONE,
-                Items.OAK_PLANKS, Items.BRICKS, Items.DEEPSLATE_TILES, Items.POLISHED_ANDESITE);
-        ShapedRecipePattern tankPattern = ShapedRecipePattern.of(Map.of(
-                        'C', Ingredient.of(Items.COPPER_INGOT),
-                        'G', Ingredient.of(Items.GLASS),
-                        'F', floors),
-                "CGC", "G G", "CFC");
-        ShapedRecipe tank = new ShapedRecipe(INFO, BOOK, tankPattern, template(FluidTankItem.withFloor(Blocks.STONE_BRICKS)));
-
         List<RecipeHolder<CraftingRecipe>> recipes = new ArrayList<>();
-        recipes.add(new RecipeHolder<>(id("fluid_tank_example"), tank));
         for (Block block : FacadeItem.EXAMPLES) {
             ShapelessRecipe facade = new ShapelessRecipe(INFO, BOOK,
                     template(FacadeItem.of(block, FacadeRecipe.RESULT_COUNT)),
@@ -125,6 +113,16 @@ public final class ServusFoundationJeiPlugin implements IModPlugin {
         List<ItemStack> facades = new ArrayList<>(FacadeItem.examples());
         facades.addAll(FacadeItem.hollowExamples());
         registration.addItemStackInfo(facades, Component.translatable("jei.servus_foundation.facade.info"));
+    }
+
+    /** The generic facade recipes name no block in their result; JEI shows the per-block examples instead. */
+    @Override
+    public void onRuntimeAvailable(IJeiRuntime runtime) {
+        IRecipeManager recipes = runtime.getRecipeManager();
+        List<RecipeHolder<CraftingRecipe>> generic = recipes.createRecipeLookup(RecipeTypes.CRAFTING).get()
+                .filter(holder -> holder.value() instanceof FacadeRecipe || holder.value() instanceof HollowFacadeRecipe)
+                .toList();
+        recipes.hideRecipes(RecipeTypes.CRAFTING, generic);
     }
 
     private static ItemStackTemplate template(ItemStack stack) {

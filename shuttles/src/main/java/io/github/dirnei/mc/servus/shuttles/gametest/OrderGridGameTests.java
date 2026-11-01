@@ -1,7 +1,11 @@
 package io.github.dirnei.mc.servus.shuttles.gametest;
 
+import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.block.RecipeEditorButtons;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
+import io.github.dirnei.mc.servus.foundation.logistics.facade.FacadeItem;
+import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
+import io.github.dirnei.mc.servus.foundation.logistics.tank.FluidTankItem;
 import io.github.dirnei.mc.servus.foundation.material.MaterialContent;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.cpu.CpuBlockEntity;
@@ -18,6 +22,7 @@ import io.github.dirnei.mc.servus.shuttles.terminal.CraftPreviewPayload;
 import io.github.dirnei.mc.servus.shuttles.terminal.CraftPreviewRequestPayload;
 import io.github.dirnei.mc.servus.shuttles.terminal.StockEntry;
 import io.github.dirnei.mc.servus.shuttles.terminal.StorageTerminalBlockEntity;
+import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -28,6 +33,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.block.Blocks;
 
 /** The Storage Terminal's order grid: when it is offered, ghost cells, one-off orders and saving their pattern. */
 public final class OrderGridGameTests {
@@ -44,6 +50,9 @@ public final class OrderGridGameTests {
     private static final Identifier OAK = Identifier.withDefaultNamespace("oak_planks");
     private static final Identifier STICK_RECIPE = Identifier.withDefaultNamespace("stick");
     private static final Identifier ELEVATOR_RECIPE = Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "elevator");
+    private static final Identifier TANK_RECIPE = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "fluid_tank");
+    /** A recipe JEI shows that the server does not know. */
+    private static final Identifier HOLLOW_BRICKS_EXAMPLE = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "jei/hollow_facade_bricks");
 
     private OrderGridGameTests() {
     }
@@ -128,7 +137,7 @@ public final class OrderGridGameTests {
         StorageTerminalMenu menu = menu(helper, player);
         Waits.when(helper, () -> stocked(helper, menu), 160, () -> "stations and CPU should join the line", () -> {
             menu.clickMenuButton(player, RecipeEditorButtons.MODE);
-            menu.fillFromRecipe(STICK_RECIPE, false);
+            menu.fillFromRecipe(STICK_RECIPE, List.of(), false);
             List<ItemStack> used = menu.gridCells().stream().filter(cell -> !cell.isEmpty()).toList();
             helper.assertTrue(used.size() == 2 && used.stream().allMatch(cell -> cell.is(Items.OAK_PLANKS)),
                     "the stocked oak planks are chosen, got " + menu.gridCells());
@@ -138,7 +147,7 @@ public final class OrderGridGameTests {
             CraftPreviewPayload preview = menu.preview(ItemStack.EMPTY, 4, CraftPreviewRequestPayload.Mode.ORDER);
             helper.assertTrue(preview.item().is(Items.STICK) && preview.patternSaved(), "the sticks pattern is known, got " + preview);
             menu.clickMenuButton(player, RecipeEditorButtons.MODE);
-            menu.fillFromRecipe(STICK_RECIPE, true);
+            menu.fillFromRecipe(STICK_RECIPE, List.of(), true);
             helper.assertTrue(menu.mode() == EncodedPattern.Mode.EXACT, "a transfer into the open grid keeps its mode");
             helper.succeed();
         });
@@ -153,7 +162,7 @@ public final class OrderGridGameTests {
         StorageTerminalMenu menu = menu(helper, player);
         Waits.when(helper, () -> stocked(helper, menu) && TerminalWiring.stockOf(menu, ServusShuttlesItems.RAIL.get()) == 50, 160,
                 () -> "stations, CPU and Rails should be on the line", () -> {
-            menu.fillFromRecipe(ELEVATOR_RECIPE, false);
+            menu.fillFromRecipe(ELEVATOR_RECIPE, List.of(), false);
             ItemStack centre = menu.gridCells().get(4);
             helper.assertTrue(ItemStack.isSameItemSameComponents(centre, rail("oak_planks", 1)),
                     "the centre holds the stocked oak Rail, got " + centre + " " + centre.getComponentsPatch());
@@ -161,6 +170,53 @@ public final class OrderGridGameTests {
             ItemStack result = PatternEditing.encode(helper.getLevel(), menu.gridCells()).map(EncodedPattern::result).orElse(ItemStack.EMPTY);
             helper.assertTrue(result.is(ServusShuttlesItems.ELEVATOR.get()) && OAK.equals(result.get(MaterialContent.MATERIAL.get())),
                     "the grid makes oak Elevators, got " + result.getComponents());
+            helper.succeed();
+        });
+    }
+
+    /** JEI's transfer on the Fluid Tank lays out the floor block the warehouse holds most of; the grid makes that tank. */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void transferTankTakesStockedFloor(GameTestHelper helper) {
+        StationHandsGameTests.setup(helper, 16);
+        WarehouseFixtures.stock(helper, EXTRA, new ItemStack(Items.COBBLESTONE, 40));
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        StorageTerminalMenu menu = menu(helper, player);
+        Waits.when(helper, () -> stocked(helper, menu) && TerminalWiring.stockOf(menu, Items.COBBLESTONE) == 40, 160,
+                () -> "stations, CPU and cobblestone should be on the line", () -> {
+            menu.fillFromRecipe(TANK_RECIPE, List.of(), false);
+            List<ItemStack> cells = menu.gridCells();
+            helper.assertTrue(cells.get(7).is(Items.COBBLESTONE), "the floor cell holds the stocked cobblestone, got " + cells);
+            helper.assertTrue(cells.get(0).is(Items.COPPER_INGOT) && cells.get(1).is(Items.GLASS) && cells.get(4).isEmpty(),
+                    "copper in the corners, glass on the edges and an empty centre, got " + cells);
+            ItemStack result = PatternEditing.encode(helper.getLevel(), cells).map(EncodedPattern::result).orElse(ItemStack.EMPTY);
+            helper.assertTrue(result.is(ServusLogisticsItems.FLUID_TANK.get()) && FluidTankItem.floor(result) == Blocks.COBBLESTONE,
+                    "the grid makes a cobblestone tank, got " + result.getComponents());
+            helper.succeed();
+        });
+    }
+
+    /** A recipe only JEI knows is laid out from the stacks JEI shows: brick Facades, not the stocked stone or oak ones. */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void transferJeiOnlyRecipeUsesShownStacks(GameTestHelper helper) {
+        StationHandsGameTests.setup(helper, 16);
+        WarehouseFixtures.stock(helper, EXTRA, FacadeItem.of(Blocks.STONE, 16), FacadeItem.of(Blocks.OAK_PLANKS, 16));
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        StorageTerminalMenu menu = menu(helper, player);
+        Waits.when(helper, () -> stocked(helper, menu) && TerminalWiring.stockOf(menu, ServusLogisticsItems.FACADE.get()) == 32, 160,
+                () -> "stations, CPU and Facades should be on the line", () -> {
+            List<List<ItemStack>> ring = new ArrayList<>();
+            for (int cell = 0; cell < 9; cell++) {
+                ring.add(cell == 4 ? List.of() : List.of(FacadeItem.of(Blocks.BRICKS, 1)));
+            }
+            menu.fillFromRecipe(HOLLOW_BRICKS_EXAMPLE, ring, false);
+            List<ItemStack> cells = menu.gridCells();
+            for (int cell = 0; cell < 9; cell++) {
+                boolean brick = cells.get(cell).is(ServusLogisticsItems.FACADE.get()) && FacadeItem.blockOf(cells.get(cell)) == Blocks.BRICKS;
+                helper.assertTrue(cell == 4 ? cells.get(cell).isEmpty() : brick, "the ring holds brick Facades, got " + cells);
+            }
+            ItemStack result = PatternEditing.encode(helper.getLevel(), cells).map(EncodedPattern::result).orElse(ItemStack.EMPTY);
+            helper.assertTrue(result.is(ServusLogisticsItems.HOLLOW_FACADE.get()) && result.getCount() == 8
+                    && FacadeItem.blockOf(result) == Blocks.BRICKS, "the grid makes eight brick Hollow Facades, got " + result);
             helper.succeed();
         });
     }

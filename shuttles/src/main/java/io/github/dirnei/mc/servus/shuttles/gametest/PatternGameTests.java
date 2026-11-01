@@ -1,9 +1,13 @@
 package io.github.dirnei.mc.servus.shuttles.gametest;
 
+import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
 import io.github.dirnei.mc.servus.foundation.data.DataNetworks;
 import io.github.dirnei.mc.servus.foundation.data.DataRole;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTest;
+import io.github.dirnei.mc.servus.foundation.logistics.facade.FacadeItem;
+import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
+import io.github.dirnei.mc.servus.foundation.logistics.tank.FluidTankItem;
 import io.github.dirnei.mc.servus.foundation.transfer.ItemView;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.cpu.CpuBlock;
@@ -25,6 +29,7 @@ import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesBlocks;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesComponents;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
 import io.github.dirnei.mc.servus.shuttles.terminal.TerminalWarehouses;
+import java.util.ArrayList;
 import java.util.List;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -64,6 +69,9 @@ public final class PatternGameTests {
     /** The rack west of the rail under the controller. */
     private static final BlockPos RACK = new BlockPos(1, 0, 2);
     private static final Identifier RACK_RECIPE = Identifier.fromNamespaceAndPath(ServusShuttlesIds.MOD_ID, "heavy_rack");
+    private static final Identifier TANK_RECIPE = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "fluid_tank");
+    /** A recipe JEI shows that the server does not know. */
+    private static final Identifier OAK_FACADE_EXAMPLE = Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, "jei/facade_oak_planks");
 
     private PatternGameTests() {
     }
@@ -369,7 +377,7 @@ public final class PatternGameTests {
             helper.assertTrue(menu.mode() == EncodedPattern.Mode.ANY, "a new pattern asks for Any");
             sticksGrid(menu);
             helper.assertTrue(menu.save().isEmpty(), "the sticks pattern saves");
-            menu.openEditorWith(RACK_RECIPE);
+            menu.openEditorWith(RACK_RECIPE, List.of());
             helper.assertTrue(menu.mode() == EncodedPattern.Mode.ANY, "the recipe viewer opens the rack as Any");
             List<ItemStack> rack = menu.gridCells();
             EncodedPattern encoded = PatternEditing.encode(helper.getLevel(), rack).orElseThrow();
@@ -518,12 +526,57 @@ public final class PatternGameTests {
                 .map(warehouse -> TerminalWarehouses.stock(warehouse).stream().anyMatch(entry -> entry.getKey().item() == Items.SPRUCE_PLANKS))
                 .orElse(false), 160, () -> "the warehouse should list the spruce planks", () -> {
             ProductionTerminalMenu menu = menu(helper, player);
-            menu.openEditorWith(RACK_RECIPE);
+            menu.openEditorWith(RACK_RECIPE, List.of());
             List<ItemStack> cells = menu.gridCells();
             helper.assertTrue(menu.isEditing(), "the editor opens");
             helper.assertTrue(cells.get(3).is(Items.SPRUCE_PLANKS) && cells.get(4).is(Items.SPRUCE_PLANKS) && cells.get(5).is(Items.SPRUCE_PLANKS),
                     "the middle row holds the stocked spruce planks, got " + cells);
             helper.assertTrue(cells.get(0).is(Items.IRON_INGOT), "the unstocked iron takes the first item, got " + cells);
+            helper.succeed();
+        });
+    }
+
+    /** The recipe viewer fills the editor for the Fluid Tank with the stocked floor block, and the saved pattern makes that tank. */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void editorFillTankTakesStockedFloor(GameTestHelper helper) {
+        setup(helper, false, false);
+        WarehouseFixtures.stock(helper, RACK, new ItemStack(Items.STONE_BRICKS, 32));
+        Player player = player(helper);
+        BlockPos terminal = helper.absolutePos(TERMINAL);
+        Waits.when(helper, () -> TerminalWarehouses.online(helper.getLevel(), terminal)
+                .map(warehouse -> TerminalWarehouses.stock(warehouse).stream().anyMatch(entry -> entry.getKey().item() == Items.STONE_BRICKS))
+                .orElse(false) && storagesOnLine(helper, 1), 160, () -> "the warehouse should list the stone bricks", () -> {
+            ProductionTerminalMenu menu = menu(helper, player);
+            menu.openEditorWith(TANK_RECIPE, List.of());
+            List<ItemStack> cells = menu.gridCells();
+            helper.assertTrue(menu.isEditing() && cells.get(7).is(Items.STONE_BRICKS), "the floor cell holds stone bricks, got " + cells);
+            String saved = menu.save();
+            helper.assertTrue(saved.isEmpty(), "the tank pattern saves, got " + saved);
+            List<PatternLibrary.Entry> entries = PatternLibrary.entries(helper.getLevel(), line(helper));
+            helper.assertTrue(entries.stream().anyMatch(entry -> entry.pattern().result().is(ServusLogisticsItems.FLUID_TANK.get())
+                            && FluidTankItem.floor(entry.pattern().result()) == Blocks.STONE_BRICKS),
+                    "the saved pattern makes a stone brick tank, got " + entries);
+            helper.succeed();
+        });
+    }
+
+    /** A recipe only the viewer knows opens from the shown stacks; a cell with nothing stocked takes the first shown stack. */
+    @ServusGameTest(timeoutTicks = 200)
+    public static void editorFillFromShownStacks(GameTestHelper helper) {
+        setup(helper, false, false);
+        Player player = player(helper);
+        Waits.when(helper, () -> storagesOnLine(helper, 1), 40, () -> "the storage should join", () -> {
+            ProductionTerminalMenu menu = menu(helper, player);
+            List<List<ItemStack>> shown = new ArrayList<>();
+            shown.add(List.of(new ItemStack(Items.OAK_PLANKS)));
+            shown.add(List.of(new ItemStack(Items.GOLD_NUGGET), new ItemStack(Items.IRON_NUGGET)));
+            menu.openEditorWith(OAK_FACADE_EXAMPLE, shown);
+            List<ItemStack> cells = menu.gridCells();
+            helper.assertTrue(menu.isEditing() && cells.get(0).is(Items.OAK_PLANKS) && cells.get(1).is(Items.GOLD_NUGGET),
+                    "the editor shows oak planks and the first shown nugget, got " + cells);
+            ItemStack result = PatternEditing.encode(helper.getLevel(), cells).map(EncodedPattern::result).orElse(ItemStack.EMPTY);
+            helper.assertTrue(result.is(ServusLogisticsItems.FACADE.get()) && result.getCount() == 6
+                    && FacadeItem.blockOf(result) == Blocks.OAK_PLANKS, "the preview shows six oak Facades, got " + result);
             helper.succeed();
         });
     }

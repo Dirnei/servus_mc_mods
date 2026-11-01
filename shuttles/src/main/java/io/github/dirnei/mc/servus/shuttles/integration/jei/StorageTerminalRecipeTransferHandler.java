@@ -22,7 +22,8 @@ import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 /**
  * JEI plus button on crafting recipes while a Storage Terminal is open: opens
  * the order grid and asks the server to lay the recipe out in its ghost
- * cells, the same way the Production Terminal's editor is filled. Refused
+ * cells, the same way the Production Terminal's editor is filled. It also
+ * sends the stacks JEI shows per cell, for recipes only JEI knows. Refused
  * while the terminal's data line has no Crafting CPU and Crafting Station to
  * order from.
  */
@@ -57,7 +58,7 @@ public final class StorageTerminalRecipeTransferHandler implements IRecipeTransf
         }
         if (doTransfer) {
             boolean keepMode = StorageTerminalScreen.requestOrderGrid();
-            ClientPacketDistributor.sendToServer(new OrderGridRecipePayload(recipe.id().identifier(), keepMode));
+            ClientPacketDistributor.sendToServer(new OrderGridRecipePayload(recipe.id().identifier(), ShownCells.of(slots), keepMode));
         }
         return null;
     }

@@ -1,26 +1,38 @@
 package io.github.dirnei.mc.servus.foundation.logistics.datagen;
 
+import io.github.dirnei.mc.servus.foundation.ServusFoundationIds;
 import io.github.dirnei.mc.servus.foundation.datagen.model.BlockStateProvider;
 import io.github.dirnei.mc.servus.foundation.datagen.model.ItemModelProvider;
 import io.github.dirnei.mc.servus.foundation.datagen.model.ModelFile;
 import io.github.dirnei.mc.servus.foundation.logistics.facade.FacadeRecipe;
 import io.github.dirnei.mc.servus.foundation.logistics.facade.HollowFacadeRecipe;
+import io.github.dirnei.mc.servus.foundation.logistics.recipe.FloorBlockIngredient;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
 import io.github.dirnei.mc.servus.foundation.logistics.tank.FluidTankRecipe;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import net.minecraft.advancements.Criterion;
 import net.minecraft.advancements.criterion.InventoryChangeTrigger;
 import net.minecraft.core.HolderGetter;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.data.recipes.RecipeCategory;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.data.recipes.ShapedRecipeBuilder;
-import net.minecraft.data.recipes.SpecialRecipeBuilder;
+import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.CraftingBookCategory;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.ShapedRecipePattern;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
+import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.data.LanguageProvider;
 
 /**
@@ -115,9 +127,25 @@ public final class LogisticsDataParts {
                 .unlockedBy("has_duplex_data_cable", has.apply(ServusLogisticsItems.DUPLEX_DATA_CABLE.get()))
                 .save(output);
 
-        SpecialRecipeBuilder.special(() -> FacadeRecipe.INSTANCE).save(output, "servus_foundation:facade");
-        SpecialRecipeBuilder.special(() -> HollowFacadeRecipe.INSTANCE).save(output, "servus_foundation:hollow_facade");
-        SpecialRecipeBuilder.special(() -> FluidTankRecipe.INSTANCE).save(output, "servus_foundation:fluid_tank");
+        Recipe.CommonInfo info = new Recipe.CommonInfo(true);
+        CraftingRecipe.CraftingBookInfo book = new CraftingRecipe.CraftingBookInfo(CraftingBookCategory.MISC, "");
+        output.accept(recipeKey("facade"), new FacadeRecipe(info, book,
+                new ItemStackTemplate(ServusLogisticsItems.FACADE.get(), FacadeRecipe.RESULT_COUNT),
+                List.of(FloorBlockIngredient.ingredient(), Ingredient.of(items.getOrThrow(Tags.Items.NUGGETS)))), null);
+        output.accept(recipeKey("hollow_facade"), new HollowFacadeRecipe(info, book,
+                ShapedRecipePattern.of(Map.of('F', Ingredient.of(ServusLogisticsItems.FACADE.get())), "FFF", "F F", "FFF"),
+                new ItemStackTemplate(ServusLogisticsItems.HOLLOW_FACADE.get(), HollowFacadeRecipe.RESULT_COUNT)), null);
+        output.accept(recipeKey("fluid_tank"), new FluidTankRecipe(info, book,
+                ShapedRecipePattern.of(Map.of(
+                                'C', Ingredient.of(Items.COPPER_INGOT),
+                                'G', Ingredient.of(Items.GLASS),
+                                'F', FloorBlockIngredient.ingredient()),
+                        "CGC", "G G", "CFC"),
+                new ItemStackTemplate(ServusLogisticsItems.FLUID_TANK.get())), null);
+    }
+
+    private static ResourceKey<Recipe<?>> recipeKey(String path) {
+        return ResourceKey.create(Registries.RECIPE, Identifier.fromNamespaceAndPath(ServusFoundationIds.MOD_ID, path));
     }
 
     public static void language(LanguageProvider provider) {

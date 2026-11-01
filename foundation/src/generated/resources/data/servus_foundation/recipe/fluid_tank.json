@@ -1,3 +1,19 @@
 {
-  "type": "servus_foundation:fluid_tank"
+  "type": "servus_foundation:fluid_tank",
+  "category": "misc",
+  "key": {
+    "C": "minecraft:copper_ingot",
+    "F": {
+      "neoforge:ingredient_type": "servus_foundation:floor_block"
+    },
+    "G": "minecraft:glass"
+  },
+  "pattern": [
+    "CGC",
+    "G G",
+    "CFC"
+  ],
+  "result": {
+    "id": "servus_foundation:fluid_tank"
+  }
 }

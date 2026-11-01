@@ -9,8 +9,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -25,6 +28,11 @@ import net.minecraft.world.level.Level;
 public final class CraftingGrid {
 
     public static final int GRID = 9;
+    /** At most this many stacks a recipe viewer sends for one cell. */
+    public static final int MAX_SHOWN = 64;
+    /** The stacks a recipe viewer shows per cell, row by row, for serverbound payloads. */
+    public static final StreamCodec<RegistryFriendlyByteBuf, List<List<ItemStack>>> SHOWN_CELLS_CODEC =
+            ItemStack.OPTIONAL_UNTRUSTED_STREAM_CODEC.apply(ByteBufCodecs.list(MAX_SHOWN)).apply(ByteBufCodecs.list(GRID));
 
     private CraftingGrid() {
     }
@@ -77,6 +85,48 @@ public final class CraftingGrid {
             }
         }
         return Optional.of(cells);
+    }
+
+    /**
+     * The template for a recipe viewer transfer: {@link #templateOf} when the
+     * server knows the recipe, else {@link #templateOfShown} from what the viewer showed.
+     */
+    public static Optional<List<ItemStack>> templateFor(Level level, Identifier id, List<List<ItemStack>> shown,
+                                                        List<Map.Entry<ItemKey, Long>> stock) {
+        Optional<List<ItemStack>> known = templateOf(level, id, stock);
+        return known.isPresent() ? known : templateOfShown(shown, stock);
+    }
+
+    /**
+     * The template laid out from the stacks a recipe viewer shows per cell, for
+     * recipes only the viewer knows: per cell the stocked stack matching a shown
+     * stack the warehouse has the most of, else the first shown stack. A shown
+     * stack with components of its own matches only stock with those components.
+     *
+     * @param shown the shown stacks per cell, row by row; empty when the viewer sent none
+     * @return empty when no cell shows anything
+     */
+    public static Optional<List<ItemStack>> templateOfShown(List<List<ItemStack>> shown, List<Map.Entry<ItemKey, Long>> stock) {
+        List<ItemStack> cells = new ArrayList<>(GRID);
+        for (int i = 0; i < GRID; i++) {
+            cells.add(i < shown.size() ? shownChoice(shown.get(i), stock) : ItemStack.EMPTY);
+        }
+        return cells.stream().allMatch(ItemStack::isEmpty) ? Optional.empty() : Optional.of(cells);
+    }
+
+    private static ItemStack shownChoice(List<ItemStack> shown, List<Map.Entry<ItemKey, Long>> stock) {
+        List<ItemStack> options = shown.stream().filter(stack -> !stack.isEmpty()).toList();
+        if (options.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+        return MostStocked.pick(stock, key -> options.stream().anyMatch(option -> fits(option, key)))
+                .map(key -> key.stack(1)).orElse(options.getFirst().copyWithCount(1));
+    }
+
+    /** Whether stock of this key fits a shown stack: the same item, and the same components when the shown stack has its own. */
+    private static boolean fits(ItemStack shown, ItemKey key) {
+        return shown.getItem() == key.item()
+                && (shown.getComponentsPatch().isEmpty() || shown.getComponentsPatch().equals(key.components()));
     }
 
     /**

@@ -1,5 +1,10 @@
 # Servus: Foundation changelog
 
+## Unreleased
+
+### Fixed
+- The Fluid Tank, Facade and Hollow Facade recipes are now plain crafting recipes that JEI and the Shuttles terminals can read. JEI shows one Fluid Tank recipe whose floor cell cycles through every allowed block. Datapack or script recipes that copied the old empty `servus_foundation:fluid_tank`, `facade` or `hollow_facade` recipe no longer load.
+
 ## 0.7.0
 
 ### Changed

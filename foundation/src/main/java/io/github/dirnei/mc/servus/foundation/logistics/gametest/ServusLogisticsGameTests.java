@@ -24,6 +24,7 @@ import io.github.dirnei.mc.servus.foundation.logistics.facade.FacadeItem;
 import io.github.dirnei.mc.servus.foundation.logistics.menu.ChannelRequests;
 import io.github.dirnei.mc.servus.foundation.logistics.menu.UtilityDuctMenu;
 import io.github.dirnei.mc.servus.foundation.logistics.network.ChannelUses;
+import io.github.dirnei.mc.servus.foundation.logistics.recipe.FloorBlockIngredient;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsBlocks;
 import io.github.dirnei.mc.servus.foundation.logistics.registry.ServusLogisticsItems;
 import io.github.dirnei.mc.servus.foundation.registry.ServusFoundationItems;
@@ -52,6 +53,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.GameType;
@@ -283,6 +285,21 @@ public final class ServusLogisticsGameTests {
         helper.assertTrue(removed.is(ServusLogisticsItems.FACADE.get()) && FacadeItem.blockOf(removed) == Blocks.STONE,
                 "removing should give the stone facade back");
         helper.assertTrue(!duct.hasPanels(), "duct should have no panel after removal");
+        helper.succeed();
+    }
+
+    /** The floor ingredient takes solid full blocks without a block entity and lists them for recipe viewers. */
+    @ServusGameTest(timeoutTicks = 20)
+    public static void floorIngredientTakesSolidBlocks(GameTestHelper helper) {
+        Ingredient floor = FloorBlockIngredient.ingredient();
+        helper.assertTrue(floor.test(new ItemStack(Items.STONE_BRICKS)) && floor.test(new ItemStack(Items.COBBLESTONE)),
+                "stone bricks and cobblestone are floors");
+        helper.assertFalse(floor.test(new ItemStack(Items.GLASS)), "glass is no floor");
+        helper.assertFalse(floor.test(new ItemStack(Items.STONE_SLAB)), "a slab is no floor");
+        helper.assertFalse(floor.test(new ItemStack(Items.CHEST)), "a chest is no floor");
+        helper.assertTrue(floor.isSimple(), "the floor ingredient is simple");
+        helper.assertTrue(floor.acceptsItem(Items.STONE_BRICKS.builtInRegistryHolder()), "the ingredient lists stone bricks");
+        helper.assertFalse(floor.acceptsItem(Items.GLASS.builtInRegistryHolder()), "the ingredient does not list glass");
         helper.succeed();
     }
 
