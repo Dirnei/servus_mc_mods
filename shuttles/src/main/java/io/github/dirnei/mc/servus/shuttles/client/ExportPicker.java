@@ -1,12 +1,15 @@
 package io.github.dirnei.mc.servus.shuttles.client;
 
+import io.github.dirnei.mc.servus.foundation.client.ItemSearchFacts;
 import io.github.dirnei.mc.servus.foundation.client.PopupPanel;
 import io.github.dirnei.mc.servus.foundation.client.Scrollbar;
+import io.github.dirnei.mc.servus.foundation.client.SearchHint;
+import io.github.dirnei.mc.servus.foundation.search.SearchFacts;
+import io.github.dirnei.mc.servus.foundation.search.SearchQuery;
 import io.github.dirnei.mc.servus.shuttles.outbound.ClaimExportPayload;
 import io.github.dirnei.mc.servus.shuttles.outbound.ExportListPayload;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.function.Supplier;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -41,6 +44,7 @@ final class ExportPicker {
     }
 
     private final Supplier<ExportListPayload> exports;
+    private final ItemSearchFacts.Cache facts = ItemSearchFacts.cache();
     private EditBox search;
     private Button cancel;
     private int x;
@@ -59,6 +63,7 @@ final class ExportPicker {
         String kept = search == null ? "" : search.getValue();
         search = new EditBox(font, x + 6, y + 18, WIDTH - 12, 12, Component.translatable(KEY + "search"));
         search.setHint(Component.translatable(KEY + "search"));
+        SearchHint.apply(search);
         search.setMaxLength(32);
         search.setValue(kept);
         search.setResponder(text -> bar.setOffset(0));
@@ -98,12 +103,11 @@ final class ExportPicker {
     }
 
     private List<Line> lines() {
-        String query = search.getValue().trim().toLowerCase(Locale.ROOT);
+        SearchQuery query = SearchQuery.parse(search.getValue());
         List<Line> free = new ArrayList<>();
         List<Line> held = new ArrayList<>();
         for (ExportListPayload.Offer offer : exports.get().offers()) {
-            String text = (offer.item().getHoverName().getString() + " " + offer.holder().getString()).toLowerCase(Locale.ROOT);
-            if (query.isEmpty() || text.contains(query)) {
+            if (query.isEmpty() || query.matches(facts(offer))) {
                 (offer.held() ? held : free).add(new Line(null, offer));
             }
         }
@@ -118,6 +122,12 @@ final class ExportPicker {
             lines.addAll(held);
         }
         return lines;
+    }
+
+    /** The offer's item with the station label as a name and a tooltip line, so {@code #1} finds station #1. */
+    private SearchFacts facts(ExportListPayload.Offer offer) {
+        List<String> label = List.of(offer.holder().getString());
+        return facts.get(offer.item()).withNames(label).withTooltip(label);
     }
 
     /** The panel over the GUI, then its widgets again on top. */

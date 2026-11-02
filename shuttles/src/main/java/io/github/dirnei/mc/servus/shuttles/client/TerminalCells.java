@@ -1,12 +1,13 @@
 package io.github.dirnei.mc.servus.shuttles.client;
 
+import io.github.dirnei.mc.servus.foundation.client.ItemSearchFacts;
+import io.github.dirnei.mc.servus.foundation.search.SearchQuery;
 import io.github.dirnei.mc.servus.shuttles.terminal.StockEntry;
 import io.github.dirnei.mc.servus.shuttles.terminal.TerminalSettings;
 import io.github.dirnei.mc.servus.shuttles.terminal.TerminalSort;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
@@ -23,16 +24,23 @@ final class TerminalCells {
     }
 
     private final List<Cell> cells = new ArrayList<>();
+    private final ItemSearchFacts.Cache facts;
     private int version = -1;
     private String query = "";
     private TerminalSettings settings;
 
-    /** The cells for a lower case, trimmed search; returns whether they were rebuilt. */
+    /** Cells whose items are searched through {@code facts}. */
+    TerminalCells(ItemSearchFacts.Cache facts) {
+        this.facts = facts;
+    }
+
+    /** The cells for the search text as typed; returns whether they were rebuilt. */
     boolean refresh(String query, TerminalSettings settings) {
         if (version == ClientStock.version() && query.equals(this.query) && settings.equals(this.settings)) {
             return false;
         }
         cells.clear();
+        SearchQuery search = SearchQuery.parse(query);
         List<Cell> items = items();
         Comparator<TerminalSort.Key> order = TerminalSort.comparator(settings.sort(), settings.direction());
         items.sort((a, b) -> order.compare(key(a), key(b)));
@@ -42,7 +50,7 @@ final class TerminalCells {
                 case STOCK -> cell.stocked();
                 case CRAFTABLE -> cell.craftable();
             };
-            if (shown && matches(cell.stack(), query)) {
+            if (shown && (search.isEmpty() || search.matches(facts.get(cell.stack())))) {
                 cells.add(cell);
             }
         }
@@ -69,10 +77,6 @@ final class TerminalCells {
             }
         }
         return items;
-    }
-
-    private static boolean matches(ItemStack stack, String query) {
-        return query.isEmpty() || stack.getHoverName().getString().toLowerCase(Locale.ROOT).contains(query);
     }
 
     private static TerminalSort.Key key(Cell cell) {

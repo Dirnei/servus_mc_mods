@@ -24,6 +24,14 @@ final class ServusFoundationLanguageProvider extends LanguageProvider {
         add(AdapterContent.BLOCK.get(), "Machine Adapter");
         MachineDataParts.lang(this);
         add("gui.servus_foundation.picker.search", "Search");
+        add("gui.servus_foundation.search_hint.title", "Search like JEI:");
+        add("gui.servus_foundation.search_hint.mod", "@ mod");
+        add("gui.servus_foundation.search_hint.tag", "$ tag");
+        add("gui.servus_foundation.search_hint.tooltip", "# tooltip");
+        add("gui.servus_foundation.search_hint.tab", "%% creative tab");
+        add("gui.servus_foundation.search_hint.id", "& item id");
+        add("gui.servus_foundation.search_hint.not", "- not");
+        add("gui.servus_foundation.search_hint.or", "| or");
         add("gui.servus_foundation.stepper.less", "Less: click for 1, shift click for a stack");
         add("gui.servus_foundation.stepper.more", "More: click for 1, shift click for a stack");
         add("gui.servus_foundation.recipe_grid.cancel", "Cancel");

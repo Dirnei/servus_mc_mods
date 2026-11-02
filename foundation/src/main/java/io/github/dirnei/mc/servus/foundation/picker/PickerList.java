@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.foundation.picker;
 
+import io.github.dirnei.mc.servus.foundation.search.SearchFacts;
+import io.github.dirnei.mc.servus.foundation.search.SearchQuery;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -7,6 +9,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 
 /**
  * The entries of an item picker: sorted by name with the "none" entry first,
@@ -56,22 +59,26 @@ public final class PickerList {
     }
 
     /**
-     * The entries whose name or id contains the query, case insensitive, in
-     * their given order. A blank query keeps all; the none entry always stays.
+     * The entries matching the search syntax of {@link SearchQuery}, in their
+     * given order, each asked through its facts from {@code facts}, looked up
+     * by entry id. A blank query keeps all; the none entry always stays.
      */
-    public static List<Item> filter(List<Item> items, String query) {
-        String needle = query == null ? "" : query.trim().toLowerCase(Locale.ROOT);
-        if (needle.isEmpty()) {
+    public static List<Item> filter(List<Item> items, String query, Function<String, SearchFacts> facts) {
+        SearchQuery search = SearchQuery.parse(query);
+        if (search.isEmpty()) {
             return List.copyOf(items);
         }
         List<Item> found = new ArrayList<>();
         for (Item item : items) {
-            if (item.isNone()
-                    || item.name().toLowerCase(Locale.ROOT).contains(needle)
-                    || item.id().toLowerCase(Locale.ROOT).contains(needle)) {
+            if (item.isNone() || search.matches(facts.apply(item.id()))) {
                 found.add(item);
             }
         }
         return found;
+    }
+
+    /** Facts for an entry known only by its name and id; a plain word matches either. */
+    public static SearchFacts plainFacts(Item item) {
+        return SearchFacts.of(List.of(item.name(), item.id()), List.of(item.id()));
     }
 }

@@ -1,10 +1,13 @@
 package io.github.dirnei.mc.servus.shuttles.client;
 
 import io.github.dirnei.mc.servus.foundation.client.ItemPicker;
+import io.github.dirnei.mc.servus.foundation.client.ItemSearchFacts;
 import io.github.dirnei.mc.servus.foundation.client.PickerEntries;
+import io.github.dirnei.mc.servus.foundation.client.SearchHint;
 import io.github.dirnei.mc.servus.foundation.logistics.channel.ChannelColours;
 import io.github.dirnei.mc.servus.foundation.picker.PickerList;
 import io.github.dirnei.mc.servus.foundation.picker.TagSearch;
+import io.github.dirnei.mc.servus.foundation.search.SearchQuery;
 import io.github.dirnei.mc.servus.foundation.ui.AmountSteps;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.handheld.Basket;
@@ -58,7 +61,7 @@ import org.lwjgl.glfw.GLFW;
  * mode; three softkeys below it switch the mode. ZONE lists the team's zones
  * (choose the active one, new, edit, delete with a second click when loaded
  * shelves use it) and opens the zone form, whose filter is picked in the item
- * picker with {@code #} tag search. INFO shows the readout of the last
+ * picker with {@code $} tag search. INFO shows the readout of the last
  * scanned shelf above its items and the shelf basket, with Clear and
  * Relocate, which waits for the target shelf; a Fluid Rack shelf shows only
  * its readout. STOCK lists the bound warehouse's stock above the warehouse
@@ -151,6 +154,7 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
     private View view;
     private final List<CrtButton> buttons = new ArrayList<>();
     private EditBox search;
+    private final ItemSearchFacts.Cache searchFacts = ItemSearchFacts.cache();
     private EditBox name;
     private final ItemPicker picker;
     private int scroll;
@@ -244,6 +248,11 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
         confirmDelete = ZoneList.NONE;
         search.visible = view == View.ZONES || view == View.STOCK && menu.bound();
         search.setValue("");
+        if (view == View.STOCK) {
+            SearchHint.apply(search);
+        } else {
+            search.setTooltip(null);
+        }
         name.visible = view == View.FORM;
         buttons.clear();
         switch (view) {
@@ -369,8 +378,8 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
 
     /** A pick from the item picker: a {@code #} entry adds a tag, any other entry its item; nine of each at most. */
     private void addToFilter(ItemPicker.Entry entry) {
-        if (TagSearch.isTagQuery(entry.id())) {
-            String tag = entry.id().substring(TagSearch.PREFIX.length());
+        if (TagSearch.isTagId(entry.id())) {
+            String tag = entry.id().substring(TagSearch.ID_PREFIX.length());
             if (!filterTags.contains(tag) && filterTags.size() < ZoneFilter.SLOTS) {
                 filterTags.add(tag);
             }
@@ -517,7 +526,7 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
         if (filter.isEmpty()) {
             return Component.translatable(KEY + "takes_anything").getString();
         }
-        List<String> parts = new ArrayList<>(filter.tags().stream().map(tag -> TagSearch.PREFIX + tag).toList());
+        List<String> parts = new ArrayList<>(filter.tags().stream().map(tag -> TagSearch.ID_PREFIX + tag).toList());
         parts.addAll(filter.itemNames());
         return String.join(", ", parts);
     }
@@ -559,7 +568,7 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
             if (hovered) {
                 graphics.fill(tx, ty, tx + TAG_COLUMN - 2, ty + TAG_ROW, LCD_HOVER);
             }
-            String tag = font.plainSubstrByWidth(TagSearch.PREFIX + filterTags.get(i), TAG_COLUMN - 4);
+            String tag = font.plainSubstrByWidth(TagSearch.ID_PREFIX + filterTags.get(i), TAG_COLUMN - 4);
             graphics.text(font, tag, tx + 1, ty + 1, LCD_TEXT, false);
         }
         problem().ifPresent(problem -> graphics.text(font,
@@ -889,10 +898,10 @@ public class HandheldScreen extends AbstractContainerScreen<HandheldMenu> {
 
     /** Indices into the menu's stock that match the search, largest first. */
     private List<Integer> stockRows() {
-        String query = search.getValue().trim().toLowerCase(Locale.ROOT);
+        SearchQuery query = SearchQuery.parse(search.getValue());
         List<Integer> rows = new ArrayList<>();
         for (int i = 0; i < menu.stock().size(); i++) {
-            if (query.isEmpty() || menu.stock().get(i).getHoverName().getString().toLowerCase(Locale.ROOT).contains(query)) {
+            if (query.isEmpty() || query.matches(searchFacts.get(menu.stock().get(i)))) {
                 rows.add(i);
             }
         }

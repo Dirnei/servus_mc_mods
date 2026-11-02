@@ -1,6 +1,8 @@
 package io.github.dirnei.mc.servus.shuttles.client;
 
 import io.github.dirnei.mc.servus.foundation.client.GreyOut;
+import io.github.dirnei.mc.servus.foundation.client.ItemSearchFacts;
+import io.github.dirnei.mc.servus.foundation.client.SearchHint;
 import io.github.dirnei.mc.servus.shuttles.ServusShuttlesIds;
 import io.github.dirnei.mc.servus.shuttles.client.TerminalCells.Cell;
 import io.github.dirnei.mc.servus.shuttles.menu.StorageTerminalMenu;
@@ -95,12 +97,13 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
     private EditBox search;
     private String searchText = "";
     private String lastSynced = null;
-    private final TerminalCells cells = new TerminalCells();
+    private final ItemSearchFacts.Cache searchFacts = ItemSearchFacts.cache();
+    private final TerminalCells cells = new TerminalCells(searchFacts);
     private int scrollRow;
     private final List<IconButton> sideButtons = new ArrayList<>();
     /** Whether the Rules tab shows in place of the item grid; every opened screen starts on Stock. */
     private boolean rulesTab;
-    private final RulesList rulesList = new RulesList();
+    private final RulesList rulesList = new RulesList(searchFacts);
 
     private Dialog dialog = Dialog.NONE;
     private final ItemPopup popup = new ItemPopup(this);
@@ -196,6 +199,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
                 Component.translatable("gui.servus_shuttles.search"));
         search.setMaxLength(50);
         search.setHint(Component.translatable("gui.servus_shuttles.search"));
+        SearchHint.apply(search);
         search.setValue(searchText);
         search.setResponder(this::searchChanged);
         addRenderableWidget(search);
@@ -622,8 +626,7 @@ public class StorageTerminalScreen extends AbstractContainerScreen<StorageTermin
 
     /** The grid's cells; clamps the scroll when they were rebuilt. */
     private List<Cell> cells() {
-        String query = query().toLowerCase(Locale.ROOT).trim();
-        if (cells.refresh(query, settings())) {
+        if (cells.refresh(query(), settings())) {
             scrollRow = Math.min(scrollRow, maxScrollRow());
         }
         return cells.list();

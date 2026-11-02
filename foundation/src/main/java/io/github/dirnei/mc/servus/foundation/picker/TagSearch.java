@@ -8,25 +8,33 @@ import java.util.Optional;
 
 /**
  * Matches and orders tag ids such as {@code c:ingots} for a tag search typed
- * as {@code #text}. Pure logic.
+ * as {@code $text}. Pure logic.
  */
 public final class TagSearch {
 
-    /** The character that starts a tag search and prefixes a tag entry's id. */
-    public static final String PREFIX = "#";
+    /** The character that starts a tag search, as in JEI. */
+    public static final String QUERY = "$";
+
+    /** The character in front of a tag entry's id and label, such as {@code #c:ores}. */
+    public static final String ID_PREFIX = "#";
 
     private TagSearch() {
     }
 
     /** Whether the search text asks for tags. */
     public static boolean isTagQuery(String text) {
-        return text != null && text.startsWith(PREFIX);
+        return text != null && text.startsWith(QUERY);
+    }
+
+    /** Whether an entry id or label names a tag. */
+    public static boolean isTagId(String id) {
+        return id != null && id.startsWith(ID_PREFIX);
     }
 
     /**
      * The tag ids matching the search, best first: ids whose path starts with
      * the search, then ids containing it anywhere, each group in id order. The
-     * search may start with {@link #PREFIX}; an empty search lists every id.
+     * search may start with {@link #QUERY}; an empty search lists every id.
      * Case is ignored.
      */
     public static List<String> search(Collection<String> ids, String query) {
@@ -56,7 +64,7 @@ public final class TagSearch {
     private static String needle(String query) {
         String text = query == null ? "" : query.trim();
         if (isTagQuery(text)) {
-            text = text.substring(PREFIX.length());
+            text = text.substring(QUERY.length());
         }
         return text.toLowerCase(Locale.ROOT);
     }

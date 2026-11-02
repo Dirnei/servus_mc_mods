@@ -1,5 +1,7 @@
 package io.github.dirnei.mc.servus.shuttles.terminal;
 
+import io.github.dirnei.mc.servus.foundation.search.SearchFacts;
+import io.github.dirnei.mc.servus.foundation.search.SearchQuery;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -12,19 +14,24 @@ public final class RuleListing {
     }
 
     /**
-     * The indices of the shown rules in name order, case insensitive, ties
-     * kept in list order; only names containing the query, ignoring case and
-     * surrounding spaces, when it is not empty.
+     * The indices of the shown rules in name order, the first of each row's
+     * {@link SearchFacts#names()}, case insensitive, ties kept in list order;
+     * only rows matching the search syntax of {@link SearchQuery}.
      */
-    public static List<Integer> shown(List<String> names, String query) {
-        String wanted = query == null ? "" : query.trim().toLowerCase(Locale.ROOT);
+    public static List<Integer> shown(List<? extends SearchFacts> rows, String query) {
+        SearchQuery search = SearchQuery.parse(query);
         List<Integer> shown = new ArrayList<>();
-        for (int i = 0; i < names.size(); i++) {
-            if (wanted.isEmpty() || names.get(i).toLowerCase(Locale.ROOT).contains(wanted)) {
+        for (int i = 0; i < rows.size(); i++) {
+            if (search.matches(rows.get(i))) {
                 shown.add(i);
             }
         }
-        shown.sort(Comparator.comparing((Integer i) -> names.get(i).toLowerCase(Locale.ROOT)));
+        shown.sort(Comparator.comparing((Integer i) -> sortName(rows.get(i))));
         return shown;
+    }
+
+    private static String sortName(SearchFacts row) {
+        List<String> names = row.names();
+        return names.isEmpty() ? "" : names.getFirst().toLowerCase(Locale.ROOT);
     }
 }

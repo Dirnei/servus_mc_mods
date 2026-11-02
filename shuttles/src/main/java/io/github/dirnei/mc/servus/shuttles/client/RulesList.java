@@ -1,5 +1,6 @@
 package io.github.dirnei.mc.servus.shuttles.client;
 
+import io.github.dirnei.mc.servus.foundation.client.ItemSearchFacts;
 import io.github.dirnei.mc.servus.shuttles.terminal.RuleListing;
 import io.github.dirnei.mc.servus.shuttles.terminal.RuleRow;
 import io.github.dirnei.mc.servus.shuttles.terminal.TerminalLayout.Rect;
@@ -25,14 +26,20 @@ final class RulesList {
     private static final int COLOUR_HINT = 0xFF555555;
     private static final String KEY = "gui.servus_shuttles.terminal.";
 
+    private final ItemSearchFacts.Cache facts;
     private int scroll;
+
+    /** A rules list whose rule items are searched through {@code facts}. */
+    RulesList(ItemSearchFacts.Cache facts) {
+        this.facts = facts;
+    }
 
     /** The rules shown for the search, in name order. */
     List<RuleRow> shown(String query) {
         List<RuleRow> rules = ClientStock.rules();
-        List<String> names = rules.stream().map(rule -> rule.stack().getHoverName().getString()).toList();
+        List<ItemSearchFacts> rows = rules.stream().map(rule -> facts.get(rule.stack())).toList();
         List<RuleRow> shown = new ArrayList<>();
-        for (int index : RuleListing.shown(names, query)) {
+        for (int index : RuleListing.shown(rows, query)) {
             shown.add(rules.get(index));
         }
         return shown;

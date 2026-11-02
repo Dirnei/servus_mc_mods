@@ -6,6 +6,8 @@ import net.minecraft.client.input.MouseButtonEvent;
 import io.github.dirnei.mc.servus.foundation.picker.PickerList;
 import io.github.dirnei.mc.servus.foundation.picker.PickerStock;
 import io.github.dirnei.mc.servus.foundation.picker.TagSearch;
+import io.github.dirnei.mc.servus.foundation.search.SearchFacts;
+import io.github.dirnei.mc.servus.foundation.search.SearchQuery;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -41,7 +43,12 @@ import org.lwjgl.glfw.GLFW;
  * should pass {@code -1, -1} as the mouse to {@code super.extractRenderState}
  * and skip its own tooltips.
  *
- * <p>With {@link #setTagSearch} on, a search starting with {@code #} lists the
+ * <p>The search reads the syntax of {@link SearchQuery}: item entries match
+ * by name, mod, tag, tooltip, creative tab and id, fluid entries by name, mod,
+ * tag and id, other entries by name and id; a plain word also matches the
+ * entry id.
+ *
+ * <p>With {@link #setTagSearch} on, a search starting with {@code $} lists the
  * client's item tags instead; their entry ids are {@code #namespace:path}, and
  * Tab completes the search to the top hit.
  *
@@ -130,6 +137,7 @@ public final class ItemPicker {
     private final Component title;
     private final Consumer<Entry> onPick;
     private final Map<String, Entry> byId = new HashMap<>();
+    private final Map<String, SearchFacts> factsById = new HashMap<>();
     private List<PickerList.Item> sorted = List.of();
     private List<Entry> shown = List.of();
     private String selected = PickerList.NONE_ID;
@@ -161,6 +169,7 @@ public final class ItemPicker {
     /** The entries to choose from, in any order; they are shown in {@link PickerList#ranked} order, set when the list opens or the search changes. */
     public void setEntries(List<Entry> entries) {
         byId.clear();
+        factsById.clear();
         List<PickerList.Item> items = new ArrayList<>();
         for (Entry entry : entries) {
             byId.put(entry.id(), entry);
@@ -190,7 +199,7 @@ public final class ItemPicker {
         locked = Map.copyOf(hints);
     }
 
-    /** Turns the {@code #} tag search on or off; off, {@code #} is searched like any other text. */
+    /** Turns the {@code $} tag search on or off; off, {@code $} filters items by tag like in any search. */
     public void setTagSearch(boolean on) {
         tagSearch = on;
     }
@@ -233,6 +242,7 @@ public final class ItemPicker {
         search = new EditBox(Minecraft.getInstance().font, x + PAD, y + TITLE_HEIGHT + PAD, LIST_WIDTH + BAR_GAP + BAR_WIDTH, SEARCH_HEIGHT,
                 Component.translatable("gui.servus_foundation.picker.search"));
         search.setHint(Component.translatable("gui.servus_foundation.picker.search"));
+        SearchHint.apply(search);
         search.setMaxLength(50);
         search.setResponder(text -> refilter());
         search.setFocused(true);
@@ -255,7 +265,7 @@ public final class ItemPicker {
         tagsById.clear();
         tagItems.clear();
         BuiltInRegistries.ITEM.getTags().forEach(tag -> {
-            String id = TagSearch.PREFIX + tag.key().location();
+            String id = TagSearch.ID_PREFIX + tag.key().location();
             List<Item> items = tag.stream().map(Holder::value).toList();
             tagItems.put(id, items);
             ItemStack icon = items.isEmpty() ? ItemStack.EMPTY : new ItemStack(items.getFirst());
@@ -268,7 +278,7 @@ public final class ItemPicker {
     }
 
     private List<String> tagHits() {
-        List<String> names = tagsById.keySet().stream().map(id -> id.substring(TagSearch.PREFIX.length())).toList();
+        List<String> names = tagsById.keySet().stream().map(id -> id.substring(TagSearch.ID_PREFIX.length())).toList();
         return TagSearch.search(names, search.getValue());
     }
 
@@ -277,17 +287,32 @@ public final class ItemPicker {
         List<Entry> entries = new ArrayList<>();
         if (inTagMode()) {
             for (String hit : tagHits()) {
-                entries.add(tagsById.get(TagSearch.PREFIX + hit));
+                entries.add(tagsById.get(TagSearch.ID_PREFIX + hit));
             }
             shown = entries;
             bar.setContent(shown.size(), ROWS);
             return;
         }
-        for (PickerList.Item item : PickerList.ranked(PickerList.filter(sorted, query), locked.keySet(), stock)) {
+        for (PickerList.Item item : PickerList.ranked(PickerList.filter(sorted, query, this::facts), locked.keySet(), stock)) {
             entries.add(byId.get(item.id()));
         }
         shown = entries;
         bar.setContent(shown.size(), ROWS);
+    }
+
+    /** The search facts of an entry, built on first use: item, fluid or name and id only, each with the id as a name. */
+    private SearchFacts facts(String id) {
+        return factsById.computeIfAbsent(id, key -> {
+            Entry entry = byId.get(key);
+            List<String> extraNames = List.of(entry.name().getString(), key);
+            if (!entry.icon().isEmpty() && key.equals(Entry.idOf(entry.icon()))) {
+                return ItemSearchFacts.of(entry.icon()).withNames(extraNames);
+            }
+            if (!entry.fluid().isEmpty() && key.equals(BuiltInRegistries.FLUID.getKey(entry.fluid().getFluid()).toString())) {
+                return FluidSearchFacts.of(entry.fluid()).withNames(extraNames);
+            }
+            return SearchFacts.of(extraNames, List.of(key));
+        });
     }
 
     private int indexOf(String id) {
@@ -494,7 +519,7 @@ public final class ItemPicker {
         if (keyCode == GLFW.GLFW_KEY_TAB && inTagMode()) {
             List<String> hits = tagHits();
             if (!hits.isEmpty()) {
-                search.setValue(TagSearch.PREFIX + hits.getFirst());
+                search.setValue(TagSearch.QUERY + hits.getFirst());
             }
             return true;
         }

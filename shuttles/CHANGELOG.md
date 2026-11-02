@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Added
+- The Storage Terminal, its Rules tab, the Handheld STOCK list and the Claim an export picker search with JEI's syntax, so `@mod`, `$tag`, `#tooltip`, `%tab` and `&id` work there, and the terminal's search means the same as in JEI when synced.
+
+### Changed
+- Tags in the Handheld's zone filter picker are now listed with `$` instead of `#`. Picked tags still show as `#c:ores`, and zones keep their filters.
+
 ### Fixed
 - JEI's transfer button fills the Storage Terminal's order grid and the Production Terminal's pattern editor for the Fluid Tank, the Facade examples and the Hollow Facade examples, and for any crafting recipe that only JEI knows.
 
