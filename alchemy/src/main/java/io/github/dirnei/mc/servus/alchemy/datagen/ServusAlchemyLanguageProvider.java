@@ -215,7 +215,9 @@ final class ServusAlchemyLanguageProvider extends LanguageProvider {
         add("item.servus_alchemy.paracelsus_journal", "Paracelsus' Journal");
         add("advancement.servus_alchemy.journal.root", "Paracelsus' Journal");
         add("advancement.servus_alchemy.journal.root.description", "Experience is the master. Chapters of the journal, finished by doing alchemy");
-        add("commands.servus_alchemy.journal.header", "Journal of your team:");
+        add("commands.servus_alchemy.journal.header", "Journal of the team of %s:");
+        add("commands.servus_alchemy.journal.needs_player", "Name a player: /servus alchemy journal <player>");
+        add("commands.servus_alchemy.journal.other_player", "Only operators can read the journal of another player");
         add("commands.servus_alchemy.journal.chapter", "%s: %s");
         add("commands.servus_alchemy.journal.finished", "finished");
         add("commands.servus_alchemy.journal.open", "open");

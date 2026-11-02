@@ -1,5 +1,10 @@
 # Servus: Alchemy changelog
 
+## Unreleased
+
+### Changed
+- The journal command is now `/servus alchemy journal [player]`, and `journal finish` names the player, so both work over RCON.
+
 ## 0.6.0-alpha
 
 ### Changed

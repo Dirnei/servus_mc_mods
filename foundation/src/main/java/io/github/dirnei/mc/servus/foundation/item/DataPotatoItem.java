@@ -18,6 +18,7 @@ import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.Vec3;
 
 /**
  * The Data Potato, Servus' investigation tool. Held, it shows analysis views
@@ -44,14 +45,19 @@ public class DataPotatoItem extends Item {
         NamedMachine named = found.get();
         Player player = context.getPlayer();
         if (!level.isClientSide() && player != null) {
-            List<Component> report = new ArrayList<>(named.potatoLines());
-            BlockState state = level.getBlockState(pos);
-            if (state.getBlock() instanceof PotatoInspectable inspectable) {
-                report.addAll(inspectable.potatoReport(level, pos, state, context.getClickLocation()));
-            }
-            report.forEach(player::sendSystemMessage);
+            report(level, pos, named, context.getClickLocation()).forEach(player::sendSystemMessage);
         }
         return InteractionResult.SUCCESS;
+    }
+
+    /** What the potato prints for a named machine clicked at the position: its lines, then its block's report. */
+    public static List<Component> report(Level level, BlockPos pos, NamedMachine named, Vec3 click) {
+        List<Component> report = new ArrayList<>(named.potatoLines());
+        BlockState state = level.getBlockState(pos);
+        if (state.getBlock() instanceof PotatoInspectable inspectable) {
+            report.addAll(inspectable.potatoReport(level, pos, state, click));
+        }
+        return report;
     }
 
     @Override

@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.foundation.adapter.AdapterContent;
 import io.github.dirnei.mc.servus.foundation.adapter.AdapterGameTests;
 import io.github.dirnei.mc.servus.foundation.config.ServusFoundationConfig;
 import io.github.dirnei.mc.servus.foundation.data.DataNetwork;
+import io.github.dirnei.mc.servus.foundation.command.CommandCatalogGameTests;
 import io.github.dirnei.mc.servus.foundation.gametest.FilterGameTests;
 import io.github.dirnei.mc.servus.foundation.gametest.ServusGameTests;
 import io.github.dirnei.mc.servus.foundation.logistics.ServusLogisticsContent;
@@ -64,7 +65,7 @@ public final class ServusFoundation {
                 UpgradeGameTests.class, MachineBaseGameTests.class, MachineGameTests.class, AnchorGameTests.class, PumpGameTests.class,
                 SinkGameTests.class, ChimneyGameTests.class,
                 CoalGeneratorGameTests.class, MillGameTests.class, MixerGameTests.class, MaterialGameTests.class, MachineNameGameTests.class,
-                FilterGameTests.class));
+                FilterGameTests.class, CommandCatalogGameTests.class));
         ServusRecipes.syncToClients(MachineContent.MILLING);
         ServusRecipes.syncToClients(MachineContent.MIXING);
         LOGGER.info("Servus: Foundation loaded");

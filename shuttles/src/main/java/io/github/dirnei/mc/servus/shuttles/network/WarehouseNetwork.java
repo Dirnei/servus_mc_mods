@@ -109,6 +109,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -2546,6 +2548,42 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
         }
     }
 
+    /**
+     * The loaded named machines this warehouse gave a number: the machines on its rails, the
+     * Field Heads it serves and the named machines of its data line. Never looks beyond them.
+     */
+    public List<NamedMachine> numberedMachines() {
+        Optional<WarehouseControllerBlockEntity> controller = controller();
+        if (controller.isEmpty()) {
+            return List.of();
+        }
+        UUID id = controller.get().warehouseId();
+        Map<BlockPos, NamedMachine> found = new LinkedHashMap<>();
+        Consumer<NamedMachine> keep = machine -> {
+            if (machine.number() > 0 && !machine.needsNumber(id)) {
+                found.putIfAbsent(machine.nameSlot().pos(), machine);
+            }
+        };
+        for (BlockPos pos : namedMembers) {
+            MachineLabels.machineAt(level, pos).ifPresent(keep);
+        }
+        servedHeads().forEach(keep);
+        CpuOrders.network(level, this).ifPresent(line -> {
+            for (DataMember member : line.dataMembers()) {
+                if (!level.isLoaded(member.pos())) {
+                    continue;
+                }
+                CpuBlockEntity cpu = CpuBlock.master(level, member.pos());
+                if (cpu != null) {
+                    keep.accept(cpu);
+                } else {
+                    MachineLabels.machineAt(level, member.pos()).ifPresent(keep);
+                }
+            }
+        });
+        return new ArrayList<>(found.values());
+    }
+
     /** The loaded Field Heads that serve a field on this warehouse's rails. */
     private List<FieldHeadBlockEntity> servedHeads() {
         List<FieldHeadBlockEntity> heads = new ArrayList<>();
@@ -3082,7 +3120,7 @@ public final class WarehouseNetwork extends ServusNetwork<StorageNodeBlockEntity
 
     /**
      * Takes up to {@code amount} (at most one stack) of the key straight out of
-     * the racks, for the op command {@code /servus_warehouse take} only.
+     * the racks, for the op command {@code /servus shuttles take} only.
      */
     public ItemStack takeDirect(ItemKey key, int amount) {
         ItemStack result = ItemStack.EMPTY;

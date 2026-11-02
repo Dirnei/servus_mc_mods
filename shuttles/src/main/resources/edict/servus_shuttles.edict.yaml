@@ -1,0 +1,495 @@
+# Edict catalog of the Servus: Shuttles commands (https://edict.leberkas.org/spec).
+# A GameTest checks it against the registered commands; raise the version when commands change.
+edict: "1.0.0"
+slug: dirnei/servus-shuttles
+name: "Servus: Shuttles"
+version: "1.0.0"
+description: >-
+  Operator commands of Servus: Shuttles. A warehouse is named by its number (W1 is 1) or by
+  "here", the warehouse of the block you look at; a machine by its kind and its number in the
+  warehouse, or "here" for the machine you look at. All commands need operator permission.
+prefix: "/servus "
+license: MIT
+repository: https://github.com/Dirnei/servus_mc_mods
+authors:
+  - name: Dirnei
+tags:
+  - minecraft
+  - neoforge
+  - servus
+commands:
+  shuttles list:
+    command: shuttles list
+    description: Lists every warehouse of the world with its number, name, dimension, controller position, team, chunks, whether it is awake and how many item types it last reported.
+    category: Warehouses
+    riskLevel: safe
+    remoteExecutable: true
+    examples:
+      - /servus shuttles list
+    response:
+      type: text
+      example: "2 warehouses\n  W1 North Mine at minecraft:overworld 120, 64, -40, team 1a2b3c4d, 2 of 9 chunks, awake, 37 item types known"
+  shuttles machines:
+    command: shuttles machines
+    description: Lists the numbered machines of a warehouse by kind and number, with name and position; with a kind only the machines of that kind.
+    category: Warehouses
+    riskLevel: safe
+    remoteExecutable: true
+    params:
+      - name: warehouse
+        type: string
+        required: true
+        description: Warehouse number, or here for the warehouse you look at (not over RCON).
+      - name: kind
+        type: string
+        description: Machine kind such as field_head, inbound_station or crafting_cpu, with or without its mod namespace.
+    examples:
+      - /servus shuttles machines 1
+      - /servus shuttles machines 1 field_head
+    response:
+      type: text
+      example: "W1 North Mine: 2 numbered machines\n  - field_head 1: Wheat (Field Head #1) at 130, 64, -40"
+  shuttles info:
+    command: shuttles info
+    description: Prints the warehouse's online state, its sources and indexed items with counts, and its name, number, chunks and capacity.
+    category: Warehouses
+    riskLevel: safe
+    remoteExecutable: true
+    params:
+      - name: warehouse
+        type: string
+        required: true
+        description: Warehouse number, or here for the warehouse you look at (not over RCON).
+    examples:
+      - /servus shuttles info 1
+      - /servus shuttles info here
+    response:
+      type: text
+  shuttles zones:
+    command: shuttles zones
+    description: Lists every zone of the warehouse with its block count and the filter items and tags its blocks carry.
+    category: Warehouses
+    riskLevel: safe
+    remoteExecutable: true
+    params:
+      - name: warehouse
+        type: string
+        required: true
+        description: Warehouse number, or here for the warehouse you look at (not over RCON).
+    examples:
+      - /servus shuttles zones 1
+    response:
+      type: text
+      example: "  - Ores: 3 blocks, tags [c:ores]"
+  shuttles fluids:
+    command: shuttles fluids
+    description: Lists the warehouse's fluid totals and every Fluid Rack shelf with its port, zone, fluid, amount and capacity.
+    category: Warehouses
+    riskLevel: safe
+    remoteExecutable: true
+    params:
+      - name: warehouse
+        type: string
+        required: true
+        description: Warehouse number, or here for the warehouse you look at (not over RCON).
+    examples:
+      - /servus shuttles fluids 1
+    response:
+      type: text
+  shuttles producers:
+    command: shuttles producers
+    description: Lists the producers of the warehouse's data line with their recipes.
+    category: Warehouses
+    riskLevel: safe
+    remoteExecutable: true
+    params:
+      - name: warehouse
+        type: string
+        required: true
+        description: Warehouse number, or here for the warehouse you look at (not over RCON).
+    examples:
+      - /servus shuttles producers 1
+    response:
+      type: text
+  shuttles wake:
+    command: shuttles wake
+    description: Asks a sleeping warehouse to wake and says whether it woke or why it waits. Works while the warehouse's chunks are not loaded.
+    category: Warehouses
+    riskLevel: moderate
+    remoteExecutable: true
+    params:
+      - name: warehouse
+        type: string
+        required: true
+        description: Warehouse number, or here for the warehouse you look at (not over RCON).
+    examples:
+      - /servus shuttles wake 2
+    response:
+      type: text
+      example: North Mine is awake, 2 chunks loaded
+  shuttles machine:
+    command: shuttles machine
+    description: Prints a machine's label, position and dimension and the state lines the Data Potato shows for it.
+    category: Machines
+    riskLevel: safe
+    remoteExecutable: true
+    params:
+      - name: warehouse
+        type: string
+        required: true
+        description: Warehouse number, or here for the warehouse you look at (not over RCON).
+      - name: kind
+        type: string
+        required: true
+        description: Machine kind such as calciner or crafting_station, with or without its mod namespace.
+      - name: number
+        type: string
+        required: true
+        description: The machine's number in the warehouse, or here for the machine you look at (not over RCON).
+    examples:
+      - /servus shuttles machine 1 calciner 1
+      - /servus shuttles machine here crafting_station here
+    response:
+      type: text
+  shuttles field:
+    command: shuttles field
+    description: Prints a Field Head's status, field kind, rails, plots, water, crop or sapling, harvest, buffer, fertilizer and corrosion state.
+    category: Fields
+    riskLevel: safe
+    remoteExecutable: true
+    params:
+      - name: warehouse
+        type: string
+        required: true
+        description: Warehouse number, or here for the warehouse you look at (not over RCON). With field-head here too, any looked at Field Head works, also an unnumbered one.
+      - name: field-head
+        type: string
+        required: true
+        description: The Field Head's number in the warehouse, or here for the Field Head you look at (not over RCON).
+    examples:
+      - /servus shuttles field 1 2
+      - /servus shuttles field here here
+    response:
+      type: text
+  shuttles field recheck:
+    command: shuttles field recheck
+    description: Runs the Field Head's pass over all of its plots again and prints the planted and ripe counts.
+    category: Fields
+    riskLevel: moderate
+    remoteExecutable: true
+    params:
+      - name: warehouse
+        type: string
+        required: true
+        description: Warehouse number, or here for the warehouse you look at (not over RCON).
+      - name: field-head
+        type: string
+        required: true
+        description: The Field Head's number in the warehouse, or here for the Field Head you look at (not over RCON).
+    examples:
+      - /servus shuttles field recheck 1 2
+    response:
+      type: text
+  shuttles field age:
+    command: shuttles field age
+    description: Counts water as used for corrosion aging of the field's rails, with the same upkeep and aging rules as hydration, to reach a stage quickly when testing.
+    category: Fields
+    riskLevel: moderate
+    remoteExecutable: true
+    params:
+      - name: warehouse
+        type: string
+        required: true
+        description: Warehouse number, or here for the warehouse you look at (not over RCON).
+      - name: field-head
+        type: string
+        required: true
+        description: The Field Head's number in the warehouse, or here for the Field Head you look at (not over RCON).
+      - name: mB
+        type: integer
+        required: true
+        min: 1
+        description: Water in millibuckets to count toward aging.
+    examples:
+      - /servus shuttles field age 1 2 9000
+      - /servus shuttles field age here here 9000
+    response:
+      type: text
+  shuttles take:
+    command: shuttles take
+    description: Takes up to one stack of an item straight out of the warehouse's racks, without a shuttle, into your inventory, or dropped at the controller when run without a player.
+    category: Stock
+    riskLevel: moderate
+    remoteExecutable: true
+    params:
+      - name: warehouse
+        type: string
+        required: true
+        description: Warehouse number, or here for the warehouse you look at (not over RCON).
+      - name: item
+        type: string
+        required: true
+        description: Item id, such as minecraft:cobblestone.
+      - name: count
+        type: integer
+        required: true
+        min: 1
+        max: 64
+        description: How many to take.
+    examples:
+      - /servus shuttles take 1 minecraft:cobblestone 64
+    response:
+      type: text
+      example: Took 64 Cobblestone from W1 North Mine
+  shuttles feed:
+    command: shuttles feed
+    description: Asks the warehouse to deliver items into an Outbound Station's buffer, on top of its keep amounts; says why when it cannot.
+    category: Stock
+    riskLevel: moderate
+    remoteExecutable: true
+    params:
+      - name: warehouse
+        type: string
+        required: true
+        description: Warehouse number, or here for the warehouse you look at (not over RCON).
+      - name: outbound
+        type: string
+        required: true
+        description: The Outbound Station's number in the warehouse, or here for the station you look at (not over RCON).
+      - name: item
+        type: string
+        required: true
+        description: Item id, such as minecraft:iron_ingot.
+      - name: count
+        type: integer
+        required: true
+        min: 1
+        max: 4096
+        description: How many to deliver.
+    examples:
+      - /servus shuttles feed 1 1 minecraft:iron_ingot 4
+    response:
+      type: text
+  shuttles ship:
+    command: shuttles ship
+    description: Ships items from the warehouse to a member of its data line through a Packing Station and reports the planned amount or the refusal.
+    category: Stock
+    riskLevel: moderate
+    remoteExecutable: true
+    params:
+      - name: warehouse
+        type: string
+        required: true
+        description: Warehouse number, or here for the warehouse you look at (not over RCON).
+      - name: kind
+        type: string
+        required: true
+        description: Kind of the receiving machine, such as crafting_station.
+      - name: number
+        type: string
+        required: true
+        description: The receiving machine's number in the warehouse, or here for the machine you look at (not over RCON).
+      - name: item
+        type: string
+        required: true
+        description: Item id, such as minecraft:oak_planks.
+      - name: count
+        type: integer
+        required: true
+        min: 1
+        max: 4096
+        description: How many to ship.
+    examples:
+      - /servus shuttles ship 1 crafting_station 1 minecraft:oak_planks 16
+    response:
+      type: text
+  shuttles move:
+    command: shuttles move
+    description: Starts a data line move between two numbered members of the warehouse's data line and reports the delivery id or why it failed.
+    category: Stock
+    riskLevel: moderate
+    remoteExecutable: true
+    params:
+      - name: warehouse
+        type: string
+        required: true
+        description: Warehouse number, or here for the warehouse you look at (not over RCON).
+      - name: from-kind
+        type: string
+        required: true
+        description: Kind of the machine the items leave, such as crafting_station.
+      - name: from
+        type: string
+        required: true
+        description: Number of the machine the items leave, or here for the machine you look at (not over RCON).
+      - name: to-kind
+        type: string
+        required: true
+        description: Kind of the machine the items go to, such as packing_station.
+      - name: to
+        type: string
+        required: true
+        description: Number of the machine the items go to, or here for the machine you look at (not over RCON).
+      - name: item
+        type: string
+        required: true
+        description: Item id, such as minecraft:stick.
+      - name: count
+        type: integer
+        required: true
+        min: 1
+        max: 4096
+        description: How many to move.
+    examples:
+      - /servus shuttles move 1 crafting_station 1 packing_station 1 minecraft:stick 8
+    response:
+      type: text
+      example: "Delivery 12 started: 8 Stick"
+  shuttles orders:
+    command: shuttles orders
+    description: Lists the work orders of every Crafting CPU on the warehouse's data line with item, amount, state, reason and steps, and each CPU's size, slots and buffer.
+    category: Orders and rules
+    riskLevel: safe
+    remoteExecutable: true
+    params:
+      - name: warehouse
+        type: string
+        required: true
+        description: Warehouse number, or here for the warehouse you look at (not over RCON).
+    examples:
+      - /servus shuttles orders 1
+    response:
+      type: text
+  shuttles order:
+    command: shuttles order
+    description: Makes a work order without a request on a Crafting CPU of the warehouse's data line; says why when none can be made.
+    category: Orders and rules
+    riskLevel: moderate
+    remoteExecutable: true
+    params:
+      - name: warehouse
+        type: string
+        required: true
+        description: Warehouse number, or here for the warehouse you look at (not over RCON).
+      - name: item
+        type: string
+        required: true
+        description: Item id, such as minecraft:stick.
+      - name: count
+        type: integer
+        required: true
+        min: 1
+        max: 4096
+        description: How many to make.
+    examples:
+      - /servus shuttles order 1 minecraft:stick 8
+    response:
+      type: text
+      example: Ordered 8 Stick on the CPU at 140, 64, -38
+  shuttles rules:
+    command: shuttles rules
+    description: Lists the warehouse's stock rules with their Make pair, cap, export and state.
+    category: Orders and rules
+    riskLevel: safe
+    remoteExecutable: true
+    params:
+      - name: warehouse
+        type: string
+        required: true
+        description: Warehouse number, or here for the warehouse you look at (not over RCON).
+    examples:
+      - /servus shuttles rules 1
+    response:
+      type: text
+      example: "  - Stick: keep 8 to 16, satisfied"
+  shuttles rule:
+    command: shuttles rule
+    description: Sets the Make pair of a stock rule and keeps its cap; fails with the reason when the numbers break the threshold rules.
+    category: Orders and rules
+    riskLevel: moderate
+    remoteExecutable: true
+    params:
+      - name: warehouse
+        type: string
+        required: true
+        description: Warehouse number, or here for the warehouse you look at (not over RCON).
+      - name: item
+        type: string
+        required: true
+        description: Item id, such as minecraft:stick.
+      - name: min
+        type: integer
+        required: true
+        min: 0
+        description: Make more when the stock falls below this.
+      - name: max
+        type: integer
+        required: true
+        min: 0
+        description: Make until the stock reaches this.
+    examples:
+      - /servus shuttles rule 1 minecraft:stick 8 16
+    response:
+      type: text
+  shuttles cap:
+    command: shuttles cap
+    description: Sets the cap of a stock rule, above which Inbound Stations refuse the item, and keeps the Make pair.
+    category: Orders and rules
+    riskLevel: moderate
+    remoteExecutable: true
+    params:
+      - name: warehouse
+        type: string
+        required: true
+        description: Warehouse number, or here for the warehouse you look at (not over RCON).
+      - name: item
+        type: string
+        required: true
+        description: Item id, such as minecraft:cobblestone.
+      - name: amount
+        type: integer
+        required: true
+        min: 1
+        description: The cap.
+    examples:
+      - /servus shuttles cap 1 minecraft:cobblestone 4096
+    response:
+      type: text
+  shuttles uncap:
+    command: shuttles uncap
+    description: Clears the cap of a stock rule and removes the rule when no Make pair is left.
+    category: Orders and rules
+    riskLevel: moderate
+    remoteExecutable: true
+    params:
+      - name: warehouse
+        type: string
+        required: true
+        description: Warehouse number, or here for the warehouse you look at (not over RCON).
+      - name: item
+        type: string
+        required: true
+        description: Item id, such as minecraft:cobblestone.
+    examples:
+      - /servus shuttles uncap 1 minecraft:cobblestone
+    response:
+      type: text
+  shuttles unrule:
+    command: shuttles unrule
+    description: Removes a whole stock rule.
+    category: Orders and rules
+    riskLevel: moderate
+    remoteExecutable: true
+    params:
+      - name: warehouse
+        type: string
+        required: true
+        description: Warehouse number, or here for the warehouse you look at (not over RCON).
+      - name: item
+        type: string
+        required: true
+        description: Item id, such as minecraft:stick.
+    examples:
+      - /servus shuttles unrule 1 minecraft:stick
+    response:
+      type: text

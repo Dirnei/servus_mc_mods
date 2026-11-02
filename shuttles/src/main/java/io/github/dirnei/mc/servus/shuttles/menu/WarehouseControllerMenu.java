@@ -64,20 +64,22 @@ public class WarehouseControllerMenu extends AbstractContainerMenu {
     private final int upgradeSlots;
     private final PayloadSync<SiteStatusPayload> sync = new PayloadSync<>(10, true, this::status);
     private String name;
+    private final int number;
 
     /** Server side: the controller's own slots. */
     public WarehouseControllerMenu(int containerId, Inventory playerInventory, WarehouseControllerBlockEntity controller) {
         this(containerId, playerInventory, controller, controller.getBlockPos(), controller.upgrades(), controller.wirelessUpgrade(),
-                controller.siteName());
+                controller.siteName(), number(controller));
     }
 
     private WarehouseControllerMenu(int containerId, Inventory playerInventory, WarehouseControllerBlockEntity controller,
-                                    BlockPos pos, ItemSlots upgrades, ItemSlots wireless, String name) {
+                                    BlockPos pos, ItemSlots upgrades, ItemSlots wireless, String name, int number) {
         super(ServusShuttlesMenus.WAREHOUSE_CONTROLLER.get(), containerId);
         this.controller = controller;
         this.player = playerInventory.player;
         this.pos = pos;
         this.name = name;
+        this.number = number;
         this.access = ContainerLevelAccess.create(playerInventory.player.level(), pos);
         this.upgradeSlots = upgrades.getSlots();
         for (int slot = 0; slot < upgradeSlots; slot++) {
@@ -92,8 +94,9 @@ public class WarehouseControllerMenu extends AbstractContainerMenu {
         BlockPos pos = buf.readBlockPos();
         int slots = buf.readVarInt();
         String name = buf.readUtf(64);
+        int number = buf.readVarInt();
         return new WarehouseControllerMenu(containerId, playerInventory, null, pos, new AnchorUpgradeSlots(slots, null),
-                new WirelessUpgradeSlots(null), name);
+                new WirelessUpgradeSlots(null), name, number);
     }
 
     /** What the server writes for {@link #fromNetwork}. */
@@ -101,6 +104,17 @@ public class WarehouseControllerMenu extends AbstractContainerMenu {
         buf.writeBlockPos(controller.getBlockPos());
         buf.writeVarInt(controller.upgrades().getSlots());
         buf.writeUtf(controller.siteName(), 64);
+        buf.writeVarInt(number(controller));
+    }
+
+    /** The number of the controller's warehouse in the world, 0 on the client. */
+    private static int number(WarehouseControllerBlockEntity controller) {
+        return controller.getLevel() instanceof ServerLevel level ? SiteRegistry.of(level).number(controller) : 0;
+    }
+
+    /** The warehouse's number in the world, shown before the name. */
+    public int number() {
+        return number;
     }
 
     public BlockPos pos() {
@@ -198,7 +212,7 @@ public class WarehouseControllerMenu extends AbstractContainerMenu {
         for (var site : SiteRegistry.of(level).ofTeam(team, level.dimension())) {
             if (!site.key().equals(self)) {
                 rows.add(new SiteRow(site.key(), site.name(), RemoteTransfers.state(level, site).ordinal(),
-                        RemoteTransfers.canTrade(level, site)));
+                        RemoteTransfers.canTrade(level, site), site.number()));
             }
         }
         return rows;

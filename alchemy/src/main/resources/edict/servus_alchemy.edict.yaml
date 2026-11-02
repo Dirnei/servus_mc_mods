@@ -1,0 +1,53 @@
+# Edict catalog of the Servus: Alchemy commands (https://edict.leberkas.org/spec).
+# A GameTest checks it against the registered commands; raise the version when commands change.
+edict: "1.0.0"
+slug: dirnei/servus-alchemy
+name: "Servus: Alchemy"
+version: "1.0.0"
+description: "Commands of Servus: Alchemy around Paracelsus' Journal."
+prefix: "/servus "
+license: MIT
+repository: https://github.com/Dirnei/servus_mc_mods
+authors:
+  - name: Dirnei
+tags:
+  - minecraft
+  - neoforge
+  - servus
+commands:
+  alchemy journal:
+    command: alchemy journal
+    description: Lists every open or finished journal chapter of a player's team with each task's progress. Every player may read their own team's journal; naming another player needs operator permission.
+    category: Journal
+    riskLevel: safe
+    remoteExecutable: true
+    params:
+      - name: player
+        type: string
+        description: Player whose team's journal to list. Defaults to you; needed over RCON and the console.
+    examples:
+      - /servus alchemy journal
+      - /servus alchemy journal Alex
+    response:
+      type: text
+      example: "Journal of the team of Alex:\nVillach: open\n  calcine: 40 / 100"
+  alchemy journal finish:
+    command: alchemy journal finish
+    description: Finishes a journal chapter and every unfinished chapter before it for a player's team, and gives every online member of the team the advancements. Needs operator permission.
+    category: Journal
+    riskLevel: moderate
+    remoteExecutable: true
+    params:
+      - name: player
+        type: string
+        required: true
+        description: Player whose team finishes the chapter; @s for yourself.
+      - name: chapter
+        type: string
+        required: true
+        description: Chapter id, such as servus_alchemy:wandering_years.
+    examples:
+      - /servus alchemy journal finish @s servus_alchemy:wandering_years
+    response:
+      type: text
+      example: Wandering years is now finished

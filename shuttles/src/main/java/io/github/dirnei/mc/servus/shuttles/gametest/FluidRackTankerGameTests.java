@@ -11,12 +11,9 @@ import io.github.dirnei.mc.servus.shuttles.zone.ZoneFilter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import net.minecraft.commands.CommandSource;
-import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.material.Fluids;
@@ -108,33 +105,7 @@ public final class FluidRackTankerGameTests {
             FluidRackFixtures.fill(helper, single, Fluids.WATER, 3000);
             FluidRackFixtures.fill(helper, bays[0], Fluids.WATER, 5000);
             Waits.when(helper, () -> water(helper) == 8000, 40, () -> "8000 mB of water in stock, got " + water(helper), () -> {
-                List<String> lines = new ArrayList<>();
-                CommandSource collector = new CommandSource() {
-                    @Override
-                    public void sendSystemMessage(Component message) {
-                        lines.add(message.getString());
-                    }
-
-                    @Override
-                    public boolean acceptsSuccess() {
-                        return true;
-                    }
-
-                    @Override
-                    public boolean acceptsFailure() {
-                        return true;
-                    }
-
-                    @Override
-                    public boolean shouldInformAdmins() {
-                        return false;
-                    }
-                };
-                CommandSourceStack source = helper.getLevel().getServer().createCommandSourceStack().withLevel(helper.getLevel()).withSource(collector);
-                BlockPos at = helper.absolutePos(TankerFixtures.CONTROLLER);
-                helper.getLevel().getServer().getCommands().performPrefixedCommand(source,
-                        "servus_warehouse fluids " + at.getX() + " " + at.getY() + " " + at.getZ());
-                String text = String.join("\n", lines);
+                String text = ShuttlesCommandRuns.console(helper, "fluids " + ShuttlesCommandRuns.number(helper, TankerFixtures.CONTROLLER));
                 helper.assertTrue(text.contains("Water: 8000 mB"), "the total is listed: " + text);
                 helper.assertTrue(text.contains("Fluid Rack shelves:") && text.contains("Water 5000 / 48000 mB"), "the shelf is listed: " + text);
                 helper.succeed();

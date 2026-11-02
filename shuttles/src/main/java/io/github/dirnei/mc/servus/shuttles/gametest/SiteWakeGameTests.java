@@ -285,11 +285,11 @@ public final class SiteWakeGameTests {
         site(helper, team, 1);
         helper.runAfterDelay(3, () -> {
             BlockPos at = helper.absolutePos(CONTROLLER);
-            var source = helper.getLevel().getServer().createCommandSourceStack().withLevel(helper.getLevel()).withSuppressedOutput();
-            helper.getLevel().getServer().getCommands().performPrefixedCommand(source,
-                    "servus_warehouse wake " + at.getX() + " " + at.getY() + " " + at.getZ());
+            int number = ShuttlesCommandRuns.number(helper, CONTROLLER);
+            ShuttlesCommandRuns.console(helper, "wake " + number);
             helper.assertTrue(SiteWakes.isAwake(helper.getLevel().dimension(), at), "the command woke the site");
-            helper.getLevel().getServer().getCommands().performPrefixedCommand(source, "servus_warehouse sites");
+            String listed = ShuttlesCommandRuns.console(helper, "list");
+            helper.assertTrue(listed.contains("W" + number + " "), "the list names W" + number + ": " + listed);
             helper.succeed();
         });
     }

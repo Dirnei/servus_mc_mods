@@ -11,15 +11,17 @@ import net.minecraft.network.codec.StreamCodec;
  * @param key   the site's registry key
  * @param name  the name to show
  * @param state the {@link RemoteSite.State} ordinal
- * @param trade whether its controller is wireless capable, so it can send and receive; its name shows orange otherwise
+ * @param trade  whether its controller is wireless capable, so it can send and receive; its name shows orange otherwise
+ * @param number the warehouse's number in the world, 0 when it has none
  */
-public record SiteRow(String key, String name, int state, boolean trade) {
+public record SiteRow(String key, String name, int state, boolean trade, int number) {
 
     public static final StreamCodec<ByteBuf, SiteRow> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.stringUtf8(256), SiteRow::key,
             ByteBufCodecs.stringUtf8(64), SiteRow::name,
             ByteBufCodecs.VAR_INT, SiteRow::state,
             ByteBufCodecs.BOOL, SiteRow::trade,
+            ByteBufCodecs.VAR_INT, SiteRow::number,
             SiteRow::new);
 
     public RemoteSite.State remoteState() {

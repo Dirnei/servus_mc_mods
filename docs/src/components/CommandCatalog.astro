@@ -1,0 +1,63 @@
+---
+import { commandSections } from '../commands.mjs';
+
+/** Every released mod's commands from its Edict catalog at the release tag, grouped by mod and category. */
+const sections = commandSections();
+const range = (param: { min?: number; max?: number }) => {
+	if (param.min !== undefined && param.max !== undefined) return `${param.min} to ${param.max}`;
+	if (param.min !== undefined) return `${param.min} or more`;
+	return param.max !== undefined ? `up to ${param.max}` : '';
+};
+---
+
+{sections.length === 0 && <p>No released mod ships a command catalog yet.</p>}
+{
+	sections.map((section) => (
+		<section>
+			<h2 id={section.mod}>{section.name} {section.version}</h2>
+			{section.categories.map((category) => (
+				<>
+					<h3 id={`${section.mod}-${category.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`}>{category.name}</h3>
+					{category.commands.map((command) => (
+						<div class="command">
+							<p><code>{command.signature}</code></p>
+							<p>{command.description}</p>
+							<p>
+								Risk: <strong>{command.riskLevel}</strong>. Over RCON: {command.remote ? 'yes' : 'no'}.
+							</p>
+							{command.params.length > 0 && (
+								<table>
+									<thead>
+										<tr>
+											<th>Parameter</th>
+											<th>Type</th>
+											<th>Required</th>
+											<th>Range</th>
+											<th>Default</th>
+											<th>Description</th>
+										</tr>
+									</thead>
+									<tbody>
+										{command.params.map((param) => (
+											<tr>
+												<td><code>{param.name}</code></td>
+												<td>{param.type ?? 'boolean'}</td>
+												<td>{param.required ? 'yes' : 'no'}</td>
+												<td>{range(param)}</td>
+												<td>{param.default === undefined ? '' : String(param.default)}</td>
+												<td>{param.description ?? ''}</td>
+											</tr>
+										))}
+									</tbody>
+								</table>
+							)}
+							{command.examples.length > 0 && (
+								<pre><code>{command.examples.join('\n')}</code></pre>
+							)}
+						</div>
+					))}
+				</>
+			))}
+		</section>
+	))
+}

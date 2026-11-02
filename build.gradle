@@ -154,6 +154,8 @@ subprojects {
         testImplementation platform("org.junit:junit-bom:${rootProject.junit_version}")
         testImplementation 'org.junit.jupiter:junit-jupiter'
         testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+        // The command catalog GameTests read the Edict catalogs; dev runs only, never in a release jar.
+        localRuntime "org.yaml:snakeyaml:2.4"
     }
 
     tasks.named('test', Test).configure {
@@ -231,6 +233,11 @@ if (findProject(':alchemy') != null) dependencies {
     runtimeOnly("dev.ftb.mods:ftb-chunks-neoforge:${ftb_chunks_version}") {
         exclude group: 'dev.ftb.mods', module: 'ftb-backups-3'
     }
+}
+
+dependencies {
+    // The command catalog GameTests of the combined run read the Edict catalogs.
+    runtimeOnly "org.yaml:snakeyaml:2.4"
 }
 
 tasks.named('jar').configure {

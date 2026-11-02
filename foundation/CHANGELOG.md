@@ -7,6 +7,7 @@
 
 ### Changed
 - Item pickers with tag search list tags on `$` instead of `#`, as in JEI; `#` now searches tooltips there.
+- The data move test command is now `/servus foundation data move` and takes an optional dimension, so it also works over RCON in every dimension.
 
 ### Fixed
 - The Fluid Tank, Facade and Hollow Facade recipes are now plain crafting recipes that JEI and the Shuttles terminals can read. JEI shows one Fluid Tank recipe whose floor cell cycles through every allowed block. Datapack or script recipes that copied the old empty `servus_foundation:fluid_tank`, `facade` or `hollow_facade` recipe no longer load.

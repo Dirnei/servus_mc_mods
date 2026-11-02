@@ -4,9 +4,11 @@
 
 ### Added
 - The Storage Terminal, its Rules tab, the Handheld STOCK list and the Claim an export picker search with JEI's syntax, so `@mod`, `$tag`, `#tooltip`, `%tab` and `&id` work there, and the terminal's search means the same as in JEI when synced.
+- Every warehouse has a number in the world (W1, W2, ...), shown before its name in the Warehouse Controller GUI and its site list. The number stays when the controller is moved with the Configuration Carrot.
 
 ### Changed
 - Tags in the Handheld's zone filter picker are now listed with `$` instead of `#`. Picked tags still show as `#c:ores`, and zones keep their filters.
+- The operator commands moved to `/servus shuttles` and name a warehouse by its number and a machine by its kind and number, or `here` for what you look at, in every dimension and over RCON. New: `list`, `machines`, `machine` and `move`.
 
 ### Fixed
 - JEI's transfer button fills the Storage Terminal's order grid and the Production Terminal's pattern editor for the Fluid Tank, the Facade examples and the Hollow Facade examples, and for any crafting recipe that only JEI knows.

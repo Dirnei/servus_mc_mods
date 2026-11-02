@@ -1,0 +1,305 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://edict.dev/schema/catalog.schema.json",
+  "title": "Edict Catalog",
+  "description": "Schema for an Edict command catalog",
+  "type": "object",
+  "required": ["edict", "slug", "name", "version", "commands"],
+  "additionalProperties": false,
+  "properties": {
+    "edict": {
+      "type": "string",
+      "enum": ["1.0.0"],
+      "description": "Edict specification version this catalog conforms to"
+    },
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*/[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "Namespaced identifier in the format owner/catalog (e.g. my-org/my-catalog)"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Human-readable name of the catalog"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semantic version of the catalog"
+    },
+    "description": {
+      "type": "string",
+      "description": "Optional description of the catalog"
+    },
+    "prefix": {
+      "type": "string",
+      "description": "Global command prefix prepended to all commands (e.g. '/' for RCON, 'docker' for CLI tools)"
+    },
+    "license": {
+      "type": "string",
+      "description": "SPDX license identifier or 'proprietary' (e.g. 'MIT', 'Apache-2.0', 'proprietary')"
+    },
+    "authors": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/author"
+      },
+      "minItems": 1,
+      "description": "Catalog authors or maintainers"
+    },
+    "repository": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL to the source repository"
+    },
+    "website": {
+      "type": "string",
+      "format": "uri",
+      "description": "Optional website URL for the catalog"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true,
+      "description": "Optional array of unique tags"
+    },
+    "commands": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "$ref": "#/$defs/command"
+      },
+      "description": "Map of command key to command definition"
+    }
+  },
+  "$defs": {
+    "author": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Author name"
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Author email address"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Author website or profile URL"
+        }
+      }
+    },
+    "command": {
+      "type": "object",
+      "required": ["command", "description", "category", "riskLevel"],
+      "additionalProperties": false,
+      "properties": {
+        "command": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The raw command string sent to the server (e.g. 'SaveWorld', 'setaccesslevel')"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Description of what the command does"
+        },
+        "category": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Category grouping for the command"
+        },
+        "riskLevel": {
+          "type": "string",
+          "enum": ["safe", "moderate", "dangerous", "destructive"],
+          "description": "Risk level of executing this command"
+        },
+        "prefix": {
+          "type": "string",
+          "description": "Command-level prefix override (e.g. '!' when global prefix is '/')"
+        },
+        "remoteExecutable": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether this command can be executed remotely"
+        },
+        "aliases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Alternative command names (e.g. ['images'] for 'image ls')"
+        },
+        "params": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/param"
+          },
+          "description": "Parameters for this command"
+        },
+        "subcommands": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/subcommand"
+          },
+          "description": "Child commands (e.g. 'up', 'down' under 'compose'). Parent params are shared."
+        },
+        "examples": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Example command invocations showing different usage patterns"
+        },
+        "response": {
+          "$ref": "#/$defs/response",
+          "description": "Expected response from this command (for commands without subcommands)"
+        }
+      }
+    },
+    "subcommand": {
+      "type": "object",
+      "required": ["command", "description"],
+      "additionalProperties": false,
+      "properties": {
+        "command": {
+          "type": "string",
+          "minLength": 1,
+          "description": "The raw subcommand string sent to the server"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Description of what this subcommand does"
+        },
+        "riskLevel": {
+          "type": "string",
+          "enum": ["safe", "moderate", "dangerous", "destructive"],
+          "description": "Risk level (overrides parent command)"
+        },
+        "prefix": {
+          "type": "string",
+          "description": "Subcommand-level prefix override"
+        },
+        "aliases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Alternative subcommand names (e.g. ['list'] for 'ls')"
+        },
+        "params": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/param"
+          },
+          "description": "Parameters specific to this subcommand"
+        },
+        "examples": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Example subcommand invocations showing different usage patterns"
+        },
+        "response": {
+          "$ref": "#/$defs/response",
+          "description": "Expected response from this subcommand"
+        }
+      }
+    },
+    "param": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Parameter name"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["string", "number", "integer", "boolean", "enum"],
+          "description": "Parameter type. Defaults to 'boolean' for flags, 'string' otherwise. Not needed for flags."
+        },
+        "kind": {
+          "type": "string",
+          "enum": ["positional", "named", "flag"],
+          "default": "positional",
+          "description": "How the parameter is passed: positional (by position), named (--name value), or flag (--name, boolean)"
+        },
+        "short": {
+          "type": "string",
+          "pattern": "^[a-zA-Z]$",
+          "description": "Single-character short form (e.g. 'd' for -d as shorthand for --detach)"
+        },
+        "deprecated": {
+          "type": "string",
+          "description": "Deprecation message (e.g. 'use --help instead'). Param still works but should not be used."
+        },
+        "required": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether this parameter is required"
+        },
+        "description": {
+          "type": "string",
+          "description": "Optional description of the parameter"
+        },
+        "default": {
+          "description": "Optional default value for the parameter"
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "description": "Allowed values for enum type parameters"
+        },
+        "min": {
+          "type": "number",
+          "description": "Optional minimum value for numeric parameters"
+        },
+        "max": {
+          "type": "number",
+          "description": "Optional maximum value for numeric parameters"
+        }
+      },
+      "if": {
+        "not": {
+          "properties": { "kind": { "const": "flag" } },
+          "required": ["kind"]
+        }
+      },
+      "then": {
+        "required": ["type"]
+      }
+    },
+    "response": {
+      "type": "object",
+      "required": ["type"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["text", "structured", "none"],
+          "description": "Type of response returned by this command"
+        },
+        "example": {
+          "type": "string",
+          "description": "Optional example of the response"
+        }
+      }
+    }
+  }
+}

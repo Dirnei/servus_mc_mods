@@ -17,6 +17,7 @@ import java.util.Set;
 import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.resources.ResourceKey;
@@ -33,6 +34,7 @@ public final class SiteRegistry extends SavedData {
             (s, tag, registries) -> s.save(tag, registries));
 
     private final Map<String, SiteRecord> sites = new LinkedHashMap<>();
+    private final WarehouseNumbers numbers = new WarehouseNumbers();
 
     public static SiteRegistry get(MinecraftServer server) {
         return server.overworld().getDataStorage().computeIfAbsent(FACTORY);
@@ -48,6 +50,16 @@ public final class SiteRegistry extends SavedData {
 
     public Optional<SiteRecord> site(String key) {
         return Optional.ofNullable(sites.get(key));
+    }
+
+    /** The site of the warehouse with that number. */
+    public Optional<SiteRecord> byNumber(int number) {
+        return sites.values().stream().filter(site -> site.number == number).findFirst();
+    }
+
+    /** The number of the controller's warehouse, recording the site first when it has no record yet. */
+    public int number(WarehouseControllerBlockEntity controller) {
+        return update(controller).number;
     }
 
     /** Every site, sorted by name. */
@@ -74,6 +86,12 @@ public final class SiteRegistry extends SavedData {
         UUID team = controller.team().orElse(null);
         Set<Long> span = new LinkedHashSet<>(controller.span());
         int upgrades = controller.upgrades().count();
+        UUID id = controller.warehouseId();
+        if (!id.equals(record.warehouse)) {
+            record.number = numbers.numberOf(id, record.warehouse == null ? record.number : 0);
+            record.warehouse = id;
+            setDirty();
+        }
         if (!name.equals(record.name) || !Objects.equals(team, record.team) || !span.equals(record.span) || upgrades != record.upgrades) {
             record.name = name;
             record.team = team;
@@ -150,6 +168,7 @@ public final class SiteRegistry extends SavedData {
         record.upgrade = upgrade;
         record.powered = powered;
         record.packing = packing;
+        record.number = numbers.next();
         sites.put(record.key(), record);
         setDirty();
         return record;
@@ -170,13 +189,50 @@ public final class SiteRegistry extends SavedData {
                 registry.sites.put(record.key(), record);
             }
         }
+        Map<UUID, Integer> known = new LinkedHashMap<>();
+        ListTag numbered = tag.getListOrEmpty("Numbers");
+        for (int i = 0; i < numbered.size(); i++) {
+            CompoundTag entry = numbered.getCompoundOrEmpty(i);
+            entry.read("Id", UUIDUtil.CODEC).ifPresent(id -> known.put(id, entry.getIntOr("Number", 0)));
+        }
+        registry.numbers.load(known, tag.getIntOr("LastNumber", 0));
+        registry.sites.values().forEach(record -> registry.numbers.reserve(record.number));
+        registry.numberOldRecords();
         return registry;
+    }
+
+    /** Gives the records of a save from before warehouse numbers a number each, in position order. */
+    private void numberOldRecords() {
+        List<SiteRecord> unnumbered = sites.values().stream().filter(record -> record.number <= 0).toList();
+        if (unnumbered.isEmpty()) {
+            return;
+        }
+        List<WarehouseNumbers.Place> places = unnumbered.stream().map(record -> new WarehouseNumbers.Place(
+                record.dimension().identifier().toString(), record.pos().getX(), record.pos().getY(), record.pos().getZ())).toList();
+        int[] given = numbers.numberInOrder(places);
+        for (int i = 0; i < given.length; i++) {
+            SiteRecord record = unnumbered.get(i);
+            record.number = given[i];
+            if (record.warehouse != null) {
+                numbers.numberOf(record.warehouse, record.number);
+            }
+        }
+        setDirty();
     }
 
     public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
         ListTag list = new ListTag();
         sites.values().forEach(record -> list.add(record.save(registries)));
         tag.put("Sites", list);
+        ListTag numbered = new ListTag();
+        numbers.all().forEach((id, number) -> {
+            CompoundTag entry = new CompoundTag();
+            entry.store("Id", UUIDUtil.CODEC, id);
+            entry.putInt("Number", number);
+            numbered.add(entry);
+        });
+        tag.put("Numbers", numbered);
+        tag.putInt("LastNumber", numbers.last());
         return tag;
     }
 }

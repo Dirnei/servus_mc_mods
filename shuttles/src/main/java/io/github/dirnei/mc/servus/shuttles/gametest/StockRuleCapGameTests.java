@@ -18,17 +18,12 @@ import io.github.dirnei.mc.servus.shuttles.order.StockRule;
 import io.github.dirnei.mc.servus.shuttles.order.StockRules;
 import io.github.dirnei.mc.servus.shuttles.station.InboundStationBlockEntity;
 import io.github.dirnei.mc.servus.shuttles.terminal.RuleRow;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.IntSupplier;
-import net.minecraft.commands.CommandSource;
-import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -317,35 +312,10 @@ public final class StockRuleCapGameTests {
         });
     }
 
-    /** Runs a {@code /servus_warehouse} command at the warehouse's controller and returns what it said. */
+    /** Runs a {@code /servus shuttles} command with {@code @} standing for the warehouse's number and returns what it said. */
     private static String command(GameTestHelper helper, String command) {
-        List<String> lines = new ArrayList<>();
-        CommandSource collector = new CommandSource() {
-            @Override
-            public void sendSystemMessage(Component message) {
-                lines.add(message.getString());
-            }
-
-            @Override
-            public boolean acceptsSuccess() {
-                return true;
-            }
-
-            @Override
-            public boolean acceptsFailure() {
-                return true;
-            }
-
-            @Override
-            public boolean shouldInformAdmins() {
-                return false;
-            }
-        };
-        CommandSourceStack source = helper.getLevel().getServer().createCommandSourceStack().withLevel(helper.getLevel()).withSource(collector);
-        BlockPos at = helper.absolutePos(ORIGIN.east(2).north());
-        helper.getLevel().getServer().getCommands().performPrefixedCommand(source,
-                "servus_warehouse " + command.replace("@", at.getX() + " " + at.getY() + " " + at.getZ()));
-        return String.join("\n", lines);
+        int number = ShuttlesCommandRuns.number(helper, ORIGIN.east(2).north());
+        return ShuttlesCommandRuns.console(helper, command.replace("@", String.valueOf(number)));
     }
 
     /** The cap command sets a cap only rule that the rules command lists, uncap removes it, and a cap below the maximum fails. */

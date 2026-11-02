@@ -17,6 +17,7 @@ import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesComponents;
 import io.github.dirnei.mc.servus.shuttles.registry.ServusShuttlesItems;
 import io.github.dirnei.mc.servus.shuttles.site.SiteCapacity;
 import io.github.dirnei.mc.servus.shuttles.site.SiteChunks;
+import io.github.dirnei.mc.servus.shuttles.site.SiteRegistry;
 import io.github.dirnei.mc.servus.shuttles.stats.ShuttlesStatsManager;
 import java.util.List;
 import java.util.Set;
@@ -218,6 +219,41 @@ public final class ControllerSiteGameTests {
         helper.assertTrue(placed.rules().get(ItemKey.of(new ItemStack(Items.STICK))) != null, "the rules travel");
         helper.assertTrue(placed.upgrades().count() == 0, "the item carries no upgrades");
         helper.assertTrue(placed.span().equals(Set.of(placed.homeChunk())), "the span starts over at the new place, was " + placed.span());
+        helper.succeed();
+    }
+
+    /**
+     * Two new warehouses get consecutive numbers; the carrot moved one keeps its number, a broken
+     * and placed again one gets a new number never given before.
+     */
+    @ServusGameTest(template = WIDE, timeoutTicks = 40)
+    public static void warehouseNumbersFollowTheIdentity(GameTestHelper helper) {
+        SiteRegistry registry = SiteRegistry.of(helper.getLevel());
+        WarehouseControllerBlockEntity first = WarehouseFixtures.controller(helper, new BlockPos(2, 1, ROW_Z));
+        WarehouseControllerBlockEntity second = WarehouseFixtures.controller(helper, new BlockPos(6, 1, ROW_Z));
+        int one = registry.number(first);
+        int two = registry.number(second);
+        helper.assertTrue(one > 0 && two == one + 1, "new warehouses are numbered in turn, got " + one + " and " + two);
+        WarehouseControllerMenu menu = new WarehouseControllerMenu(1, helper.makeMockPlayer(GameType.SURVIVAL).getInventory(), second);
+        helper.assertTrue(menu.number() == two, "the GUI gets the number, got " + menu.number());
+
+        Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+        player.setShiftKeyDown(true);
+        BlockPos at = new BlockPos(6, 1, ROW_Z);
+        GameTestSteps.useCarrot(helper, player, at, Direction.NORTH);
+        ItemStack item = GameTestSteps.drops(helper, at, 1).stream().map(ItemEntity::getItem)
+                .filter(stack -> stack.is(ServusShuttlesItems.WAREHOUSE_CONTROLLER.get())).findFirst().orElseThrow().copy();
+        GameTestSteps.drops(helper, at, 1).forEach(ItemEntity::discard);
+        WarehouseControllerBlockEntity moved = WarehouseFixtures.placeController(helper, new BlockPos(10, 1, ROW_Z), player, item);
+        helper.assertTrue(registry.number(moved) == two, "the carrot moved warehouse keeps W" + two + ", got W" + registry.number(moved));
+        helper.assertTrue(registry.byNumber(two).map(site -> site.pos().equals(moved.getBlockPos())).orElse(false),
+                "the number finds the moved warehouse");
+
+        helper.destroyBlock(new BlockPos(10, 1, ROW_Z));
+        WarehouseControllerBlockEntity rebuilt = WarehouseFixtures.controller(helper, new BlockPos(10, 1, ROW_Z));
+        int three = registry.number(rebuilt);
+        helper.assertTrue(three > two, "a broken warehouse comes back with a new number, got W" + three);
+        helper.assertTrue(registry.byNumber(two).isEmpty(), "no warehouse is W" + two + " any more");
         helper.succeed();
     }
 

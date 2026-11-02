@@ -44,6 +44,7 @@ export default defineConfig({
 						{ slug: 'developers/machine-adapter' },
 					],
 				},
+				{ label: 'Reference', items: [{ slug: 'reference/commands' }] },
 				{ label: 'Datapack reference', items: [{ autogenerate: { directory: 'reference/datapack' } }] },
 			],
 		}),

@@ -191,7 +191,7 @@ public final class DataPacketGameTests {
             BlockPos to = helper.absolutePos(SOURCE);
             CommandSourceStack source = helper.getLevel().getServer().createCommandSourceStack()
                     .withLevel(helper.getLevel()).withPermission(LevelBasedPermissionSet.OWNER).withSuppressedOutput();
-            String command = "servus_foundation data move %d %d %d %d %d %d minecraft:stick 8"
+            String command = "servus foundation data move %d %d %d %d %d %d minecraft:stick 8"
                     .formatted(from.getX(), from.getY(), from.getZ(), to.getX(), to.getY(), to.getZ());
             helper.getLevel().getServer().getCommands().performPrefixedCommand(source, command);
             helper.succeedWhen(() -> helper.assertTrue(WarehouseFixtures.count(setup.terminal().input(), Items.STICK) == 8,

@@ -73,7 +73,8 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
             nameEditor = new TitleNameEditor(SiteName.clean(menu.name()),
                     Component.literal(SiteName.display("", menu.pos().getX(), menu.pos().getZ())),
                     Component.translatable("gui.servus_shuttles.controller.name"), SiteName.MAX_LENGTH, SiteName::clean,
-                    typed -> ClientPacketDistributor.sendToServer(new RenameSitePayload(typed)), this::setFocused);
+                    typed -> ClientPacketDistributor.sendToServer(new RenameSitePayload(typed)), this::setFocused)
+                    .withPrefix(numbered("", menu.number()));
         }
         addRenderableWidget(nameEditor.createBox(font));
         addRenderableWidget(nameEditor.createButton());
@@ -254,9 +255,14 @@ public class WarehouseControllerScreen extends AbstractContainerScreen<Warehouse
                 case UNREACHABLE -> 0xFFC03030;
             };
             graphics.fill(left + 6, y + 1, left + 12, y + 7, mark);
-            String siteName = font.plainSubstrByWidth(site.name(), SITE_NAME_RIGHT - 15);
+            String siteName = font.plainSubstrByWidth(numbered(site.name(), site.number()), SITE_NAME_RIGHT - 15);
             graphics.text(font, siteName, left + 15, y, site.trade() ? COLOUR_TEXT : COLOUR_NO_TRADE, false);
         }
+    }
+
+    /** "W3 Farm": the warehouse number before the text, the text alone while the warehouse has no number. */
+    private static String numbered(String text, int number) {
+        return number > 0 ? "W" + number + " " + text : text;
     }
 
     private SiteRow siteUnder(int mouseX, int mouseY, SiteStatusPayload status) {

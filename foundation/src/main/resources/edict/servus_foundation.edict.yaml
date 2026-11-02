@@ -1,0 +1,50 @@
+# Edict catalog of the Servus: Foundation commands (https://edict.leberkas.org/spec).
+# A GameTest checks it against the registered commands; raise the version when commands change.
+edict: "1.0.0"
+slug: dirnei/servus-foundation
+name: "Servus: Foundation"
+version: "1.0.0"
+description: "Operator commands of Servus: Foundation. All commands need operator permission."
+prefix: "/servus "
+license: MIT
+repository: https://github.com/Dirnei/servus_mc_mods
+authors:
+  - name: Dirnei
+tags:
+  - minecraft
+  - neoforge
+  - servus
+commands:
+  foundation data move:
+    command: foundation data move
+    description: Starts a data line move of items between two members of one data line and reports the delivery id, or why it failed. A tool to check that a block joins the data line correctly.
+    category: Data line
+    riskLevel: moderate
+    remoteExecutable: true
+    params:
+      - name: from
+        type: string
+        required: true
+        description: Block position x y z of the member the items leave.
+      - name: to
+        type: string
+        required: true
+        description: Block position x y z of the member the items go to.
+      - name: item
+        type: string
+        required: true
+        description: Item id, such as minecraft:stick.
+      - name: count
+        type: integer
+        required: true
+        min: 1
+        description: How many to move.
+      - name: dimension
+        type: string
+        description: Dimension of both positions, such as minecraft:the_nether. Defaults to your own dimension, or the Overworld over RCON and the console.
+    examples:
+      - /servus foundation data move 10 64 20 14 64 20 minecraft:stick 8
+      - /servus foundation data move 10 64 20 14 64 20 minecraft:stick 8 minecraft:the_nether
+    response:
+      type: text
+      example: "Delivery 12 started: 8 Stick"

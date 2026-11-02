@@ -516,6 +516,10 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
     protected void applyImplicitComponents(DataComponentGetter input) {
         super.applyImplicitComponents(input);
         materialSlot.apply(input.get(MaterialContent.MATERIAL.get()));
+        UUID id = input.get(ServusShuttlesComponents.WAREHOUSE_ID.get());
+        if (id != null) {
+            warehouseId = id;
+        }
         String name = input.get(ServusShuttlesComponents.SITE_NAME.get());
         if (name != null) {
             setSiteName(name);
@@ -523,10 +527,6 @@ public class WarehouseControllerBlockEntity extends StorageNodeBlockEntity imple
         Integer carried = input.get(ServusShuttlesComponents.CONTROLLER_ENERGY.get());
         if (carried != null) {
             energy.setStored(carried);
-        }
-        UUID id = input.get(ServusShuttlesComponents.WAREHOUSE_ID.get());
-        if (id != null) {
-            warehouseId = id;
         }
         Map<String, Integer> counters = input.get(ServusShuttlesComponents.MACHINE_COUNTERS.get());
         if (counters != null) {

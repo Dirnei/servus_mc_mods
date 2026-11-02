@@ -41,6 +41,10 @@ public final class SiteRecord {
     int energy;
     /** Game time of the last stock report. */
     long lastSeen;
+    /** The identity of the warehouse whose controller stands here, null until its controller reported it. */
+    UUID warehouse;
+    /** The warehouse's number in the world, 0 until it has one. */
+    int number;
 
     public SiteRecord(ResourceKey<Level> dimension, BlockPos pos) {
         this.dimension = dimension;
@@ -116,6 +120,11 @@ public final class SiteRecord {
         return upgrade && powered;
     }
 
+    /** The warehouse's number in the world: W1, W2, ... */
+    public int number() {
+        return number;
+    }
+
     /** FE the controller held when last seen; a sleeping controller neither gains nor spends any. */
     public int energy() {
         return energy;
@@ -144,6 +153,10 @@ public final class SiteRecord {
         tag.putBoolean("Powered", powered);
         tag.putBoolean("Packing", packing);
         tag.putInt("Energy", energy);
+        if (warehouse != null) {
+            tag.store("Warehouse", UUIDUtil.CODEC, warehouse);
+        }
+        tag.putInt("Number", number);
         return tag;
     }
 
@@ -164,6 +177,8 @@ public final class SiteRecord {
         record.powered = tag.getBooleanOr("Powered", false);
         record.packing = tag.getBooleanOr("Packing", false);
         record.energy = Math.max(0, tag.getIntOr("Energy", 0));
+        record.warehouse = tag.read("Warehouse", UUIDUtil.CODEC).orElse(null);
+        record.number = Math.max(0, tag.getIntOr("Number", 0));
         ListTag items = tag.getListOrEmpty("Stock");
         for (int i = 0; i < items.size(); i++) {
             CompoundTag entry = items.getCompoundOrEmpty(i);

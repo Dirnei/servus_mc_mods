@@ -101,7 +101,7 @@ public final class RemoteTransfers {
         List<SiteRow> rows = new ArrayList<>();
         for (SiteRecord site : SiteRegistry.of(level).ofTeam(team, level.dimension())) {
             if (!local.contains(site.key()) && site.hasUpgrade()) {
-                rows.add(new SiteRow(site.key(), site.name(), state(level, site).ordinal(), canTrade(level, site)));
+                rows.add(new SiteRow(site.key(), site.name(), state(level, site).ordinal(), canTrade(level, site), site.number()));
             }
         }
         return rows;

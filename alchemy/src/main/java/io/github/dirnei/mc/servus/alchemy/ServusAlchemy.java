@@ -4,6 +4,7 @@ import io.github.dirnei.mc.servus.alchemy.registry.ServusAlchemyMachineKinds;
 import io.github.dirnei.mc.servus.alchemy.PrincipleFluids;
 import io.github.dirnei.mc.servus.alchemy.gametest.AlchemyGameTests;
 import io.github.dirnei.mc.servus.alchemy.gametest.CalcinerGameTests;
+import io.github.dirnei.mc.servus.alchemy.gametest.CommandCatalogGameTests;
 import io.github.dirnei.mc.servus.alchemy.gametest.CoagulatorGameTests;
 import io.github.dirnei.mc.servus.alchemy.gametest.MachineNameGameTests;
 import io.github.dirnei.mc.servus.alchemy.gametest.GameTestRecipes;
@@ -65,7 +66,7 @@ public final class ServusAlchemy {
                 AlchemyGameTests.class, CalcinerGameTests.class, PurifierGameTests.class, CoagulatorGameTests.class, HollowGameTests.class,
                 DropperGameTests.class, SalamanderGameTests.class, ForgeGameTests.class,
                 HomunculusGameTests.class, PrelumGameTests.class, HintGameTests.class, GnomeGameTests.class, RitualGameTests.class,
-                MachineNameGameTests.class, VenterGameTests.class));
+                MachineNameGameTests.class, VenterGameTests.class, CommandCatalogGameTests.class));
         GameTestRecipes.registerWhenTesting();
         ServusRecipes.syncToClients(ServusAlchemyRecipes.CALCINATION);
         ServusRecipes.syncToClients(ServusAlchemyRecipes.COAGULATION);

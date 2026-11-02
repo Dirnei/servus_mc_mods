@@ -39,6 +39,7 @@ public final class TitleNameEditor {
     private final Component boxName;
 
     private String sentName;
+    private String prefix = "";
     private boolean editing;
     private EditBox box;
     private EditButton button;
@@ -63,6 +64,12 @@ public final class TitleNameEditor {
         this.clean = clean;
         this.send = send;
         this.focus = focus;
+    }
+
+    /** Text shown before the name in the title, such as "W1 "; never part of the name or the text box. */
+    public TitleNameEditor withPrefix(String prefix) {
+        this.prefix = prefix;
+        return this;
     }
 
     /** Makes the text box and the button for a screen's {@code init}; the screen adds both as renderable widgets. */
@@ -221,7 +228,8 @@ public final class TitleNameEditor {
     }
 
     private Component shownTitle() {
-        return sentName.isEmpty() ? placeholder : Component.literal(sentName);
+        Component name = sentName.isEmpty() ? placeholder : Component.literal(sentName);
+        return prefix.isEmpty() ? name : Component.literal(prefix).append(name);
     }
 
     /** The small framed button of the title row: a pencil to rename, a green check to save. */
