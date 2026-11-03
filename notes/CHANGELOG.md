@@ -1,6 +1,6 @@
 # Servus: Notes changelog
 
-## Unreleased
+## 0.1.0
 
 ### Added
 - A notebook opened with N, no item needed: projects, their tasks and a page per task, in a leather bound book.
