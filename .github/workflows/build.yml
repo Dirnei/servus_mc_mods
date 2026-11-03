@@ -36,4 +36,5 @@ jobs:
             shuttles/build/libs/*.jar
             delicacies/build/libs/*.jar
             brewery/build/libs/*.jar
+            notes/build/libs/*.jar
           if-no-files-found: error

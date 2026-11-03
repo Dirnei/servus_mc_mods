@@ -4,11 +4,11 @@ Project: Servus mod family for Minecraft 26.1.2 on NeoForge (target pack ATM11).
 
 ## Stack
 - Java 25, Minecraft 26.1.2, NeoForge 26.1.2.x, ModDevGradle, Mojang's official names (26.1 is unobfuscated, no Parchment)
-- Multi project Gradle repo: `foundation`, `alchemy`, `shuttles`, `delicacies`, `brewery`
-- Mod IDs: `servus_foundation`, `servus_alchemy`, `servus_shuttles`, `servus_delicacies`, `servus_brewery`
+- Multi project Gradle repo: `foundation`, `alchemy`, `shuttles`, `delicacies`, `brewery`, `notes`
+- Mod IDs: `servus_foundation`, `servus_alchemy`, `servus_shuttles`, `servus_delicacies`, `servus_brewery`, `servus_notes`
 
 ## Rules
-- Every mod depends on `servus_foundation` (API plus the Utility Duct, Fluid Tank and tools). Alchemy, Shuttles and Delicacies depend on nothing else and never on each other. Brewery depends on Foundation and Delicacies only.
+- Every mod depends on `servus_foundation` (API plus the Utility Duct, Fluid Tank and tools), except Servus: Notes, which depends on no Servus mod so any pack can use it. Alchemy, Shuttles and Delicacies depend on nothing else and never on each other. Brewery depends on Foundation and Delicacies only.
 - World, block entity and capability access only on the server thread.
 - Networks use the mailbox pattern: events queued, drained once per server tick. No Akka, no Pekko.
 - Never scan blocks every tick. React to placement and removal events.

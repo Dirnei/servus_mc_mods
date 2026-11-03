@@ -17,6 +17,7 @@ NeoForge mods for Minecraft 26.1.2.
 | <img src="branding/shuttles.png" width="40"> | **Servus: Shuttles** | A warehouse run by shuttles on rails: storage, autocrafting, field farming and outposts. | [![shuttles](https://img.shields.io/github/v/tag/Dirnei/servus_mc_mods?filter=shuttles-v*&sort=semver&include_prereleases&label=)](https://github.com/Dirnei/servus_mc_mods/releases?q=shuttles-v) |
 | <img src="branding/delicacies.png" width="40"> | **Servus: Delicacies** | An alcohol free Bavarian kitchen: Pretzels, dumplings, roast pork and a tiled stove. | not released yet |
 | <img src="branding/brewery.png" width="40"> | **Servus: Brewery** | Bavarian beer from the field to the glass: barley, hops, a brewhouse and casks. Needs Delicacies. | not released yet |
+| | **Servus: Notes** | In-game todo lists for yourself, your team and your server. Needs no other Servus mod. | not released yet |
 
 ## Build
 

@@ -12,6 +12,7 @@ name: Release
 #   variable CURSEFORGE_ID_SHUTTLES
 #   variable CURSEFORGE_ID_DELICACIES
 #   variable CURSEFORGE_ID_BREWERY
+#   variable CURSEFORGE_ID_NOTES
 
 on:
   push:
@@ -21,6 +22,7 @@ on:
       - 'shuttles-v*'
       - 'delicacies-v*'
       - 'brewery-v*'
+      - 'notes-v*'
 
 permissions:
   contents: write
@@ -45,6 +47,7 @@ jobs:
           ID_SHUTTLES: ${{ vars.CURSEFORGE_ID_SHUTTLES }}
           ID_DELICACIES: ${{ vars.CURSEFORGE_ID_DELICACIES }}
           ID_BREWERY: ${{ vars.CURSEFORGE_ID_BREWERY }}
+          ID_NOTES: ${{ vars.CURSEFORGE_ID_NOTES }}
         run: |
           mod="${TAG%%-v*}"
           version="${TAG#*-v}"
@@ -55,6 +58,7 @@ jobs:
           esac
           case "$mod" in
             foundation) cf_id="$ID_FOUNDATION"; deps="" ;;
+            notes) cf_id="$ID_NOTES"; deps="" ;;
             alchemy) cf_id="$ID_ALCHEMY"; deps="servus_foundation(required){curseforge:$ID_FOUNDATION}" ;;
             shuttles) cf_id="$ID_SHUTTLES"; deps="servus_foundation(required){curseforge:$ID_FOUNDATION}" ;;
             delicacies) cf_id="$ID_DELICACIES"; deps="servus_foundation(required){curseforge:$ID_FOUNDATION}" ;;

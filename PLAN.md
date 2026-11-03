@@ -9,8 +9,9 @@ A family of NeoForge mods for Minecraft 26.1.2, built to fit packs like ATM11 bu
 | Servus: Shuttles | `servus_shuttles` | An automated warehouse run by shuttles on rails: storage, autocrafting, field farming and outposts |
 | Servus: Delicacies | `servus_delicacies` | An alcohol free Bavarian kitchen: own crops, the Tiled Stove, Pretzels, dumplings, roast pork and plated meals |
 | Servus: Brewery | `servus_brewery` | Beer: barley and hops, the Brewhouse, malting, fermenting and casks, and the Rausch |
+| Servus: Notes | `servus_notes` | In-game todo lists for yourself, your team and your server, in a notebook opened by a key |
 
-Every mod depends on Servus: Foundation. Alchemy, Shuttles and Delicacies depend on nothing else and never on each other. Brewery depends on Foundation and Delicacies (it reuses the kitchen's firebox) and is a mod of its own so packs can leave alcohol out. When several mods are installed, extra features light up through the Foundation API.
+Every mod depends on Servus: Foundation. Alchemy, Shuttles and Delicacies depend on nothing else and never on each other. Brewery depends on Foundation and Delicacies (it reuses the kitchen's firebox) and is a mod of its own so packs can leave alcohol out. Servus: Notes is the exception: it depends on no Servus mod, so any pack can use it. When several mods are installed, extra features light up through the Foundation API.
 
 ---
 
@@ -40,6 +41,7 @@ servus_mc_mods/
   shuttles/                 servus_shuttles
   delicacies/               servus_delicacies
   brewery/                  servus_brewery
+  notes/                    servus_notes (no Foundation)
     gradle.properties       mod id and name
     build.gradle            dependencies and loaded mods
     src/main/java           mod code
@@ -49,7 +51,7 @@ servus_mc_mods/
     runs/                   game directories per run config, gitignored
 ```
 
-Repository: `github.com/Dirnei/servus_mc_mods`. Group id `io.github.dirnei.mc.servus`. Base package `io.github.dirnei.mc.servus`, with one subpackage per mod: `foundation`, `alchemy`, `shuttles`, `delicacies`, `brewery`. Inside Foundation the API packages sit directly under `foundation` and the duct, tank and facade content under `foundation.logistics`. License: MIT.
+Repository: `github.com/Dirnei/servus_mc_mods`. Group id `io.github.dirnei.mc.servus`. Base package `io.github.dirnei.mc.servus`, with one subpackage per mod: `foundation`, `alchemy`, `shuttles`, `delicacies`, `brewery`, `notes`. Inside Foundation the API packages sit directly under `foundation` and the duct, tank and facade content under `foundation.logistics`. License: MIT.
 
 ---
 
@@ -125,6 +127,16 @@ The base mod every Servus mod builds on: the shared API, the Configuration Carro
 - **Drinks** only in half litre glasses: Helles, Dunkles and Weissbier. Drinking gives the empty glass back; it is refilled at the Cask tap.
 - **Rausch:** a hidden counter per player that rises per drink and decays over time, from Tipsy to Plastered with luck, armor and growing clumsiness, and a hangover the next morning that the Hair of the Dog cures. A config switch turns the screen wobble off.
 - Recipes, effects and Rausch levels are **datapack driven**.
+
+### 2.7 Servus: Notes
+
+**Core idea:** the todo list players keep wishing for when they play together, inside the game.
+
+- **Standalone:** no Foundation and no other Servus mod, so any pack can carry it. Servus features (Shuttles stock counts) join later only as soft integrations.
+- **A notebook, no item:** a key opens a leather bound book: projects, a project's tasks, a task's details, with paper tabs Mine, Shared, Team, Server.
+- **Scopes:** every project is Private, Team (an FTB Teams party, optional dependency) or Server, plus guests with edit or read. The owner always edits and shares; anyone who sees a list may tick tasks, and who and when is recorded.
+- **Tasks that know the game:** item goals with a shared count and "you carry" from the own inventory, coordinates with a beam.
+- **HUD pin:** one project on the HUD in the vanilla look, and toasts when a teammate ticks something.
 
 ---
 
@@ -231,6 +243,15 @@ Decided in the explore of 2026-10-20. Foundation parts first, then the kitchen:
 - Fluid Inbound and Fluid Outbound stations join machine names (`NamedMachine`) once M13 builds them.
 - Renaming machines without a GUI (Crafting CPU, Athanor): a Name Tag on the block or a later GUI.
 - A carrot dismantle for the Field Head that keeps its number, name and settings; today a moved Field Head is numbered again and loses its name.
+
+### Open: M16 Notes
+
+- A board block that shows a project in the world.
+- A Project Crate that counts goal items put into it.
+- Shuttles stock counts for goals as a soft integration.
+- Importing a JEI recipe's ingredients as goals.
+- An op command to inspect any project.
+- Toasts and Team projects are only tested alone; check them with a second player on a server.
 
 ### Open: M13 Fluid logistics
 
