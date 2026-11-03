@@ -58,7 +58,7 @@ jobs:
           esac
           case "$mod" in
             foundation) cf_id="$ID_FOUNDATION"; deps="" ;;
-            notes) cf_id="$ID_NOTES"; deps="" ;;
+            notes) cf_id="$ID_NOTES"; deps="jei(optional){curseforge:238222}, ftbteams(optional){curseforge:404468}" ;;
             alchemy) cf_id="$ID_ALCHEMY"; deps="servus_foundation(required){curseforge:$ID_FOUNDATION}" ;;
             shuttles) cf_id="$ID_SHUTTLES"; deps="servus_foundation(required){curseforge:$ID_FOUNDATION}" ;;
             delicacies) cf_id="$ID_DELICACIES"; deps="servus_foundation(required){curseforge:$ID_FOUNDATION}" ;;
