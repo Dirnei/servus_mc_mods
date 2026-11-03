@@ -29,3 +29,28 @@ neoForge {
 // The codec tests read and write Minecraft codecs without starting the game.
 sourceSets.test.compileClasspath += sourceSets.main.compileClasspath
 sourceSets.test.runtimeClasspath += sourceSets.main.runtimeClasspath
+
+// Dev only: the screenshots run builds a demo world and saves the store screenshots to runs/screenshots/screenshots.
+// Its classes join the mod in dev runs but never the jar, and stay idle unless servus.notes.screenshots is set.
+sourceSets {
+    screenshots {
+        runtimeClasspath += sourceSets.main.runtimeClasspath
+    }
+}
+neoForge.addModdingDependenciesTo(sourceSets.screenshots)
+dependencies {
+    screenshotsImplementation sourceSets.main.output
+}
+ownMod.sourceSet(sourceSets.screenshots)
+
+neoForge {
+    runs {
+        screenshots {
+            client()
+            sourceSet = sourceSets.screenshots
+            gameDirectory = project.file('runs/screenshots')
+            systemProperty 'servus.notes.screenshots', 'true'
+            programArguments.addAll '--username', 'Servus', '--width', '1920', '--height', '1080'
+        }
+    }
+}
